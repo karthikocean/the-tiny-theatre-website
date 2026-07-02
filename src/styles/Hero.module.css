@@ -1,0 +1,258 @@
+/* src/styles/Hero.module.css */
+
+/* -------------------------------------------------
+   Hero Section Wrapper – occupies full viewport
+   ------------------------------------------------- */
+.heroSection {
+  @apply relative h-screen overflow-hidden;
+}
+
+/* -------------------------------------------------
+   Background container – holds the <img> and overlay
+   ------------------------------------------------- */
+.heroBackground {
+  @apply absolute inset-0 overflow-hidden;
+}
+
+/* Image – fills the container, covers, centers, slow zoom */
+.heroImage {
+  @apply w-full h-full object-cover object-center;
+  /* slow zoom animation */
+  animation: zoomScale 30s ease-in-out infinite alternate;
+}
+
+@keyframes zoomScale {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.08);
+  }
+}
+
+/* -------------------------------------------------
+   Gradient overlay – dark on left, transparent on right
+   ------------------------------------------------- */
+.heroOverlay {
+  @apply absolute inset-0;
+  background: linear-gradient(90deg,
+      rgba(7, 26, 22, 0.92) 0%,
+      rgba(7, 26, 22, 0.82) 35%,
+      rgba(7, 26, 22, 0.45) 65%,
+      rgba(7, 26, 22, 0.15) 100%);
+}
+
+/* -------------------------------------------------
+   Content container – centered content
+   ------------------------------------------------- */
+.heroContent {
+  @apply absolute inset-0 flex flex-col items-center justify-center text-center px-4;
+}
+
+.floatingCard {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  width: 260px;
+  padding: 16px;
+
+  border-radius: 20px;
+
+  background: rgba(24, 24, 24, 0.45);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  box-shadow:
+    0 15px 45px rgba(0, 0, 0, 0.35),
+    0 0 20px rgba(255, 197, 18, 0.08);
+
+  z-index: 10;
+
+  transition: all 0.4s ease;
+}
+
+.floatingCard:hover {
+  transform: translateY(-6px);
+  border-color: #FFC512;
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.45),
+    0 0 25px rgba(255, 197, 18, 0.2);
+}
+
+@media (max-width: 768px) {
+  .floatingCard {
+    left: 50%;
+    right: auto;
+    bottom: 24px;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    max-width: 340px;
+  }
+
+  .floatingCard:hover {
+    transform: translateX(-50%) translateY(-6px);
+  }
+}
+
+.cardImage {
+  @apply w-16 h-16 object-cover rounded-md;
+}
+
+.cardInfo {
+  @apply flex flex-col;
+}
+
+.cardTitle {
+  @apply text-white font-medium;
+}
+
+.cardDesc {
+  @apply text-[#C6D1CD] text-sm;
+}
+
+.cardArrow {
+  @apply text-[#FFC512] text-xl;
+}
+
+/* -------------------------------------------------
+   Navigation dots
+   ------------------------------------------------- */
+.navDots {
+  @apply absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2;
+}
+
+.dot {
+  @apply w-2 h-2 bg-white opacity-50 rounded-full;
+}
+
+.activeDot {
+  @apply bg-[#FFC512] opacity-100;
+}
+
+/* -------------------------------------------------
+   Badge – small premium label
+   ------------------------------------------------- */
+.heroTagline {
+  @apply text-sm font-medium uppercase tracking-widest text-[#FFC512] mb-2;
+}
+
+.heroSubtitle {
+  @apply text-lg md:text-xl text-[#C6D1CD] mb-4;
+}
+
+/* Thin gold divider */
+.heroDivider {
+  @apply w-12 h-0.5 bg-[#FFC512] mb-4;
+}
+
+/* -------------------------------------------------
+   Heading – Playfair Display, responsive sizes
+   ------------------------------------------------- */
+.heroHeading {
+  @apply font-heading text-white mb-4;
+  font-size: 72px;
+  /* desktop */
+  line-height: 1.1;
+}
+
+@media (max-width: 1024px) {
+  .heroHeading {
+    font-size: 56px;
+  }
+}
+
+@media (max-width: 640px) {
+  .heroHeading {
+    font-size: 38px;
+  }
+}
+
+/* Accent part of heading */
+.heroAccent {
+  @apply text-[#FFC512];
+}
+
+/* -------------------------------------------------
+   Description / subtitle text
+   ------------------------------------------------- */
+.heroDescription {
+  @apply text-base md:text-lg text-[#FFFFFF] opacity-90 mb-6;
+}
+
+/* -------------------------------------------------
+   Buttons container
+   ------------------------------------------------- */
+.heroButtons {
+  @apply flex flex-wrap gap-4 mb-8;
+}
+
+/* Primary CTA – filled gold */
+.heroPrimaryBtn {
+  @apply bg-[#FFC512] text-[#0B0B0B] font-medium px-6 py-3 rounded-full transition-transform duration-200;
+  box-shadow: 0 0 20px rgba(255, 197, 18, 0.4), 0 0 40px rgba(255, 197, 18, 0.15);
+}
+
+.heroPrimaryBtn:hover {
+  @apply scale-105;
+}
+
+/* Secondary CTA – outline gold */
+.heroSecondaryBtn {
+  @apply border border-[#FFC512] text-[#FFC512] font-medium px-6 py-3 rounded-full transition-all duration-200;
+}
+
+.heroSecondaryBtn:hover {
+  @apply bg-[#FFC512] text-[#0B0B0B];
+}
+
+/* -------------------------------------------------
+   Feature list – three items below buttons
+   ------------------------------------------------- */
+.heroFeatures {
+  @apply grid grid-cols-3 gap-6 text-center md:text-left;
+}
+
+.heroFeature {
+  @apply flex flex-col items-center md:items-start;
+}
+
+.heroFeatureIcon {
+  @apply flex items-center justify-center w-12 h-12 mb-2 rounded-full bg-[#008C6A] text-white text-2xl;
+}
+
+.heroFeatureTitle {
+  @apply font-medium text-white;
+}
+
+.heroFeatureText {
+  @apply text-sm text-[#C6D1CD];
+}
+
+/* -------------------------------------------------
+   Responsive tweaks for mobile
+   ------------------------------------------------- */
+@media (max-width: 768px) {
+  .heroContainer {
+    @apply justify-center text-center pl-0;
+  }
+
+  .heroGlassCard {
+    @apply w-full mx-4;
+  }
+
+  .heroButtons {
+    @apply flex-col items-center;
+  }
+
+  .heroFeatures {
+    @apply grid-cols-1;
+  }
+}

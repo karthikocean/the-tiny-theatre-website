@@ -1,0 +1,25 @@
+.section {
+    padding: 100px 0;
+    background: #0b0b0b;
+}
+
+.container {
+    max-width: 1280px;
+    margin: auto;
+    padding: 0 24px;
+}
+
+.title {
+    color: #fff;
+}
+
+.card {
+    background: #181818;
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-8px);
+}

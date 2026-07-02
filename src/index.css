@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --clr-primary: #008C6A;
+  --clr-accent: #FFC512;
+  --clr-dark: #071A16;
+  --clr-card: #102B25;
+  --clr-section: #0C201B;
+  --clr-text: #C6D1CD;
+  --clr-border: rgba(255,255,255,0.08);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  background-color: var(--clr-dark);
+  color: var(--clr-text);
+  font-family: 'Poppins', sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--clr-dark); }
+::-webkit-scrollbar-thumb { background: var(--clr-primary); border-radius: 3px; }
+
+/* Selection */
+::selection { background: rgba(0,140,106,0.35); color: #fff; }
+
+@layer utilities {
+  .font-heading { font-family: 'Playfair Display', serif; }
+  .font-body    { font-family: 'Poppins', sans-serif; }
+
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #FFC512 0%, #FFD700 50%, #FFA500 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-green {
+    background: linear-gradient(135deg, #008C6A 0%, #00BF8F 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glass {
+    background: rgba(16, 43, 37, 0.45);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .glass-light {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .glow-gold {
+    box-shadow: 0 0 30px rgba(255,197,18,0.4), 0 0 60px rgba(255,197,18,0.15);
+  }
+
+  .glow-green {
+    box-shadow: 0 0 30px rgba(0,140,106,0.4), 0 0 60px rgba(0,140,106,0.15);
+  }
+
+  .noise-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    opacity: 0.04;
+    z-index: 1;
+  }
+}

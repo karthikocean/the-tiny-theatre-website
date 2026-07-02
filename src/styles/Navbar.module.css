@@ -1,0 +1,12 @@
+/* src/styles/Navbar.module.css */
+/* Glassmorphism background for sticky navbar */
+.bg-glassback {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+
+/* Button styles used in Navbar */
+.btn-primary {
+  @apply bg-primary text-darkBg font-semibold py-2 px-4 rounded-md transition-transform hover:scale-105;
+}
