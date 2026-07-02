@@ -51,7 +51,7 @@
 }
 
 .section-title {
-    font-size: 36px;
+    font-size: 20px;
     font-weight: 700;
     color: #ffffff;
     margin: 10px 0 20px;
@@ -79,6 +79,9 @@
     transition: all 0.4s ease;
     position: relative;
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .card:hover {
@@ -171,4 +174,71 @@
     .cards-container {
         grid-template-columns: 1fr;
     }
+}
+
+/* Custom premium classes added for card header redesign */
+
+.cardHeader {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+}
+
+.iconWrapper {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 140, 106, 0.15);
+    border: 1px solid rgba(255, 197, 18, 0.18);
+    color: #FFC512;
+    flex-shrink: 0;
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.iconWrapper svg {
+    width: 28px;
+    height: 28px;
+}
+
+.packageTitle {
+    font-size: 32px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.2;
+    margin: 0;
+}
+
+.packageDescription {
+    margin-top: 20px;
+    color: rgba(255, 255, 255, 0.72);
+    line-height: 1.7;
+    font-size: 15px;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 1024px) {
+    .packageTitle {
+        font-size: 28px;
+    }
+}
+
+@media (max-width: 640px) {
+    .packageTitle {
+        font-size: 24px;
+    }
+}
+
+.cardContent {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.packageButton {
+    margin-top: auto;
+    width: 100%;
 }

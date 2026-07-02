@@ -54,7 +54,7 @@ const CelebrationPackages = () => {
                     {packages.map((item, index) => (
                         <div
                             key={index}
-                            className="bg-[#151515] rounded-3xl overflow-hidden border border-[#2A2A2A] hover:border-[#008C6A] transition-all duration-300 hover:-translate-y-2"
+                            className={`${styles.card} bg-[#151515] rounded-3xl overflow-hidden border border-[#2A2A2A] hover:border-[#008C6A] transition-all duration-300 hover:-translate-y-2`}
                         >
                             <div className="h-64 overflow-hidden">
                                 <img
@@ -64,20 +64,21 @@ const CelebrationPackages = () => {
                                 />
                             </div>
 
-                            <div className="p-7">
-                                <div className="w-14 h-14 rounded-full bg-[#008C6A]/20 text-[#FFC512] flex items-center justify-center text-2xl mb-5">
-                                    {item.icon}
+                            <div className={`${styles.cardContent} p-7`}>
+                                <div className={styles.cardHeader}>
+                                    <div className={styles.iconWrapper}>
+                                        {item.icon}
+                                    </div>
+                                    <h3 className={styles.packageTitle}>
+                                        {item.title}
+                                    </h3>
                                 </div>
 
-                                <h3 className="text-2xl font-semibold text-white mb-3">
-                                    {item.title}
-                                </h3>
-
-                                <p className="text-gray-400 leading-7">
+                                <p className={styles.packageDescription}>
                                     {item.description}
                                 </p>
 
-                                <button className="mt-8 w-full bg-[#008C6A] hover:bg-[#00A57E] text-white py-3 rounded-full font-semibold transition duration-300">
+                                <button className={`${styles.packageButton} bg-[#008C6A] hover:bg-[#00A57E] text-white py-3 rounded-full font-semibold transition duration-300`}>
                                     Select Package
                                 </button>
                             </div>
