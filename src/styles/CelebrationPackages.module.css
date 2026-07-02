@@ -21,6 +21,28 @@
     margin-bottom: 50px;
 }
 
+/* Small gold tagline */
+.tagline {
+    color: #FFC512;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+
+/* Divider */
+.divider {
+    width: 48px;
+    height: 3px;
+    background: linear-gradient(90deg, #FFC512 0%, rgba(255, 197, 18, 0.4) 100%);
+    margin-bottom: 24px;
+    border-radius: 2px;
+    margin-top: 20px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .section-subtitle {
     color: #ffc107;
     font-weight: 700;

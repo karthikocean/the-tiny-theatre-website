@@ -1,10 +1,32 @@
-/* Why Choose Us Section - Premium Editorial Layout */
+/* Why Choose Us Section - Premium Glassmorphic Layout */
 
 .section {
   position: relative;
-  padding: 100px 0;
-  background: #071A16; /* Dark background */
+  padding: 120px 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   overflow: hidden;
+}
+
+/* Premium dark gradient overlay */
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg,
+      rgba(7, 26, 22, 0.55),
+      rgba(7, 26, 22, 0.82));
+  z-index: 1;
+  pointer-events: none;
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
 }
 
 /* Small gold tagline */
@@ -14,185 +36,138 @@
   font-weight: 600;
   letter-spacing: 3px;
   text-transform: uppercase;
-  text-align: center;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+/* Divider */
+.divider {
+  width: 48px;
+  height: 3px;
+  background: linear-gradient(90deg, #FFC512 0%, rgba(255, 197, 18, 0.4) 100%);
+  margin-bottom: 24px;
+  border-radius: 2px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Large heading */
 .heading {
   color: #ffffff;
   font-size: 48px;
-  font-weight: 700;
-  line-height: 1.2;
-  text-align: center;
-  margin: 0 auto 24px;
+  font-weight: 800;
+  line-height: 1.25;
+  margin-bottom: 24px;
 }
 
 .highlight {
   color: #FFC512;
 }
 
+/* Description in soft gray */
 .description {
   color: #bcbcbc;
-  max-width: 720px;
-  margin: 0 auto 40px;
+  /* Soft gray */
+  max-width: 680px;
+  font-size: 16px;
   line-height: 1.8;
-  text-align: center;
+  margin: 0 auto;
 }
 
-/* Main feature card */
-.mainCard {
-  background: rgba(255, 255, 255, 0.04);
+/* Premium Glass Cards Grid */
+.statCard {
+  background: rgba(15, 15, 15, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
-  border-radius: 32px;
-  padding: 32px;
+  border-radius: 22px;
+  padding: 30px;
   display: flex;
   align-items: center;
-  gap: 24px;
-  transition: all 0.35s ease;
-  position: relative;
+  gap: 18px;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  text-align: left;
 }
 
-.mainCard:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 0 20px rgba(255, 197, 18, 0.6);
+/* Card hover interactions */
+.statCard:hover {
+  transform: translateY(-10px);
+  border-color: #FFC512;
+  box-shadow: 0 20px 50px rgba(255, 197, 18, 0.25);
 }
 
-.mainCardIcon {
-  background: rgba(255, 197, 18, 0.15);
+/* Circular icon with gold background glow */
+.statIcon {
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  width: 64px;
-  height: 64px;
+  background: rgba(255, 197, 18, 0.1);
+  border: 1px solid rgba(255, 197, 18, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #FFC512;
+  box-shadow: 0 0 15px rgba(255, 197, 18, 0.15);
+  transition: transform 0.4s ease;
   flex-shrink: 0;
 }
 
-.mainCardContent {
-  flex: 1;
-}
-
-.mainCardTitle {
-  color: #ffffff;
-  font-size: 24px;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-.mainCardDesc {
-  color: #bcbcbc;
-  font-size: 16px;
-}
-
-.mainCardButton {
-  background: transparent;
-  border: 2px solid #FFC512;
-  border-radius: 50%;
-  width: 48px;
-  height: 48px;
+/* Card layout wrapper for counter and label */
+.statContent {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Counter typography: 36px, Bold, Gold */
+.statCounter {
+  font-size: 36px;
+  font-weight: 700;
   color: #FFC512;
-  transition: all 0.3s ease;
+  line-height: 1.1;
 }
 
-.mainCardButton:hover {
-  background: #FFC512;
-  color: #071A16;
-}
-
-/* Premium cards below main feature */
-.premiumCard {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
-  border-radius: 24px;
-  padding: 24px;
-  text-align: center;
-  transition: all 0.35s ease;
-}
-
-.premiumCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 0 15px rgba(255, 197, 18, 0.4);
-}
-
-.premiumIcon {
-  color: #FFC512;
-  margin-bottom: 12px;
-}
-
-.premiumTitle {
-  color: #ffffff;
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-
-.premiumDesc {
-  color: #bcbcbc;
-  font-size: 14px;
-}
-
-/* Statistics row cards */
-.statCard {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
-  border-radius: 24px;
-  padding: 20px;
-  text-align: center;
-  transition: all 0.35s ease;
-}
-
-.statCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 0 15px rgba(255, 197, 18, 0.4);
-}
-
-.statValue {
-  color: #FFC512;
-  font-size: 24px;
-  font-weight: 600;
-  display: block;
-  margin-bottom: 4px;
-}
-
+/* Label typography: 16px, White */
 .statLabel {
-  color: #bcbcbc;
-  font-size: 14px;
+  font-size: 16px;
+  color: #ffffff;
+  font-weight: 500;
+  line-height: 1.3;
 }
 
 /* Responsive adjustments */
-@media (max-width: 992px) {
+@media (max-width: 1024px) {
   .heading {
     font-size: 38px;
   }
-  .mainCard {
-    flex-direction: column;
-    text-align: center;
+
+  .statCard {
+    padding: 24px;
+    gap: 14px;
   }
-  .mainCardIcon {
-    margin: 0 auto;
+
+  .statCounter {
+    font-size: 30px;
+  }
+
+  .statLabel {
+    font-size: 15px;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .section {
-    padding: 70px 0;
+    padding: 80px 0;
   }
+
   .heading {
     font-size: 30px;
   }
-  .mainCard {
-    padding: 24px;
+
+  .description {
+    font-size: 15px;
   }
-  .mainCardIcon {
-    width: 56px;
-    height: 56px;
+
+  .statCard {
+    padding: 24px 20px;
   }
 }

@@ -39,35 +39,40 @@ function Counter({ target, suffix }) {
 }
 
 const WhyChooseUs = () => (
-  <section className={styles.section} style={{ backgroundImage: `url(${bgImage})` }}>
+  <section id="why-choose-us" className={styles.section} style={{ backgroundImage: `url(${bgImage})` }}>
     <div className={styles.overlay} />
-    <div className="container mx-auto flex flex-col items-center justify-center h-full gap-6 px-4 text-center">
+    <div className={`${styles.content} container mx-auto flex flex-col items-center justify-center h-full px-4 text-center`}>
       <motion.p
-        className={styles.tagline}
+        className={`${styles.tagline} mb-4`}
         initial={{ opacity: 0, y: -20 }}
         whileInView={{ opacity: 1, y: 0, transition: { duration: 0.6 } }}
         viewport={{ once: true }}
       >
         WHY CHOOSE US
       </motion.p>
+
+      <div className={styles.divider}></div>
+
       <motion.h2
-        className={styles.heading}
+        className={`${styles.heading} mb-6`}
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0, transition: { duration: 0.8 } }}
         viewport={{ once: true }}
       >
         Why Every Celebration Deserves <span className={styles.highlight}>Luxury</span>
       </motion.h2>
+
       <motion.p
-        className={styles.description}
+        className={`${styles.description} mb-12 md:mb-16`}
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0, transition: { duration: 0.8, delay: 0.2 } }}
         viewport={{ once: true }}
       >
         Our private theatre blends bespoke design with state‑of‑the‑art technology, delivering an unforgettable cinematic journey for every special moment.
       </motion.p>
+
       <motion.div
-        className={styles.statsRow}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full"
         initial="hidden"
         whileInView="visible"
         variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.2 } } }}
@@ -76,12 +81,21 @@ const WhyChooseUs = () => (
         {stats.map((item, idx) => (
           <motion.div
             key={idx}
-            className={styles.statItem}
-            variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6 } } }}
+            className={styles.statCard}
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+            }}
           >
-            <div className={styles.statIcon}><item.icon size={28} /></div>
-            <div className={styles.statCounter}><Counter target={item.value} suffix={item.suffix} /></div>
-            <div className={styles.statLabel}>{item.label}</div>
+            <div className={styles.statIcon}>
+              <item.icon size={28} />
+            </div>
+            <div className={styles.statContent}>
+              <div className={styles.statCounter}>
+                <Counter target={item.value} suffix={item.suffix} />
+              </div>
+              <div className={styles.statLabel}>{item.label}</div>
+            </div>
           </motion.div>
         ))}
       </motion.div>

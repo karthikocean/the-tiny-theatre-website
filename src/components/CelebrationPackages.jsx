@@ -1,6 +1,9 @@
 import React from "react";
 import { FaBirthdayCake, FaGlassCheers, FaHeart } from "react-icons/fa";
-import "../styles/CelebrationPackages.module.css";
+import birthdayImage from "../assets/images/birthdaycelebration.png";
+import anniversaryImage from "../assets/images/anniversarycelebration.png";
+import proposalImage from "../assets/images/proposalsetup.png";
+import styles from "../styles/CelebrationPackages.module.css";
 
 const packages = [
     {
@@ -8,32 +11,34 @@ const packages = [
         title: "Birthday Celebration",
         description:
             "Celebrate your special day in a luxurious private theatre with custom decorations and unforgettable moments.",
-        image: "/src/assets/images/birthday.jpg",
+        image: birthdayImage,
     },
     {
         icon: <FaGlassCheers />,
         title: "Anniversary Celebration",
         description:
             "Create beautiful memories together with a romantic private cinema experience.",
-        image: "/src/assets/images/anniversary.jpg",
+        image: anniversaryImage,
     },
     {
         icon: <FaHeart />,
         title: "Proposal Setup",
         description:
             "Make your proposal magical with premium décor, lighting and your favourite movie.",
-        image: "/src/assets/images/proposal.jpg",
+        image: proposalImage,
     },
 ];
 
 const CelebrationPackages = () => {
     return (
-        <section className="w-full bg-[#0B0B0B] py-24 px-6">
+        <section id="celebration-packages" className="w-full bg-[#0B0B0B] py-24 px-6">
             <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-14">
                     <p className="uppercase tracking-[4px] text-[#FFC512] text-sm font-semibold">
                         Luxury Enhancements
                     </p>
+
+                    <div className={styles.divider}></div>
 
                     <h2 className="text-4xl md:text-5xl font-bold text-white mt-3">
                         Elevate Your Celebration

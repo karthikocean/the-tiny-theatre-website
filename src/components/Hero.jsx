@@ -13,7 +13,7 @@ const description = "Indulge in a luxurious private cinema where every detail is
 const transition = { duration: 0.6, ease: "easeInOut" };
 
 const Hero = () => (
-  <section className={styles.heroSection}>
+  <section id="hero" className={styles.heroSection}>
     {/* Background image with subtle zoom animation */}
     <motion.div
       className={styles.heroBackground}

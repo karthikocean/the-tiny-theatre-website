@@ -1,2 +1,151 @@
 /* src/styles/Footer.module.css */
-/* Footer section uses Tailwind utilities in JSX */
+
+.footer {
+  width: 100%;
+  background: #050505;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.footerContainer {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding-top: 80px;
+  padding-bottom: 30px;
+}
+
+/* Column 1 Logo in elegant Playfair Display */
+.logo {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+/* Description text in soft gray */
+.description {
+  color: #B8B8B8;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Headings in uppercase white */
+.heading {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* Social icons circular outlined outline */
+.socialIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #B8B8B8;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  background: transparent;
+  text-decoration: none;
+}
+
+.socialIcon:hover {
+  background: #FFC512;
+  color: #050505;
+  border-color: #FFC512;
+  transform: translateY(-3px);
+}
+
+/* Columns 2 & 3 links styling */
+.link {
+  display: inline-flex;
+  align-items: center;
+  color: #B8B8B8;
+  font-size: 15px;
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  cursor: pointer;
+}
+
+.linkArrow {
+  font-size: 10px;
+  margin-right: 8px;
+  color: #B8B8B8;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.link:hover {
+  color: #FFC512;
+  transform: translateX(6px);
+}
+
+.link:hover .linkArrow {
+  color: #FFC512;
+  transform: translateX(3px);
+}
+
+/* Column 4 Contact Item styling */
+.contactIcon {
+  color: #FFC512;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.contactText {
+  color: #B8B8B8;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.contactText:hover {
+  color: #ffffff;
+}
+
+/* Bottom Footer divider and copyright text */
+.divider {
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin: 0;
+}
+
+.bottomText {
+  color: #888888;
+  font-size: 13px;
+  margin: 0;
+}
+
+/* Developer link underline hover effect */
+.developerLink {
+  color: #FFC512;
+  text-decoration: none;
+  font-weight: 500;
+  position: relative;
+  display: inline-block;
+}
+
+.developerLink::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  transform: scaleX(0);
+  height: 1px;
+  bottom: -2px;
+  left: 0;
+  background-color: #FFC512;
+  transform-origin: bottom right;
+  transition: transform 0.3s ease-out;
+}
+
+.developerLink:hover::after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
+}
