@@ -82,7 +82,7 @@ export default function Screens({ preview, onViewMore }) {
   };
 
   return (
-    <section id="screens" className="relative py-24 bg-gradient-to-b from-theatre-dark to-theatre-dark/95 overflow-hidden">
+    <section id="screens" className="relative py-24  bg-gradient-to-b from-theatre-dark to-theatre-dark/95 overflow-hidden" style={{display:"none"}}>
       {/* Background ambient lighting */}
       <div className="absolute top-1/3 left-10 w-96 h-96 bg-theatre-gold/5 rounded-full blur-[130px] pointer-events-none" />
       <div className="absolute bottom-1/3 right-10 w-96 h-96 bg-theatre-grey/5 rounded-full blur-[130px] pointer-events-none" />
