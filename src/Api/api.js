@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const APP_ENV = (typeof process !== "undefined" && process.env.REACT_APP_ENV) || (typeof import.meta !== "undefined" && import.meta.env && (import.meta.env.VITE_APP_ENV || import.meta.env.REACT_APP_ENV)) || "local";
+const APP_ENV = (typeof process !== "undefined" && process.env.REACT_APP_ENV) || (typeof import.meta !== "undefined" && import.meta.env && (import.meta.env.VITE_APP_ENV || import.meta.env.REACT_APP_ENV)) || "production";
 
 let IMAGE_BASE_URL = "";
 let BASE_URL = "";
@@ -14,16 +14,16 @@ switch (APP_ENV) {
     break;
 
   case "production":
-    IMAGE_BASE_URL = "http://13.126.146.21:4000/public";
-    BASE_URL = "http://13.126.146.21:4000/api/website";
-    server = "http://13.126.146.21:4000";
+    IMAGE_BASE_URL = "http://http://65.0.84.181:5003/public";
+    BASE_URL = "http://65.0.84.181:5003/api/website";
+    server = "http://65.0.84.181:5003";
     break;
 
   case "local":
   default:
-    IMAGE_BASE_URL = "http://192.168.1.30:2001/public";
-    BASE_URL = "http://192.168.1.30:2001/api/website";
-    server = "http://192.168.1.30:2001";
+    IMAGE_BASE_URL = "http://192.168.1.19:2001/public";
+    BASE_URL = "http://192.168.1.19:2001/api/website";
+    server = "http://192.168.1.19:2001";
     break;
 }
 

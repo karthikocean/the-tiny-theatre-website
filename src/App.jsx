@@ -9,6 +9,7 @@ import PerfectFor from './components/PerfectFor';
 import WhyChooseUs from './components/WhyChooseUs';
 import BookingProcess from './components/BookingProcess';
 import Gallery from './components/Gallery';
+import Screens from './components/Screens';
 import Testimonials from './components/Testimonials';
 import BookNow from './components/BookNow';
 import ContactUs from './components/ContactUs';
@@ -135,10 +136,17 @@ function AppContent() {
               <Hero />
               <WhyChooseUs preview={true} onViewMore={() => navigate('/why-choose-us')} />
               <PerfectFor />
+              <Screens preview={true} onViewMore={() => navigate('/screens')} />
               <BookingProcess preview={true} onViewMore={() => navigate('/booking-process')} />
               <Gallery preview={true} onViewMore={() => navigate('/gallery')} />
               <Testimonials />
             </>
+          } />
+          
+          <Route path="/screens" element={
+            <div className="pt-32">
+              <Screens preview={false} />
+            </div>
           } />
           
 

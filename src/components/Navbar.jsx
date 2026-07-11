@@ -11,6 +11,7 @@ export default function Navbar() {
 
   const menuItems = [
     { name: 'Home', href: '#home', path: '/' },
+    { name: 'Our Screens', href: '#screens', path: '/screens' },
     { name: 'Why Choose Us', href: '#why-choose-us', path: '/why-choose-us' },
     { name: 'Booking Process', href: '#booking-process', path: '/booking-process' },
     { name: 'Gallery', href: '#gallery', path: '/gallery' },

@@ -1,8 +1,25 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Shield } from 'lucide-react';
+import { getTerms } from '../Api/Termsapi';
 
 export default function CancellationPolicy() {
+  const [refundData, setRefundData] = useState(null);
+
+  useEffect(() => {
+    const fetchRefundPolicy = async () => {
+      try {
+        const res = await getTerms({ title: 'cancel' });
+        if (res.status && res.response?.data?.length > 0) {
+          setRefundData(res.response.data[0]);
+        }
+      } catch (err) {
+        console.error("Error fetching refund policy:", err);
+      }
+    };
+    fetchRefundPolicy();
+  }, []);
+
   const sections = [
     {
       id: 1,
@@ -59,6 +76,22 @@ export default function CancellationPolicy() {
     }
   ];
 
+  const displayIntro = refundData?.introText || "Our goal is to provide flexibility while ensuring fair scheduling for all guests.";
+
+  const displaySections = refundData?.sections
+    ? refundData.sections.map((section, idx) => ({
+        id: idx + 1,
+        title: section.title,
+        content: section.points || []
+      }))
+    : sections;
+
+  const displayLastUpdated = refundData?.createdAt
+    ? `Last Updated: ${new Date(refundData.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`
+    : refundData?.updatedAt
+    ? `Last Updated: ${new Date(refundData.updatedAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`
+    : "Last Updated: July 11, 2026";
+
   return (
     <section className="relative py-24 bg-theatre-dark min-h-screen overflow-hidden">
       {/* Premium ambient glows */}
@@ -67,12 +100,7 @@ export default function CancellationPolicy() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* Subtitle */}
-        <div className="text-center mb-2">
-          <span className="text-theatre-gold text-xs font-semibold tracking-[0.25em] uppercase">
-            → REFUND RULES ←
-          </span>
-        </div>
+       
 
         {/* Title */}
         <h1 className="text-center font-serif text-4xl sm:text-5xl font-bold text-white mb-4 leading-tight">
@@ -88,17 +116,17 @@ export default function CancellationPolicy() {
 
         {/* Last Updated */}
         <p className="text-center text-gray-400 text-xs tracking-wider uppercase mb-16">
-          Last Updated: July 2026
+          {displayLastUpdated}
         </p>
 
         {/* Introduction */}
         <div className="bg-theatre-grey-deep/30 border border-theatre-gold/25 rounded-2xl p-6 sm:p-8 mb-12 text-gray-300 font-sans font-light leading-relaxed text-center sm:text-left">
-          Our goal is to provide flexibility while ensuring fair scheduling for all guests.
+          {displayIntro}
         </div>
 
         {/* Clause List */}
         <div className="space-y-12">
-          {sections.map((section, idx) => (
+          {displaySections.map((section, idx) => (
             <motion.div
               key={section.id}
               initial={{ opacity: 0, y: 20 }}

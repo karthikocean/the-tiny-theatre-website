@@ -1,8 +1,24 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Shield } from 'lucide-react';
-
+import { useEffect,useState } from 'react';
+import { getTerms } from '../Api/Termsapi';
 export default function HouseRules() {
+   const [houseRulesData, setHouseRulesData] = useState(null);
+  
+    useEffect(() => {
+      const fetchHouseRules = async () => {
+        try {
+          const res = await getTerms({ title: 'house' });
+          if (res.status && res.response?.data?.length > 0) {
+            setHouseRulesData(res.response.data[0]);
+          }
+        } catch (err) {
+          console.error("Error fetching house rules:", err);
+        }
+      };
+      fetchHouseRules();
+    }, []);
   const sections = [
     {
       id: 1,
@@ -67,6 +83,22 @@ export default function HouseRules() {
     }
   ];
 
+  const displayIntro = houseRulesData?.introText || "Welcome to The Tiny Theatre. To ensure a safe, comfortable, and enjoyable experience for everyone, please follow these house rules.";
+
+  const displaySections = houseRulesData?.sections
+    ? houseRulesData.sections.map((section, idx) => ({
+        id: idx + 1,
+        title: section.title,
+        content: section.points || []
+      }))
+    : sections;
+
+  const displayLastUpdated = houseRulesData?.createdAt
+    ? `Last Updated: ${new Date(houseRulesData.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`
+    : houseRulesData?.updatedAt
+    ? `Last Updated: ${new Date(houseRulesData.updatedAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`
+    : "Last Updated: July 11, 2026";
+
   return (
     <section className="relative py-24 bg-theatre-dark min-h-screen overflow-hidden">
       {/* Premium ambient glows */}
@@ -75,13 +107,7 @@ export default function HouseRules() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* Subtitle */}
-        <div className="text-center mb-2">
-          <span className="text-theatre-gold text-xs font-semibold tracking-[0.25em] uppercase">
-            → THEATRE CODE ←
-          </span>
-        </div>
-
+       
         {/* Title */}
         <h1 className="text-center font-serif text-4xl sm:text-5xl font-bold text-white mb-4 leading-tight">
           Theatre <span className="text-theatre-gold">House Rules</span>
@@ -96,17 +122,17 @@ export default function HouseRules() {
 
         {/* Last Updated */}
         <p className="text-center text-gray-400 text-xs tracking-wider uppercase mb-16">
-          Last Updated: July 2026
+          {displayLastUpdated}
         </p>
 
         {/* Introduction */}
         <div className="bg-theatre-grey-deep/30 border border-theatre-gold/25 rounded-2xl p-6 sm:p-8 mb-12 text-gray-300 font-sans font-light leading-relaxed text-center sm:text-left">
-          Welcome to The Tiny Theatre. To ensure a safe, comfortable, and enjoyable experience for everyone, please follow these house rules.
+          {displayIntro}
         </div>
 
         {/* Clause List */}
         <div className="space-y-12">
-          {sections.map((section, idx) => (
+          {displaySections.map((section, idx) => (
             <motion.div
               key={section.id}
               initial={{ opacity: 0, y: 20 }}
