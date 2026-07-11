@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Tv, 
   Calendar as CalendarIcon, 
@@ -30,9 +30,13 @@ import {
   Wind
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { getScreens } from '../Api/screenapi';
+import { getImageUrl } from '../Api/api';
+import { getAddons } from '../Api/addonsapi';
 
 export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   const navigate = useNavigate();
+  const location = useLocation();
   
   // Current active step of the wizard (1 to 11)
   const [activeStep, setActiveStep] = useState(1);
@@ -47,7 +51,9 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   };
 
   // States representing user inputs
-  const [selectedScreen, setSelectedScreen] = useState(null); // 'A' or 'B'
+  const [selectedScreen, setSelectedScreen] = useState(() => {
+    return location.state?.selectedScreen || null;
+  }); // 'A' or 'B'
   const [selectedDate, setSelectedDate] = useState(getTodayDateString());
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
   
@@ -115,19 +121,79 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   // Validation errors for each step
   const [stepErrors, setStepErrors] = useState({});
 
+  // Dynamic screens fetching
+  const [screens, setScreens] = useState([]);
+  const [loadingScreens, setLoadingScreens] = useState(true);
+
+  useEffect(() => {
+    const fetchScreens = async () => {
+      try {
+        const res = await getScreens();
+        if (res && res.status && res.response && res.response.data) {
+          const activeScreens = res.response.data.filter(
+            (screen) => screen.isActive === 1 && screen.isDelete === 0
+          );
+          setScreens(activeScreens);
+        }
+      } catch (err) {
+        console.error('Error fetching screens in BookNow:', err);
+      } finally {
+        setLoadingScreens(false);
+      }
+    };
+    fetchScreens();
+  }, []);
+
+  // Dynamic addons fetching
+  const [dbAddons, setDbAddons] = useState([]);
+  const [loadingAddons, setLoadingAddons] = useState(true);
+
+  useEffect(() => {
+    const fetchAddons = async () => {
+      try {
+        const res = await getAddons();
+        if (res && res.status && res.response && res.response.data) {
+          const activeAddons = res.response.data.filter(
+            (addon) => addon.isActive === 1 && addon.isDelete === 0
+          );
+          setDbAddons(activeAddons);
+        }
+      } catch (err) {
+        console.error('Error fetching addons in BookNow:', err);
+      } finally {
+        setLoadingAddons(false);
+      }
+    };
+    fetchAddons();
+  }, []);
+
   // Calculations
   const basePrice = selectedScreen === 'A' ? 2399 : selectedScreen === 'B' ? 1799 : 0;
   const maxCapacity = selectedScreen === 'A' ? 15 : selectedScreen === 'B' ? 6 : 0;
   const totalGuests = Number(guests.adults) + Number(guests.kids3to10) + Number(guests.kidsBelow3);
   
-  // Additional guest charges: first 4 adults free, additional adults charged at guestRate
-  const additionalAdults = guests.adults > 4 ? guests.adults - 4 : 0;
+  // Base price covers up to 4 guests (Adults + Kids 3-10) in total
+  const baseCountableGuests = Number(guests.adults) + Number(guests.kids3to10);
+  
+  let additionalAdults = 0;
+  let additionalKids = 0;
+  
+  if (baseCountableGuests > 4) {
+    if (guests.adults >= 4) {
+      additionalAdults = guests.adults - 4;
+      additionalKids = guests.kids3to10;
+    } else {
+      additionalAdults = 0;
+      additionalKids = guests.kids3to10 - (4 - guests.adults);
+    }
+  }
+
   const guestRate = selectedScreen === 'A' ? 450 : selectedScreen === 'B' ? 400 : 0;
   const additionalGuestCharges = additionalAdults * guestRate;
 
   // Kids between 3 to 10 charges
   const kids3to10Rate = selectedScreen === 'A' ? 250 : 200;
-  const kids3to10Charges = Number(guests.kids3to10) * kids3to10Rate;
+  const kids3to10Charges = additionalKids * kids3to10Rate;
 
   // Cake flavor prices
   const cakePrices = {
@@ -142,7 +208,39 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   const decorCharges = wantsDecor ? (selectedScreen === 'A' ? 900 : 800) : 0;
 
   // Add-on pricing definitions
-  const addonsPrices = {
+  const getAddonIcon = (name) => {
+    const n = name.toLowerCase();
+    if (n.includes('photography')) return Camera;
+    if (n.includes('videography')) return Camera;
+    if (n.includes('speaker')) return Volume2;
+    if (n.includes('lighting')) return Lightbulb;
+    if (n.includes('message')) return MessageSquare;
+    if (n.includes('fog')) return Wind;
+    if (n.includes('led')) return Lightbulb;
+    if (n.includes('candle')) return Sparkles;
+    if (n.includes('sash')) return Star;
+    if (n.includes('crown')) return Star;
+    if (n.includes('karaoke')) return Mic;
+    return Sparkles;
+  };
+
+  const getAddonKey = (name) => {
+    const n = name.toLowerCase();
+    if (n.includes('photography')) return 'photography';
+    if (n.includes('videography')) return 'videography';
+    if (n.includes('speaker')) return 'speaker';
+    if (n.includes('lighting')) return 'lighting';
+    if (n.includes('message')) return 'message';
+    if (n.includes('fog')) return 'fog_entry';
+    if (n.includes('led')) return 'led_numbers';
+    if (n.includes('candle')) return 'candle_path';
+    if (n.includes('sash')) return 'event_sash';
+    if (n.includes('crown')) return 'crown';
+    if (n.includes('karaoke')) return 'karaoke';
+    return name.replace(/\s+/g, '_').toLowerCase();
+  };
+
+  const defaultAddonsPrices = {
     'photography': { name: 'Professional Photography', price: 1500 },
     'videography': { name: 'Cinematic Videography', price: 2500 },
     'speaker': { name: 'Bluetooth Party Speaker', price: 300 },
@@ -155,6 +253,18 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     'crown': { name: 'Crown', price: 150 },
     'karaoke': { name: 'Karaoke Setup', price: 800 }
   };
+
+  const addonsPrices = { ...defaultAddonsPrices };
+  if (dbAddons && dbAddons.length > 0) {
+    dbAddons.forEach((addon) => {
+      const key = getAddonKey(addon.name);
+      addonsPrices[key] = {
+        name: addon.name,
+        price: addon.price
+      };
+    });
+  }
+
   const addonsCharges = selectedAddons.reduce((sum, key) => sum + (addonsPrices[key]?.price || 0), 0);
 
   const subtotal = basePrice + additionalGuestCharges + kids3to10Charges + cakeCharges + decorCharges + addonsCharges;
@@ -428,124 +538,90 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     )}
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
-                      {/* Screen A Card */}
-                      <div 
-                        onClick={() => { setSelectedScreen('A'); setStepErrors({}); }}
-                        className={`rounded-2xl overflow-hidden bg-theatre-dark/40 border cursor-pointer group transition-all duration-300 flex flex-col ${
-                          selectedScreen === 'A' 
-                            ? 'border-theatre-gold shadow-lg shadow-theatre-gold/15 scale-[1.01]' 
-                            : 'border-white/10 hover:border-white/20'
-                        }`}
-                      >
-                        <div className="relative h-44 overflow-hidden bg-gray-900">
-                          <img 
-                            src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=400&q=80" 
-                            alt="Screen A Grand Hall" 
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                          <span className="absolute top-3 left-3 px-3 py-1 bg-theatre-gold text-theatre-grey-deep font-sans text-[10px] font-black uppercase rounded-full">
-                            Grand Hall
-                          </span>
-                        </div>
-                        <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
-                          <div className="space-y-1.5">
-                            <h4 className="text-base sm:text-lg font-serif font-bold text-white">Screen A</h4>
-                            <p className="text-xs text-gray-400 font-light leading-relaxed">Ideal for large group movie nights, reunions, and grand parties.</p>
-                          </div>
-                          <div className="space-y-2 border-t border-white/5 pt-3">
-                            <div className="flex justify-between items-baseline text-xs">
-                              <span className="text-gray-500 mr-2">Capacity:</span>
-                              <span className="text-white font-semibold whitespace-nowrap text-right">Upto 15 Members</span>
-                            </div>
-                            <div className="flex justify-between items-baseline text-xs">
-                              <span className="text-gray-500 mr-2">Base Price (covers 4 members):</span>
-                              <span className="text-theatre-gold font-bold whitespace-nowrap text-right">₹2,399 (Inc. GST)</span>
-                            </div>
-                            <div className="flex justify-between items-baseline text-xs">
-                              <span className="text-gray-500 mr-2">Extra Guest (above 4):</span>
-                              <span className="text-white whitespace-nowrap text-right">₹450 / each (Inc. GST)</span>
-                            </div>
-                            <div className="flex justify-between items-baseline text-xs">
-                              <span className="text-gray-500 mr-2">Kids (Below 3 years):</span>
-                              <span className="text-green-500 font-bold whitespace-nowrap text-right">Free</span>
-                            </div>
-                            <div className="flex justify-between items-baseline text-xs">
-                              <span className="text-gray-500 mr-2">Kids (3 to 10 years):</span>
-                              <span className="text-white whitespace-nowrap text-right">₹250 / each</span>
-                            </div>
-                          </div>
-                          
+                      {((screens && screens.length > 0) ? screens : [
+                        {
+                          _id: 'default-a',
+                          name: 'Screen A',
+                          description: 'Ideal for large group movie nights, reunions, and grand parties.',
+                          capacity: 15,
+                          image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=400&q=80'
+                        },
+                        {
+                          _id: 'default-b',
+                          name: 'Screen B',
+                          description: 'Perfect for intimate date nights, couples, and small family gatherings.',
+                          capacity: 6,
+                          image: 'https://images.unsplash.com/photo-1595769816263-9b910be24d5f?auto=format&fit=crop&w=400&q=80'
+                        }
+                      ]).map((screen) => {
+                        const screenCode = screen.name.toLowerCase().includes('b') ? 'B' : 'A';
+                        const isSelected = selectedScreen === screenCode;
+                        
+                        const pricingInfo = screenCode === 'A' ? {
+                          badge: 'Grand Hall',
+                          basePrice: '₹2,399',
+                          extraGuest: '₹450 / each',
+                          kids: '₹250 / each',
+                          fallbackImg: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=400&q=80'
+                        } : {
+                          badge: 'Cozy Suite',
+                          basePrice: '₹1,799',
+                          extraGuest: '₹400 / each',
+                          kids: '₹200 / each',
+                          fallbackImg: 'https://images.unsplash.com/photo-1595769816263-9b910be24d5f?auto=format&fit=crop&w=400&q=80'
+                        };
 
-                          <button 
-                            className={`w-full py-2.5 rounded-xl font-sans text-xs font-bold transition-all duration-300 ${
-                              selectedScreen === 'A'
-                                ? 'bg-theatre-gold text-theatre-grey-deep shadow-md'
-                                : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
+                        return (
+                          <div 
+                            key={screen._id || screenCode}
+                            onClick={() => { setSelectedScreen(screenCode); setStepErrors({}); }}
+                            className={`rounded-2xl overflow-hidden bg-theatre-dark/40 border cursor-pointer group transition-all duration-300 flex flex-col ${
+                              isSelected 
+                                ? 'border-theatre-gold shadow-lg shadow-theatre-gold/15 scale-[1.01]' 
+                                : 'border-white/10 hover:border-white/20'
                             }`}
                           >
-                            {selectedScreen === 'A' ? 'Selected' : 'Select Screen'}
-                          </button>
-                        </div>
-                      </div>
+                            <div className="relative h-44 overflow-hidden bg-gray-900">
+                              <img 
+                                src={screen.image.startsWith('http') ? screen.image : getImageUrl(screen.image)} 
+                                alt={`${screen.name} ${pricingInfo.badge}`} 
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  e.target.src = pricingInfo.fallbackImg;
+                                }}
+                              />
+                              <span className="absolute top-3 left-3 px-3 py-1 bg-theatre-gold text-theatre-grey-deep font-sans text-[10px] font-black uppercase rounded-full">
+                                {pricingInfo.badge}
+                              </span>
+                            </div>
+                            <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
+                              <div className="space-y-1.5">
+                                <h4 className="text-base sm:text-lg font-serif font-bold text-white">{screen.name}</h4>
+                                <p className="text-xs text-gray-400 font-light leading-relaxed">
+                                  {screen.description}
+                                </p>
+                              </div>
+                              <div className="space-y-2 border-t border-white/5 pt-3">
+                                <div className="flex justify-between items-baseline text-xs">
+                                  <span className="text-gray-500 mr-2">Capacity:</span>
+                                  <span className="text-white font-semibold whitespace-nowrap text-right">Upto {screen.capacity} Members</span>
+                                </div>
+                              </div>
 
-                      {/* Screen B Card */}
-                      <div 
-                        onClick={() => { setSelectedScreen('B'); setStepErrors({}); }}
-                        className={`rounded-2xl overflow-hidden bg-theatre-dark/40 border cursor-pointer group transition-all duration-300 flex flex-col ${
-                          selectedScreen === 'B' 
-                            ? 'border-theatre-gold shadow-lg shadow-theatre-gold/15 scale-[1.01]' 
-                            : 'border-white/10 hover:border-white/20'
-                        }`}
-                      >
-                        <div className="relative h-44 overflow-hidden bg-gray-900">
-                          <img 
-                            src="https://images.unsplash.com/photo-1595769816263-9b910be24d5f?auto=format&fit=crop&w=400&q=80" 
-                            alt="Screen B Cozy Suite" 
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                          <span className="absolute top-3 left-3 px-3 py-1 bg-theatre-gold text-theatre-grey-deep font-sans text-[10px] font-black uppercase rounded-full">
-                            Cozy Suite
-                          </span>
-                        </div>
-                        <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
-                          <div className="space-y-1.5">
-                            <h4 className="text-base sm:text-lg font-serif font-bold text-white">Screen B</h4>
-                            <p className="text-xs text-gray-400 font-light leading-relaxed">Perfect for intimate date nights, couples, and small family gatherings.</p>
-                          </div>
-                          <div className="space-y-2 border-t border-white/5 pt-3">
-                            <div className="flex justify-between items-baseline text-xs">
-                              <span className="text-gray-500 mr-2">Capacity:</span>
-                              <span className="text-white font-semibold whitespace-nowrap text-right">Upto 6 Members</span>
-                            </div>
-                            <div className="flex justify-between items-baseline text-xs">
-                              <span className="text-gray-500 mr-2">Base Price (covers 4 members):</span>
-                              <span className="text-theatre-gold font-bold whitespace-nowrap text-right">₹1,799 (Inc. GST)</span>
-                            </div>
-                            <div className="flex justify-between items-baseline text-xs">
-                              <span className="text-gray-500 mr-2">Extra Guest (above 4):</span>
-                              <span className="text-white whitespace-nowrap text-right">₹400 / each (Inc. GST)</span>
-                            </div>
-                            <div className="flex justify-between items-baseline text-xs">
-                              <span className="text-gray-500 mr-2">Kids (Below 3 years):</span>
-                              <span className="text-green-500 font-bold whitespace-nowrap text-right">Free</span>
-                            </div>
-                            <div className="flex justify-between items-baseline text-xs">
-                              <span className="text-gray-500 mr-2">Kids (3 to 10 years):</span>
-                              <span className="text-white whitespace-nowrap text-right">₹200 / each</span>
+                              <button 
+                                className={`w-full py-2.5 rounded-xl font-sans text-xs font-bold transition-all duration-300 ${
+                                  isSelected
+                                    ? 'bg-theatre-gold text-theatre-grey-deep shadow-md'
+                                    : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
+                                }`}
+                              >
+                                {isSelected ? 'Selected' : 'Select Screen'}
+                              </button>
                             </div>
                           </div>
-
-                          <button 
-                            className={`w-full py-2.5 rounded-xl font-sans text-xs font-bold transition-all duration-300 ${
-                              selectedScreen === 'B'
-                                ? 'bg-theatre-gold text-theatre-grey-deep shadow-md'
-                                : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
-                            }`}
-                          >
-                            {selectedScreen === 'B' ? 'Selected' : 'Select Screen'}
-                          </button>
-                        </div>
-                      </div>
+                        );
+                      })}
                     </div>
 
                     {/* Overall pricing info footnote */}
@@ -584,6 +660,27 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             <AlertCircle className="w-3.5 h-3.5" />
                             <span>{stepErrors.date}</span>
                           </p>
+                        )}
+
+                        {selectedScreen && (
+                          <div className="mt-4 p-4 rounded-xl border border-white/5 bg-theatre-grey-deep/20 space-y-2">
+                            <div className="flex justify-between items-baseline text-xs">
+                              <span className="text-gray-400">Base Price (covers 4 members):</span>
+                              <span className="text-theatre-gold font-bold">{selectedScreen === 'A' ? '₹2,399' : '₹1,799'} (Inc. GST)</span>
+                            </div>
+                            <div className="flex justify-between items-baseline text-xs">
+                              <span className="text-gray-400">Extra Guest (above 4):</span>
+                              <span className="text-white font-semibold">{selectedScreen === 'A' ? '₹450' : '₹400'} / each (Inc. GST)</span>
+                            </div>
+                            <div className="flex justify-between items-baseline text-xs">
+                              <span className="text-gray-400">Kids (Below 3 years):</span>
+                              <span className="text-green-500 font-bold">Free</span>
+                            </div>
+                            <div className="flex justify-between items-baseline text-xs">
+                              <span className="text-gray-400">Kids (3 to 10 years):</span>
+                              <span className="text-white font-semibold">{selectedScreen === 'A' ? '₹250' : '₹200'} / each</span>
+                            </div>
+                          </div>
                         )}
                       </div>
 
@@ -1113,19 +1210,27 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 pt-2">
-                      {[
-                        { key: 'photography', name: 'Professional Photography', price: '₹1,500', icon: Camera },
-                        { key: 'videography', name: 'Cinematic Videography', price: '₹2,500', icon: Camera },
-                        { key: 'speaker', name: 'Bluetooth Speaker', price: '₹300', icon: Volume2 },
-                        { key: 'lighting', name: 'Special Lighting', price: '₹500', icon: Lightbulb },
-                        { key: 'message', name: 'Personalized Screen Msg', price: '₹400', icon: MessageSquare },
-                        { key: 'fog_entry', name: 'Fog Entry', price: '₹1,000', icon: Wind },
-                        { key: 'led_numbers', name: 'LED Numbers', price: '₹300', icon: Lightbulb },
-                        { key: 'candle_path', name: 'Candle Path', price: '₹400', icon: Sparkles },
-                        { key: 'event_sash', name: 'Event Sash', price: '₹150', icon: Star },
-                        { key: 'crown', name: 'Crown', price: '₹150', icon: Star },
-                        { key: 'karaoke', name: 'Karaoke Setup', price: '₹800', icon: Mic }
-                      ].map(addon => {
+                      {((dbAddons && dbAddons.length > 0)
+                        ? dbAddons.map(addon => ({
+                            key: getAddonKey(addon.name),
+                            name: addon.name,
+                            price: `₹${addon.price.toLocaleString('en-IN')}`,
+                            icon: getAddonIcon(addon.name)
+                          }))
+                        : [
+                            { key: 'photography', name: 'Professional Photography', price: '₹1,500', icon: Camera },
+                            { key: 'videography', name: 'Cinematic Videography', price: '₹2,500', icon: Camera },
+                            { key: 'speaker', name: 'Bluetooth Speaker', price: '₹300', icon: Volume2 },
+                            { key: 'lighting', name: 'Special Lighting', price: '₹500', icon: Lightbulb },
+                            { key: 'message', name: 'Personalized Screen Msg', price: '₹400', icon: MessageSquare },
+                            { key: 'fog_entry', name: 'Fog Entry', price: '₹1,000', icon: Wind },
+                            { key: 'led_numbers', name: 'LED Numbers', price: '₹300', icon: Lightbulb },
+                            { key: 'candle_path', name: 'Candle Path', price: '₹400', icon: Sparkles },
+                            { key: 'event_sash', name: 'Event Sash', price: '₹150', icon: Star },
+                            { key: 'crown', name: 'Crown', price: '₹150', icon: Star },
+                            { key: 'karaoke', name: 'Karaoke Setup', price: '₹800', icon: Mic }
+                          ]
+                      ).map(addon => {
                         const Icon = addon.icon;
                         const isSelected = selectedAddons.includes(addon.key);
                         return (
@@ -1444,7 +1549,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                   <div className="space-y-1.5 pt-3 border-t border-white/5">
                     <div className="flex justify-between font-medium text-gray-300">
                       <span>Base Screen Price:</span>
-                      <span className="text-white">₹{basePrice}</span>
+                            <span className="text-white">₹{basePrice}</span>
                     </div>
                     {additionalGuestCharges > 0 && (
                       <div className="flex justify-between text-gray-400 pl-2">
@@ -1454,7 +1559,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     )}
                     {kids3to10Charges > 0 && (
                       <div className="flex justify-between text-gray-400 pl-2">
-                        <span>Kids 3-10 ({guests.kids3to10} * ₹{kids3to10Rate}):</span>
+                        <span>Kids 3-10 ({additionalKids} * ₹{kids3to10Rate}):</span>
                         <span className="text-white">₹{kids3to10Charges}</span>
                       </div>
                     )}
