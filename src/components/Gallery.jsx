@@ -140,38 +140,14 @@ export default function Gallery({ preview, onViewMore }) {
           const items = [];
           const catSet = new Set();
           
-          apiData.forEach((doc) => {
-            const catName = doc.category?.name || 'Others';
-            catSet.add(catName);
+          apiData.forEach((item) => {
+            catSet.add(item.category);
             
-            const firstPhotoUrl = doc.photos && doc.photos.length > 0 ? getImageUrl(doc.photos[0]) : '';
-            
-            // Add photos
-            if (doc.photos) {
-              doc.photos.forEach((photo, idx) => {
-                items.push({
-                  id: `${doc._id}-photo-${idx}`,
-                  title: `${catName} Photo ${idx + 1}`,
-                  category: catName,
-                  type: 'photo',
-                  image: getImageUrl(photo),
-                });
-              });
-            }
-            
-            // Add videos
-            if (doc.videos) {
-              doc.videos.forEach((video, idx) => {
-                items.push({
-                  id: `${doc._id}-video-${idx}`,
-                  title: `${catName} Video ${idx + 1}`,
-                  category: catName,
-                  type: 'video',
-                  videoUrl: getImageUrl(video),
-                  image: firstPhotoUrl || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80',
-                });
-              });
-            }
+            items.push({
+              ...item,
+              image: item.image ? getImageUrl(item.image) : 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80',
+              videoUrl: item.videoUrl ? getImageUrl(item.videoUrl) : null,
+            });
           });
           
           if (items.length > 0) {

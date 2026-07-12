@@ -33,6 +33,11 @@ import confetti from 'canvas-confetti';
 import { getScreens } from '../Api/screenapi';
 import { getImageUrl } from '../Api/api';
 import { getAddons } from '../Api/addonsapi';
+import { getSlots } from '../Api/slotsapi';
+import { getOccasions } from '../Api/occasionsapi';
+import { verifyCustomer } from '../Api/CustomerApi';
+import { createBooking } from '../Api/bookingapi';
+import ShowNotifications from '../helper/showNotification';
 
 export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   const navigate = useNavigate();
@@ -69,6 +74,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   const [otpVerified, setOtpVerified] = useState(false);
   const [sendingOtp, setSendingOtp] = useState(false);
   const [otpError, setOtpError] = useState('');
+  const [generatedOtp, setGeneratedOtp] = useState('');
 
   // Guest counts (Split into Adults, Kids 3-10, Kids <3)
   const [guests, setGuests] = useState({
@@ -144,6 +150,40 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     fetchScreens();
   }, []);
 
+  // Dynamic slots fetching
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+
+  useEffect(() => {
+    const fetchTimeSlots = async () => {
+      if (!selectedScreen || !selectedDate || screens.length === 0) return;
+      
+      const screenObj = screens.find(s => {
+        const code = s.name.toLowerCase().includes('b') ? 'B' : 'A';
+        return code === selectedScreen;
+      });
+      
+      if (!screenObj || !screenObj._id) return;
+
+      try {
+        setLoadingSlots(true);
+        const res = await getSlots(screenObj._id, selectedDate);
+        if (res && res.data) {
+          setAvailableSlots(res.data);
+        } else {
+          setAvailableSlots([]);
+        }
+      } catch (err) {
+        console.error('Error fetching slots:', err);
+        setAvailableSlots([]);
+      } finally {
+        setLoadingSlots(false);
+      }
+    };
+    
+    fetchTimeSlots();
+  }, [selectedScreen, selectedDate, screens]);
+
   // Dynamic addons fetching
   const [dbAddons, setDbAddons] = useState([]);
   const [loadingAddons, setLoadingAddons] = useState(true);
@@ -167,8 +207,35 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     fetchAddons();
   }, []);
 
+  // Dynamic occasions fetching
+  const [dbOccasions, setDbOccasions] = useState([]);
+  const [loadingOccasions, setLoadingOccasions] = useState(true);
+
+  useEffect(() => {
+    const fetchOccasions = async () => {
+      try {
+        const res = await getOccasions();
+        if (res && res.status && res.response && res.response.data) {
+          const activeOccasions = res.response.data.filter(
+            (occ) => occ.isActive === 1 && occ.isDelete === 0
+          );
+          setDbOccasions(activeOccasions);
+        }
+      } catch (err) {
+        console.error('Error fetching occasions:', err);
+      } finally {
+        setLoadingOccasions(false);
+      }
+    };
+    fetchOccasions();
+  }, []);
+
   // Calculations
-  const basePrice = selectedScreen === 'A' ? 2399 : selectedScreen === 'B' ? 1799 : 0;
+  const selectedSlotObj = availableSlots.find(slot => 
+    `${slot.slotName} (${slot.startTime} to ${slot.endTime})` === selectedTimeSlot
+  );
+
+  const basePrice = selectedSlotObj ? selectedSlotObj.price : (selectedScreen === 'A' ? 2399 : selectedScreen === 'B' ? 1799 : 0);
   const maxCapacity = selectedScreen === 'A' ? 15 : selectedScreen === 'B' ? 6 : 0;
   const totalGuests = Number(guests.adults) + Number(guests.kids3to10) + Number(guests.kidsBelow3);
   
@@ -188,11 +255,13 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     }
   }
 
-  const guestRate = selectedScreen === 'A' ? 450 : selectedScreen === 'B' ? 400 : 0;
+  const adultCategory = selectedSlotObj?.ageCategories?.find(cat => cat.from === 10);
+  const guestRate = adultCategory ? adultCategory.price : (selectedScreen === 'A' ? 450 : selectedScreen === 'B' ? 400 : 0);
   const additionalGuestCharges = additionalAdults * guestRate;
 
   // Kids between 3 to 10 charges
-  const kids3to10Rate = selectedScreen === 'A' ? 250 : 200;
+  const kidsCategory = selectedSlotObj?.ageCategories?.find(cat => cat.from === 3 && cat.to === 10);
+  const kids3to10Rate = kidsCategory ? kidsCategory.price : (selectedScreen === 'A' ? 250 : selectedScreen === 'B' ? 200 : 0);
   const kids3to10Charges = additionalKids * kids3to10Rate;
 
   // Cake flavor prices
@@ -284,18 +353,35 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     setSendingOtp(true);
     setTimeout(() => {
       setSendingOtp(false);
+      const newOtp = Math.floor(1000 + Math.random() * 9000).toString();
+      setGeneratedOtp(newOtp);
+      ShowNotifications.showAlertNotification("Your OTP is " + newOtp, true);
       setOtpSent(true);
       setOtpError('');
     }, 1200);
   };
 
-  const handleVerifyOtp = () => {
-    if (customerInfo.otp === '1234') {
-      setOtpVerified(true);
+  const handleVerifyOtp = async () => {
+    if (customerInfo.otp === generatedOtp) {
       setOtpError('');
       setStepErrors({});
+      try {
+        const res = await verifyCustomer({
+          name: customerInfo.fullName,
+          email: customerInfo.email,
+          mobileNumber: customerInfo.phone
+        });
+        if (res.status) {
+          setOtpVerified(true);
+          ShowNotifications.showAlertNotification("Customer verified successfully", true);
+        } else {
+          setOtpError("Failed to verify customer details on server.");
+        }
+      } catch (err) {
+        setOtpError("Error connecting to server.");
+      }
     } else {
-      setOtpError('Invalid OTP code. Please enter 1234 for simulation.');
+      setOtpError('Invalid OTP code. Please enter the code sent to you.');
     }
   };
 
@@ -374,41 +460,62 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   };
 
   // Mock Payment Action
-  const handlePayment = () => {
+  const handlePayment = async () => {
     setIsPaying(true);
-    setTimeout(() => {
-      setIsPaying(false);
-      
-      // Save booked slot to state and localStorage
-      const newBooking = {
-        screen: selectedScreen,
-        date: selectedDate,
-        slot: selectedTimeSlot
-      };
-      const updatedBookings = [...bookedSlots, newBooking];
-      setBookedSlots(updatedBookings);
-      try {
-        localStorage.setItem('tiny_theatre_booked_slots', JSON.stringify(updatedBookings));
-      } catch (err) {
-        console.error(err);
-      }
-
-      // Generate random booking code
-      const code = `TT-${Math.floor(10000 + Math.random() * 90000)}`;
-      setBookingId(code);
-      
-      // Navigate to success state (Step 10)
-      setActiveStep(10);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      // Trigger Confetti
-      confetti({
-        particleCount: 150,
-        spread: 80,
-        origin: { y: 0.5 },
-        colors: ['#F4C430', '#14C299', '#ffffff']
+    
+    try {
+      // Find the screen ID and slot ID based on selected strings
+      const screenObj = screens.find(s => {
+        const code = s.name.toLowerCase().includes('b') ? 'B' : 'A';
+        return code === selectedScreen;
       });
-    }, 2000);
+      
+      const occasionObj = dbOccasions.find(o => o.name === eventCategory);
+      // Construct add-on IDs
+      const addonIds = selectedAddons.map(key => {
+        const addon = dbAddons.find(a => getAddonKey(a.name) === key);
+        return addon ? addon._id : null;
+      }).filter(Boolean);
+
+      const bookingData = {
+        screen: screenObj._id,
+        bookingDate: selectedDate,
+        slot: selectedSlotObj._id,
+        customerName: customerInfo.fullName,
+        email: customerInfo.email,
+        mobile: customerInfo.phone,
+        ageCategory: guests.kids3to10 > 0 || guests.kidsBelow3 > 0 ? 'Mixed' : 'Adults',
+        count: totalGuests,
+        occasion: occasionObj ? occasionObj._id : null,
+        cakeSelection: wantsCake,
+        cakeComment: wantsCake ? `${cakeFlavor} - ${cakeMessage}` : undefined,
+        decoration: wantsDecor,
+        addons: addonIds
+      };
+
+      const res = await createBooking(bookingData);
+      
+      if (res.status) {
+        setBookingId(res.response.bookingId || `TT-${Math.floor(10000 + Math.random() * 90000)}`);
+        
+        setActiveStep(10);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        confetti({
+          particleCount: 150,
+          spread: 80,
+          origin: { y: 0.5 },
+          colors: ['#F4C430', '#14C299', '#ffffff']
+        });
+      } else {
+        ShowNotifications.showAlertNotification("Failed to create booking. Please try again.", false);
+      }
+    } catch (err) {
+      console.error(err);
+      ShowNotifications.showAlertNotification("An error occurred during booking.", false);
+    } finally {
+      setIsPaying(false);
+    }
   };
 
   // Reset Booking Form
@@ -666,11 +773,11 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           <div className="mt-4 p-4 rounded-xl border border-white/5 bg-theatre-grey-deep/20 space-y-2">
                             <div className="flex justify-between items-baseline text-xs">
                               <span className="text-gray-400">Base Price (covers 4 members):</span>
-                              <span className="text-theatre-gold font-bold">{selectedScreen === 'A' ? '₹2,399' : '₹1,799'} (Inc. GST)</span>
+                              <span className="text-theatre-gold font-bold">₹{basePrice} (Inc. GST)</span>
                             </div>
                             <div className="flex justify-between items-baseline text-xs">
                               <span className="text-gray-400">Extra Guest (above 4):</span>
-                              <span className="text-white font-semibold">{selectedScreen === 'A' ? '₹450' : '₹400'} / each (Inc. GST)</span>
+                              <span className="text-white font-semibold">₹{guestRate} / each (Inc. GST)</span>
                             </div>
                             <div className="flex justify-between items-baseline text-xs">
                               <span className="text-gray-400">Kids (Below 3 years):</span>
@@ -678,7 +785,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             </div>
                             <div className="flex justify-between items-baseline text-xs">
                               <span className="text-gray-400">Kids (3 to 10 years):</span>
-                              <span className="text-white font-semibold">{selectedScreen === 'A' ? '₹250' : '₹200'} / each</span>
+                              <span className="text-white font-semibold">₹{kids3to10Rate} / each</span>
                             </div>
                           </div>
                         )}
@@ -688,25 +795,36 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                       <div className="space-y-3">
                         <label className="text-sm font-semibold text-gray-300 block">Available Slots</label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {[
-                            '9:00 AM to 12 PM (3 hours)',
-                            '12:30 PM to 3:30 PM (3 hours)',
-                            '4:00 PM to 7:00 PM (3 hours)',
-                            '7:30 PM to 10:30 PM (3 hours)',
-                            '11:00 PM to 2:00 AM (3 hours)'
-                          ].map(slot => {
-                            const isSelected = selectedTimeSlot === slot;
-                            const isBooked = bookedSlots.some(b => 
+                          {loadingSlots ? (
+                            <div className="col-span-full py-4 text-center text-sm text-gray-400">Loading slots...</div>
+                          ) : (availableSlots.length > 0 ? availableSlots : [
+                            { slotName: 'Morning Show', startTime: '9:00 AM', endTime: '12 PM' },
+                            { slotName: 'Afternoon Show', startTime: '12:30 PM', endTime: '3:30 PM' },
+                            { slotName: 'Evening Show', startTime: '4:00 PM', endTime: '7:00 PM' },
+                            { slotName: 'Night Show', startTime: '7:30 PM', endTime: '10:30 PM' },
+                            { slotName: 'Late Night Show', startTime: '11:00 PM', endTime: '2:00 AM' }
+                          ]).map(slotItem => {
+                            const isApiSlot = !!slotItem._id;
+                            let slotLabel = '';
+                            if (isApiSlot) {
+                              slotLabel = `${slotItem.slotName} (${slotItem.startTime} to ${slotItem.endTime})`;
+                            } else {
+                              slotLabel = `${slotItem.startTime} to ${slotItem.endTime} (3 hours)`;
+                            }
+                            
+                            const isSelected = selectedTimeSlot === slotLabel;
+                            const isBooked = (isApiSlot && slotItem.isBooked) || bookedSlots.some(b => 
                               b.screen === selectedScreen && 
                               b.date === selectedDate && 
-                              b.slot === slot
+                              b.slot === slotLabel
                             );
+                            
                             return (
                               <button
-                                key={slot}
+                                key={isApiSlot ? slotItem._id : slotLabel}
                                 onClick={() => { 
                                   if (!isBooked) {
-                                    setSelectedTimeSlot(slot); 
+                                    setSelectedTimeSlot(slotLabel); 
                                     setStepErrors({}); 
                                   }
                                 }}
@@ -719,7 +837,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                       : 'border-white/10 bg-theatre-dark/40 text-gray-300 hover:border-white/20'
                                 }`}
                               >
-                                <div className="font-bold mb-1">{slot}</div>
+                                <div className="font-bold mb-1">{slotLabel}</div>
                                 <div className="text-[10px] text-gray-500 uppercase tracking-widest flex items-center justify-between">
                                   <span>Slot Timing</span>
                                   {isBooked ? (
@@ -887,7 +1005,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         
                         {otpSent && !otpVerified && (
                           <p className="text-theatre-gold text-[10px] tracking-wide mt-1 animate-pulse">
-                            Tip: For simulation, use OTP code: <b>1234</b>
+                            Tip: For simulation, use the OTP shown in the notification.
                           </p>
                         )}
                         {otpError && (
@@ -926,7 +1044,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                       <div className="flex items-center justify-between bg-theatre-dark/40 p-4 border border-white/5 rounded-2xl">
                         <div className="space-y-0.5">
                           <span className="text-sm font-semibold text-white block">Adults</span>
-                          <span className="text-xs text-gray-500">Ages 11 and above</span>
+                          <span className="text-xs text-gray-500">Ages 11 and above (Extra: ₹{guestRate}/each)</span>
                         </div>
                         <div className="flex items-center space-x-4">
                           <button 
@@ -949,7 +1067,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                       <div className="flex items-center justify-between bg-theatre-dark/40 p-4 border border-white/5 rounded-2xl">
                         <div className="space-y-0.5">
                           <span className="text-sm font-semibold text-white block">Kids (3 to 10 Years)</span>
-                          <span className="text-xs text-gray-500">₹{selectedScreen === 'A' ? 250 : 200} / each</span>
+                          <span className="text-xs text-gray-500">₹{kids3to10Rate} / each</span>
                         </div>
                         <div className="flex items-center space-x-4">
                           <button 
@@ -1022,18 +1140,25 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 pt-2">
-                      {[
-                        { name: 'Movie Watching', image: '/movie.png', fallback: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=400&q=80' },
-                        { name: 'Birthday', image: '/birthday.png', fallback: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=400&q=80' },
-                        { name: 'Anniversary', image: '/anniversary.png', fallback: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=400&q=80' },
-                        { name: 'Romantic Date', image: '/romantic date.png', fallback: 'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=400&q=80' },
-                        { name: 'Proposal', image: '/proposal.png', fallback: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=400&q=80' },
-                        { name: 'Bride/Groom to be', image: '/team.png', fallback: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80' },
-                        { name: 'Farewell', image: '/team.png', fallback: 'https://images.unsplash.com/photo-1517263904008-797480d25147?auto=format&fit=crop&w=400&q=80' },
-                        { name: 'Baby shower', image: '/family.png', fallback: 'https://images.unsplash.com/photo-1515488042361-404e9250afef?auto=format&fit=crop&w=400&q=80' },
-                        { name: 'Kitty party', image: '/team.png', fallback: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=400&q=80' },
-                        { name: 'Get together', image: '/family.png', fallback: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=400&q=80' }
-                      ].map(cat => {
+                      {((dbOccasions && dbOccasions.length > 0)
+                        ? dbOccasions.map(cat => ({
+                            name: cat.name,
+                            image: cat.image ? getImageUrl(cat.image) : '/movie.png',
+                            fallback: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=400&q=80'
+                          }))
+                        : [
+                            { name: 'Movie Watching', image: '/movie.png', fallback: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=400&q=80' },
+                            { name: 'Birthday', image: '/birthday.png', fallback: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=400&q=80' },
+                            { name: 'Anniversary', image: '/anniversary.png', fallback: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=400&q=80' },
+                            { name: 'Romantic Date', image: '/romantic date.png', fallback: 'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=400&q=80' },
+                            { name: 'Proposal', image: '/proposal.png', fallback: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=400&q=80' },
+                            { name: 'Bride/Groom to be', image: '/team.png', fallback: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80' },
+                            { name: 'Farewell', image: '/team.png', fallback: 'https://images.unsplash.com/photo-1517263904008-797480d25147?auto=format&fit=crop&w=400&q=80' },
+                            { name: 'Baby shower', image: '/family.png', fallback: 'https://images.unsplash.com/photo-1515488042361-404e9250afef?auto=format&fit=crop&w=400&q=80' },
+                            { name: 'Kitty party', image: '/team.png', fallback: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=400&q=80' },
+                            { name: 'Get together', image: '/family.png', fallback: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=400&q=80' }
+                          ]
+                      ).map(cat => {
                         const isSelected = eventCategory === cat.name;
                         return (
                           <div
