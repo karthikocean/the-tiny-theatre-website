@@ -85,7 +85,6 @@ export default function Footer() {
                 src={logoImg} 
                 alt="The Tiny Theatre" 
                 className="h-20 w-auto object-contain"
-                style={{ filter: 'drop-shadow(0 0 15px rgba(244, 196, 48, 0.5)) brightness(1.15) saturate(1.3) contrast(1.1)' }}
               />
             </a>
             <p className="text-sm text-gray-400 leading-relaxed font-light">
