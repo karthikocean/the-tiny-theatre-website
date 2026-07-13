@@ -15,9 +15,22 @@ class BookingApi {
         }
     };
 
+    createBooking = async (data) => {
+        try {
+            const response = await api.post("/bookings", data);
+            if (response.status === 200 || response.status === 201) {
+                return { status: true, response: response.data };
+            }
+        } catch (error) {
+            const errorMessage = error?.response?.data?.message || error?.message || "Failed to create booking.";
+            ShowNotifications.showAlertNotification(errorMessage, false);
+            return { status: false, response: error?.response?.data || error };
+        }
+    };
+
 }
 
 const bookingApi = new BookingApi();
 export default bookingApi;
 
-export const { getBooking } = bookingApi;
+export const { getBooking, createBooking } = bookingApi;
