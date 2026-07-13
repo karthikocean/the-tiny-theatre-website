@@ -151,7 +151,7 @@ export default function Screens({ preview, onViewMore }) {
                   <div className="relative h-64 sm:h-72 overflow-hidden bg-theatre-grey-deep/40">
                     <div className="absolute inset-0 bg-gradient-to-t from-theatre-dark via-transparent to-transparent z-10 opacity-70 group-hover:opacity-40 transition-opacity duration-300" />
                     <img
-                      src={getImageUrl(screen.image)}
+                      src={getImageUrl(screen.image?.path || screen.image)}
                       alt={screen.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       onError={(e) => {
