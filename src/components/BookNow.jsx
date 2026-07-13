@@ -69,6 +69,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   }); // 'A' or 'B'
   const [selectedDate, setSelectedDate] = useState(getTodayDateString());
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
+  const [selectedSlotId, setSelectedSlotId] = useState(null);
 
   const [customerInfo, setCustomerInfo] = useState({
     fullName: '',
@@ -239,9 +240,9 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   }, []);
 
   // Calculations
-  const selectedSlotObj = availableSlots.find(slot =>
-    `${slot.slotName} (${slot.startTime} to ${slot.endTime})` === selectedTimeSlot
-  );
+  const selectedSlotObj = selectedSlotId
+    ? availableSlots.find(slot => slot._id === selectedSlotId)
+    : null;
 
   const basePrice = selectedSlotObj ? selectedSlotObj.price : (selectedScreen === 'A' ? 2399 : selectedScreen === 'B' ? 1799 : 0);
   const maxCapacity = selectedScreen === 'A' ? 15 : selectedScreen === 'B' ? 6 : 0;
@@ -263,12 +264,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     }
   }
 
-  const adultCategory = selectedSlotObj?.ageCategories?.find(cat => cat.from === 10);
+  const adultCategory = selectedSlotObj?.ageCategories?.find(cat => cat.from === 11);
   const guestRate = adultCategory ? adultCategory.price : (selectedScreen === 'A' ? 450 : selectedScreen === 'B' ? 400 : 0);
   const additionalGuestCharges = additionalAdults * guestRate;
 
   // Kids between 3 to 10 charges
-  const kidsCategory = selectedSlotObj?.ageCategories?.find(cat => cat.from === 3 && cat.to === 10);
+  const kidsCategory = selectedSlotObj?.ageCategories?.find(cat => cat.from === 4 && cat.to === 10);
   const kids3to10Rate = kidsCategory ? kidsCategory.price : (selectedScreen === 'A' ? 250 : selectedScreen === 'B' ? 200 : 0);
   const kids3to10Charges = additionalKids * kids3to10Rate;
 
@@ -532,6 +533,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     setSelectedScreen(null);
     setSelectedDate(getTodayDateString());
     setSelectedTimeSlot('');
+    setSelectedSlotId(null);
     setCustomerInfo({ fullName: '', email: '', phone: '', otp: '' });
     setOtpSent(false);
     setOtpVerified(false);
@@ -805,9 +807,19 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             { slotName: 'Late Night Show', startTime: '11:00 PM', endTime: '2:00 AM' }
                           ]).map(slotItem => {
                             const isApiSlot = !!slotItem._id;
+                            const formatTime = (t) => {
+                              if (!t) return '';
+                              const d = new Date(t);
+                              if (isNaN(d.getTime())) return t;
+                              let h = d.getUTCHours();
+                              const m = String(d.getUTCMinutes()).padStart(2, '0');
+                              const ampm = h >= 12 ? 'PM' : 'AM';
+                              h = h % 12 || 12;
+                              return `${h}:${m} ${ampm}`;
+                            };
                             let slotLabel = '';
                             if (isApiSlot) {
-                              slotLabel = `${slotItem.slotName} (${slotItem.startTime} to ${slotItem.endTime})`;
+                              slotLabel = `${slotItem.slotName} (${formatTime(slotItem.startTime)} to ${formatTime(slotItem.endTime)})`;
                             } else {
                               slotLabel = `${slotItem.startTime} to ${slotItem.endTime} (3 hours)`;
                             }
@@ -825,6 +837,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                 onClick={() => {
                                   if (!isBooked) {
                                     setSelectedTimeSlot(slotLabel);
+                                    setSelectedSlotId(isApiSlot ? slotItem._id : null);
                                     setStepErrors({});
                                   }
                                 }}
@@ -838,7 +851,11 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                               >
                                 <div className="font-bold mb-1">{slotLabel}</div>
                                 <div className="text-[10px] text-gray-500 uppercase tracking-widest flex items-center justify-between">
-                                  <span>Slot Timing</span>
+                                  {isApiSlot && slotItem.price != null ? (
+                                    <span className="text-theatre-gold font-bold normal-case text-xs">₹{slotItem.price}</span>
+                                  ) : (
+                                    <span>Slot Timing</span>
+                                  )}
                                   {isBooked ? (
                                     <span className="text-red-500 font-semibold capitalize">Booked</span>
                                   ) : (

@@ -21,7 +21,7 @@ switch (APP_ENV) {
 
   case "local":
   default:
-    IMAGE_BASE_URL = "http://192.168.1.:332001/public";
+    IMAGE_BASE_URL = "http://192.168.1.33:2001/public";
     BASE_URL = "http://192.168.1.33:2001/api/website";
     server = "http://192.168.1.33:2001";
     break;
@@ -73,6 +73,11 @@ apiClient.interceptors.response.use(
 
 const getImageUrl = (path) => {
   if (!path) return "";
+  if (typeof path === "object" && path.path) {
+    path = path.path;
+  }
+  if (typeof path !== "string") return "";
+  
   if (path.startsWith("http")) return path;
   if (path.startsWith("/public")) {
     return `${server}${path}`;
