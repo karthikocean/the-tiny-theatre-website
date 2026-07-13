@@ -683,7 +683,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           >
                             <div className="relative h-44 overflow-hidden bg-gray-900">
                               <img
-                                src={screen.image.startsWith('http') ? screen.image : getImageUrl(screen.image)}
+                                src={typeof screen.image === 'string' && screen.image.startsWith('http') ? screen.image : getImageUrl(screen.image?.path || screen.image)}
                                 alt={`${screen.name} ${pricingInfo.badge}`}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                 onError={(e) => {
