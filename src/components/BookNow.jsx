@@ -1630,7 +1630,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                 <div className="space-y-1.5 pt-1">
                   <div className="flex justify-between">
                     <span>Date:</span>
-                    <span className="text-white">{selectedDate || 'Not selected'}</span>
+                    <span className="text-white">{selectedDate ? selectedDate.split('-').reverse().join('-') : 'Not selected'}</span>
                   </div>
                   <div className="flex justify-between items-start">
                     <span className="flex-shrink-0">Time Slot:</span>
