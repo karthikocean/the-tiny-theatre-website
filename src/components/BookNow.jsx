@@ -55,6 +55,14 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     return `${yyyy}-${mm}-${dd}`;
   };
 
+  // Format date from YYYY-MM-DD to DD-MM-YYYY for display
+  const formatDateDisplay = (dateStr) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+  };
+
   // States representing user inputs
   const [selectedScreen, setSelectedScreen] = useState(() => {
     return location.state?.selectedScreen || null;
@@ -869,7 +877,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           <CalendarIcon className="w-5 h-5 text-theatre-gold" />
                           <div>
                             <span className="font-semibold text-white block">Selected Slot Summary</span>
-                            <span className="text-xs">{selectedDate} @ {selectedTimeSlot}</span>
+                            <span className="text-xs">{formatDateDisplay(selectedDate)} @ {selectedTimeSlot}</span>
                           </div>
                         </div>
                         <span className="text-[10px] px-2 py-0.5 bg-green-500/25 border border-green-500/30 text-green-400 rounded-full font-bold uppercase tracking-wider">
@@ -1543,7 +1551,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                       <div className="grid grid-cols-2 gap-4 py-4 border-b border-white/5 text-xs">
                         <div>
                           <span className="text-[10px] text-gray-500 block uppercase font-bold mb-1">DATE & TIME</span>
-                          <span className="text-sm text-white font-sans font-semibold">{selectedDate}</span>
+                          <span className="text-sm text-white font-sans font-semibold">{formatDateDisplay(selectedDate)}</span>
                           <span className="text-[10px] text-gray-400 block mt-0.5">{selectedTimeSlot}</span>
                         </div>
                         <div>
@@ -1630,7 +1638,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                 <div className="space-y-1.5 pt-1">
                   <div className="flex justify-between">
                     <span>Date:</span>
-                    <span className="text-white">{selectedDate ? selectedDate.split('-').reverse().join('-') : 'Not selected'}</span>
+                    <span className="text-white">{formatDateDisplay(selectedDate) || 'Not selected'}</span>
                   </div>
                   <div className="flex justify-between items-start">
                     <span className="flex-shrink-0">Time Slot:</span>
