@@ -36,7 +36,7 @@ import { getAddons } from '../Api/addonsapi';
 import { getSlots } from '../Api/slotsapi';
 import { getOccasions } from '../Api/occasionsapi';
 import { verifyCustomer } from '../Api/CustomerApi';
-import { createBooking } from '../Api/test';
+import { createBooking } from '../Api/booking';
 import ShowNotifications from '../helper/showNotification';
 
 export default function BookNow({ selectedEventName, clearSelectedEvent }) {
