@@ -1,30 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  Tv, 
-  Calendar as CalendarIcon, 
-  User, 
-  Mail, 
-  Phone, 
-  Users, 
-  Sparkles, 
-  Cake as CakeIcon, 
-  Gift, 
-  Camera, 
-  Check, 
-  ShieldCheck, 
-  Heart, 
-  Baby, 
-  ChevronRight, 
-  ChevronLeft, 
-  CreditCard, 
-  Ticket, 
-  AlertCircle, 
-  RefreshCw, 
-  Volume2, 
-  Lightbulb, 
-  MessageSquare, 
+import {
+  Tv,
+  Calendar as CalendarIcon,
+  User,
+  Mail,
+  Phone,
+  Users,
+  Sparkles,
+  Cake as CakeIcon,
+  Gift,
+  Camera,
+  Check,
+  ShieldCheck,
+  Heart,
+  Baby,
+  ChevronRight,
+  ChevronLeft,
+  CreditCard,
+  Ticket,
+  AlertCircle,
+  RefreshCw,
+  Volume2,
+  Lightbulb,
+  MessageSquare,
   Star,
   Mic,
   Wind
@@ -36,16 +36,16 @@ import { getAddons } from '../Api/addonsapi';
 import { getSlots } from '../Api/slotsapi';
 import { getOccasions } from '../Api/occasionsapi';
 import { verifyCustomer } from '../Api/CustomerApi';
-import { createBooking } from '../Api/bookingapi';
+import { createBooking } from '../Api/booking';
 import ShowNotifications from '../helper/showNotification';
 
 export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Current active step of the wizard (1 to 11)
   const [activeStep, setActiveStep] = useState(1);
-  
+
   // Default Date helper
   const getTodayDateString = () => {
     const today = new Date();
@@ -69,14 +69,14 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   }); // 'A' or 'B'
   const [selectedDate, setSelectedDate] = useState(getTodayDateString());
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
-  
+
   const [customerInfo, setCustomerInfo] = useState({
     fullName: '',
     email: '',
     phone: '',
     otp: ''
   });
-  
+
   // OTP Mocking states
   const [otpSent, setOtpSent] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
@@ -92,12 +92,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   });
 
   const [eventCategory, setEventCategory] = useState(selectedEventName || '');
-  
+
   // Cake customization
   const [wantsCake, setWantsCake] = useState(false);
   const [cakeFlavor, setCakeFlavor] = useState('Chocolate Truffle');
   const [cakeMessage, setCakeMessage] = useState('');
-  
+
   // Decoration package toggle & optional details
   const [wantsDecor, setWantsDecor] = useState(false);
 
@@ -165,12 +165,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   useEffect(() => {
     const fetchTimeSlots = async () => {
       if (!selectedScreen || !selectedDate || screens.length === 0) return;
-      
+
       const screenObj = screens.find(s => {
         const code = s.name.toLowerCase().includes('b') ? 'B' : 'A';
         return code === selectedScreen;
       });
-      
+
       if (!screenObj || !screenObj._id) return;
 
       try {
@@ -188,7 +188,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         setLoadingSlots(false);
       }
     };
-    
+
     fetchTimeSlots();
   }, [selectedScreen, selectedDate, screens]);
 
@@ -239,20 +239,20 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   }, []);
 
   // Calculations
-  const selectedSlotObj = availableSlots.find(slot => 
+  const selectedSlotObj = availableSlots.find(slot =>
     `${slot.slotName} (${slot.startTime} to ${slot.endTime})` === selectedTimeSlot
   );
 
   const basePrice = selectedSlotObj ? selectedSlotObj.price : (selectedScreen === 'A' ? 2399 : selectedScreen === 'B' ? 1799 : 0);
   const maxCapacity = selectedScreen === 'A' ? 15 : selectedScreen === 'B' ? 6 : 0;
   const totalGuests = Number(guests.adults) + Number(guests.kids3to10) + Number(guests.kidsBelow3);
-  
+
   // Base price covers up to 4 guests (Adults + Kids 3-10) in total
   const baseCountableGuests = Number(guests.adults) + Number(guests.kids3to10);
-  
+
   let additionalAdults = 0;
   let additionalKids = 0;
-  
+
   if (baseCountableGuests > 4) {
     if (guests.adults >= 4) {
       additionalAdults = guests.adults - 4;
@@ -470,14 +470,14 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   // Mock Payment Action
   const handlePayment = async () => {
     setIsPaying(true);
-    
+
     try {
       // Find the screen ID and slot ID based on selected strings
       const screenObj = screens.find(s => {
         const code = s.name.toLowerCase().includes('b') ? 'B' : 'A';
         return code === selectedScreen;
       });
-      
+
       const occasionObj = dbOccasions.find(o => o.name === eventCategory);
       // Construct add-on IDs
       const addonIds = selectedAddons.map(key => {
@@ -502,10 +502,10 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       };
 
       const res = await createBooking(bookingData);
-      
+
       if (res.status) {
         setBookingId(res.response.bookingId || `TT-${Math.floor(10000 + Math.random() * 90000)}`);
-        
+
         setActiveStep(10);
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -559,22 +559,21 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   };
 
   const stepNames = [
-    'Screen', 'Slot', 'Details', 'Guests', 'Occasion', 
+    'Screen', 'Slot', 'Details', 'Guests', 'Occasion',
     'Cake', 'Decor', 'Add-ons', 'Payment'
   ];
 
   return (
-    <section id="book-now" className={`relative bg-theatre-dark/95 overflow-hidden min-h-screen transition-all duration-500 ${
-      activeStep === 10 ? 'py-6 md:py-8' : 'py-16'
-    }`}>
+    <section id="book-now" className={`relative bg-theatre-dark/95 overflow-hidden min-h-screen transition-all duration-500 ${activeStep === 10 ? 'py-6 md:py-8' : 'py-16'
+      }`}>
       {/* Visual backgrounds */}
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-theatre-grey/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-theatre-gold/5 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="max-w-[85rem] mx-auto px-4 sm:px-8 lg:px-12 relative z-10">
-        
+
         {/* Section Header */}
-       
+
 
         {activeStep <= 9 && (
           /* horizontal Progress Steps Bar */
@@ -587,27 +586,24 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                 return (
                   <div key={name} className="flex items-center flex-grow last:flex-grow-0">
                     <div className="flex flex-col items-center relative">
-                      <div 
-                        className={`w-9 h-9 rounded-full flex items-center justify-center font-sans text-xs font-bold transition-all duration-300 border ${
-                          isCompleted 
+                      <div
+                        className={`w-9 h-9 rounded-full flex items-center justify-center font-sans text-xs font-bold transition-all duration-300 border ${isCompleted
                             ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
-                            : isActive 
-                            ? 'bg-transparent border-theatre-gold text-theatre-gold shadow-md shadow-theatre-gold/20 scale-110'
-                            : 'bg-theatre-grey-deep/30 border-white/10 text-gray-500'
-                        }`}
+                            : isActive
+                              ? 'bg-transparent border-theatre-gold text-theatre-gold shadow-md shadow-theatre-gold/20 scale-110'
+                              : 'bg-theatre-grey-deep/30 border-white/10 text-gray-500'
+                          }`}
                       >
                         {isCompleted ? <Check className="w-4 h-4" /> : stepNum}
                       </div>
-                      <span className={`text-[10px] mt-2 font-medium tracking-wide uppercase transition-colors duration-300 ${
-                        isActive ? 'text-theatre-gold' : 'text-gray-500'
-                      }`}>
+                      <span className={`text-[10px] mt-2 font-medium tracking-wide uppercase transition-colors duration-300 ${isActive ? 'text-theatre-gold' : 'text-gray-500'
+                        }`}>
                         {name}
                       </span>
                     </div>
                     {index < stepNames.length - 1 && (
-                      <div className={`h-0.5 flex-grow mx-4 rounded-full transition-colors duration-500 ${
-                        isCompleted ? 'bg-theatre-gold/60' : 'bg-white/5'
-                      }`} />
+                      <div className={`h-0.5 flex-grow mx-4 rounded-full transition-colors duration-500 ${isCompleted ? 'bg-theatre-gold/60' : 'bg-white/5'
+                        }`} />
                     )}
                   </div>
                 );
@@ -617,17 +613,15 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start max-w-6xl mx-auto">
-          
+
           {/* LEFT PANEL: Wizard Steps (Col Span 8 on large, Full on mobile) */}
-          <div className={`col-span-1 lg:col-span-8 bg-theatre-grey-deep/20 backdrop-blur-md border border-white/5 rounded-3xl flex flex-col justify-between transition-all duration-300 ${
-            activeStep === 10
+          <div className={`col-span-1 lg:col-span-8 bg-theatre-grey-deep/20 backdrop-blur-md border border-white/5 rounded-3xl flex flex-col justify-between transition-all duration-300 ${activeStep === 10
               ? 'p-4 sm:p-6 pt-2 sm:pt-2 lg:col-span-12 min-h-0'
-              : `p-6 sm:p-8 ${
-                  (activeStep === 6 && !wantsCake) || activeStep === 7
-                    ? 'min-h-[300px]'
-                    : 'min-h-[480px]'
-                }`
-          }`}>
+              : `p-6 sm:p-8 ${(activeStep === 6 && !wantsCake) || activeStep === 7
+                ? 'min-h-[300px]'
+                : 'min-h-[480px]'
+              }`
+            }`}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeStep}
@@ -644,7 +638,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                       <h3 className="text-xl font-serif font-bold text-white">Step 1: Select Screen</h3>
                       <p className="text-xs sm:text-sm text-gray-400">Choose between our premium private theatre halls based on seating capacity.</p>
                     </div>
-                    
+
                     {stepErrors.screen && (
                       <div className="p-3.5 bg-red-950/30 border border-red-500/30 text-red-400 text-xs rounded-xl flex items-center space-x-2">
                         <AlertCircle className="w-4.5 h-4.5 flex-shrink-0" />
@@ -671,7 +665,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                       ]).map((screen) => {
                         const screenCode = screen.name.toLowerCase().includes('b') ? 'B' : 'A';
                         const isSelected = selectedScreen === screenCode;
-                        
+
                         const pricingInfo = screenCode === 'A' ? {
                           badge: 'Grand Hall',
                           basePrice: '₹2,399',
@@ -687,19 +681,18 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         };
 
                         return (
-                          <div 
+                          <div
                             key={screen._id || screenCode}
                             onClick={() => { setSelectedScreen(screenCode); setStepErrors({}); }}
-                            className={`rounded-2xl overflow-hidden bg-theatre-dark/40 border cursor-pointer group transition-all duration-300 flex flex-col ${
-                              isSelected 
-                                ? 'border-theatre-gold shadow-lg shadow-theatre-gold/15 scale-[1.01]' 
+                            className={`rounded-2xl overflow-hidden bg-theatre-dark/40 border cursor-pointer group transition-all duration-300 flex flex-col ${isSelected
+                                ? 'border-theatre-gold shadow-lg shadow-theatre-gold/15 scale-[1.01]'
                                 : 'border-white/10 hover:border-white/20'
-                            }`}
+                              }`}
                           >
                             <div className="relative h-44 overflow-hidden bg-gray-900">
-                              <img 
-                                src={screen.image.startsWith('http') ? screen.image : getImageUrl(screen.image)} 
-                                alt={`${screen.name} ${pricingInfo.badge}`} 
+                              <img
+                                src={screen.image.startsWith('http') ? screen.image : getImageUrl(screen.image)}
+                                alt={`${screen.name} ${pricingInfo.badge}`}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                 onError={(e) => {
                                   e.target.onerror = null;
@@ -724,12 +717,11 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                 </div>
                               </div>
 
-                              <button 
-                                className={`w-full py-2.5 rounded-xl font-sans text-xs font-bold transition-all duration-300 ${
-                                  isSelected
+                              <button
+                                className={`w-full py-2.5 rounded-xl font-sans text-xs font-bold transition-all duration-300 ${isSelected
                                     ? 'bg-theatre-gold text-theatre-grey-deep shadow-md'
                                     : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
-                                }`}
+                                  }`}
                               >
                                 {isSelected ? 'Selected' : 'Select Screen'}
                               </button>
@@ -761,8 +753,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                       <div className="space-y-3">
                         <label className="text-sm font-semibold text-gray-300 block">Select Date</label>
                         <div className="relative">
-                          <input 
-                            type="date" 
+                          <input
+                            type="date"
                             min={new Date().toISOString().split('T')[0]}
                             value={selectedDate}
                             onChange={(e) => { setSelectedDate(e.target.value); setStepErrors({}); }}
@@ -819,31 +811,30 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             } else {
                               slotLabel = `${slotItem.startTime} to ${slotItem.endTime} (3 hours)`;
                             }
-                            
+
                             const isSelected = selectedTimeSlot === slotLabel;
-                            const isBooked = (isApiSlot && slotItem.isBooked) || bookedSlots.some(b => 
-                              b.screen === selectedScreen && 
-                              b.date === selectedDate && 
+                            const isBooked = (isApiSlot && slotItem.isBooked) || bookedSlots.some(b =>
+                              b.screen === selectedScreen &&
+                              b.date === selectedDate &&
                               b.slot === slotLabel
                             );
-                            
+
                             return (
                               <button
                                 key={isApiSlot ? slotItem._id : slotLabel}
-                                onClick={() => { 
+                                onClick={() => {
                                   if (!isBooked) {
-                                    setSelectedTimeSlot(slotLabel); 
-                                    setStepErrors({}); 
+                                    setSelectedTimeSlot(slotLabel);
+                                    setStepErrors({});
                                   }
                                 }}
                                 disabled={isBooked}
-                                className={`py-3 px-4 rounded-xl text-left border transition-all duration-300 text-xs font-sans ${
-                                  isSelected
+                                className={`py-3 px-4 rounded-xl text-left border transition-all duration-300 text-xs font-sans ${isSelected
                                     ? 'border-theatre-gold bg-theatre-gold/10 text-theatre-gold shadow-md'
                                     : isBooked
                                       ? 'border-red-500/25 bg-red-950/15 text-gray-500 cursor-not-allowed opacity-50'
                                       : 'border-white/10 bg-theatre-dark/40 text-gray-300 hover:border-white/20'
-                                }`}
+                                  }`}
                               >
                                 <div className="font-bold mb-1">{slotLabel}</div>
                                 <div className="text-[10px] text-gray-500 uppercase tracking-widest flex items-center justify-between">
@@ -868,7 +859,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     </div>
 
                     {selectedDate && selectedTimeSlot && (
-                      <motion.div 
+                      <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="p-4 bg-theatre-gold/10 border border-theatre-gold/20 rounded-xl flex items-center justify-between mt-4"
@@ -1010,7 +1001,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             </button>
                           )}
                         </div>
-                        
+
                         {otpSent && !otpVerified && (
                           <p className="text-theatre-gold text-[10px] tracking-wide mt-1 animate-pulse">
                             Tip: For simulation, use the OTP shown in the notification.
@@ -1055,14 +1046,14 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           <span className="text-xs text-gray-500">Ages 11 and above (Extra: ₹{guestRate}/each)</span>
                         </div>
                         <div className="flex items-center space-x-4">
-                          <button 
+                          <button
                             onClick={() => setGuests({ ...guests, adults: Math.max(0, guests.adults - 1) })}
                             className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white flex items-center justify-center font-bold text-lg cursor-pointer"
                           >
                             -
                           </button>
                           <span className="font-sans font-bold text-base w-6 text-center text-white">{guests.adults}</span>
-                          <button 
+                          <button
                             onClick={() => setGuests({ ...guests, adults: guests.adults + 1 })}
                             className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white flex items-center justify-center font-bold text-lg cursor-pointer"
                           >
@@ -1078,14 +1069,14 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           <span className="text-xs text-gray-500">₹{kids3to10Rate} / each</span>
                         </div>
                         <div className="flex items-center space-x-4">
-                          <button 
+                          <button
                             onClick={() => setGuests({ ...guests, kids3to10: Math.max(0, guests.kids3to10 - 1) })}
                             className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white flex items-center justify-center font-bold text-lg cursor-pointer"
                           >
                             -
                           </button>
                           <span className="font-sans font-bold text-base w-6 text-center text-white">{guests.kids3to10}</span>
-                          <button 
+                          <button
                             onClick={() => setGuests({ ...guests, kids3to10: guests.kids3to10 + 1 })}
                             className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white flex items-center justify-center font-bold text-lg cursor-pointer"
                           >
@@ -1101,14 +1092,14 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           <span className="text-xs text-green-500 font-bold">Free</span>
                         </div>
                         <div className="flex items-center space-x-4">
-                          <button 
+                          <button
                             onClick={() => setGuests({ ...guests, kidsBelow3: Math.max(0, guests.kidsBelow3 - 1) })}
                             className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white flex items-center justify-center font-bold text-lg cursor-pointer"
                           >
                             -
                           </button>
                           <span className="font-sans font-bold text-base w-6 text-center text-white">{guests.kidsBelow3}</span>
-                          <button 
+                          <button
                             onClick={() => setGuests({ ...guests, kidsBelow3: guests.kidsBelow3 + 1 })}
                             className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white flex items-center justify-center font-bold text-lg cursor-pointer"
                           >
@@ -1150,22 +1141,22 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 pt-2">
                       {((dbOccasions && dbOccasions.length > 0)
                         ? dbOccasions.map(cat => ({
-                            name: cat.name,
-                            image: cat.image ? getImageUrl(cat.image) : '/movie.png',
-                            fallback: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=400&q=80'
-                          }))
+                          name: cat.name,
+                          image: cat.image ? getImageUrl(cat.image) : '/movie.png',
+                          fallback: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=400&q=80'
+                        }))
                         : [
-                            { name: 'Movie Watching', image: '/movie.png', fallback: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=400&q=80' },
-                            { name: 'Birthday', image: '/birthday.png', fallback: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=400&q=80' },
-                            { name: 'Anniversary', image: '/anniversary.png', fallback: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=400&q=80' },
-                            { name: 'Romantic Date', image: '/romantic date.png', fallback: 'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=400&q=80' },
-                            { name: 'Proposal', image: '/proposal.png', fallback: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=400&q=80' },
-                            { name: 'Bride/Groom to be', image: '/team.png', fallback: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80' },
-                            { name: 'Farewell', image: '/team.png', fallback: 'https://images.unsplash.com/photo-1517263904008-797480d25147?auto=format&fit=crop&w=400&q=80' },
-                            { name: 'Baby shower', image: '/family.png', fallback: 'https://images.unsplash.com/photo-1515488042361-404e9250afef?auto=format&fit=crop&w=400&q=80' },
-                            { name: 'Kitty party', image: '/team.png', fallback: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=400&q=80' },
-                            { name: 'Get together', image: '/family.png', fallback: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=400&q=80' }
-                          ]
+                          { name: 'Movie Watching', image: '/movie.png', fallback: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=400&q=80' },
+                          { name: 'Birthday', image: '/birthday.png', fallback: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=400&q=80' },
+                          { name: 'Anniversary', image: '/anniversary.png', fallback: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=400&q=80' },
+                          { name: 'Romantic Date', image: '/romantic date.png', fallback: 'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=400&q=80' },
+                          { name: 'Proposal', image: '/proposal.png', fallback: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=400&q=80' },
+                          { name: 'Bride/Groom to be', image: '/team.png', fallback: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80' },
+                          { name: 'Farewell', image: '/team.png', fallback: 'https://images.unsplash.com/photo-1517263904008-797480d25147?auto=format&fit=crop&w=400&q=80' },
+                          { name: 'Baby shower', image: '/family.png', fallback: 'https://images.unsplash.com/photo-1515488042361-404e9250afef?auto=format&fit=crop&w=400&q=80' },
+                          { name: 'Kitty party', image: '/team.png', fallback: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=400&q=80' },
+                          { name: 'Get together', image: '/family.png', fallback: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=400&q=80' }
+                        ]
                       ).map(cat => {
                         const isSelected = eventCategory === cat.name;
                         return (
@@ -1175,28 +1166,25 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             className="flex flex-col items-center cursor-pointer group select-none"
                           >
                             {/* Image Container (h-36 size, no golden outline, clean white/gray borders) */}
-                            <div className={`relative w-full h-36 rounded-2xl overflow-hidden transition-all duration-300 border bg-theatre-dark/40 ${
-                              isSelected
+                            <div className={`relative w-full h-36 rounded-2xl overflow-hidden transition-all duration-300 border bg-theatre-dark/40 ${isSelected
                                 ? 'border-white/40 shadow-lg shadow-white/5'
                                 : 'border-white/10 hover:border-white/20'
-                            }`}>
-                              <img 
-                                src={cat.image} 
+                              }`}>
+                              <img
+                                src={cat.image}
                                 alt={cat.name}
-                                className={`w-full h-full object-cover transition-transform duration-500 ${
-                                  isSelected ? 'scale-105' : 'group-hover:scale-105'
-                                }`}
+                                className={`w-full h-full object-cover transition-transform duration-500 ${isSelected ? 'scale-105' : 'group-hover:scale-105'
+                                  }`}
                                 onError={(e) => {
                                   e.target.onerror = null;
                                   e.target.src = cat.fallback;
                                 }}
                               />
                             </div>
-                            
+
                             {/* Occasion text underneath - fixed height to prevent layout shifts */}
-                            <span className={`mt-2.5 text-[10px] font-sans font-bold uppercase tracking-wider text-center h-8 flex items-center justify-center transition-colors duration-300 ${
-                              isSelected ? 'text-theatre-gold font-extrabold' : 'text-gray-400 group-hover:text-white'
-                            }`}>
+                            <span className={`mt-2.5 text-[10px] font-sans font-bold uppercase tracking-wider text-center h-8 flex items-center justify-center transition-colors duration-300 ${isSelected ? 'text-theatre-gold font-extrabold' : 'text-gray-400 group-hover:text-white'
+                              }`}>
                               {cat.name}
                             </span>
                           </div>
@@ -1219,28 +1207,26 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                       <div className="flex items-center space-x-4">
                         <button
                           onClick={() => setWantsCake(true)}
-                          className={`px-6 py-3 rounded-xl border text-xs font-sans font-bold tracking-wider transition-all duration-300 cursor-pointer ${
-                            wantsCake 
+                          className={`px-6 py-3 rounded-xl border text-xs font-sans font-bold tracking-wider transition-all duration-300 cursor-pointer ${wantsCake
                               ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
                               : 'bg-white/5 border-white/10 text-gray-300'
-                          }`}
+                            }`}
                         >
                           Yes, Include Cake
                         </button>
                         <button
                           onClick={() => setWantsCake(false)}
-                          className={`px-6 py-3 rounded-xl border text-xs font-sans font-bold tracking-wider transition-all duration-300 cursor-pointer ${
-                            !wantsCake 
+                          className={`px-6 py-3 rounded-xl border text-xs font-sans font-bold tracking-wider transition-all duration-300 cursor-pointer ${!wantsCake
                               ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
                               : 'bg-white/5 border-white/10 text-gray-300'
-                          }`}
+                            }`}
                         >
                           No, Skip Cake
                         </button>
                       </div>
 
                       {wantsCake && (
-                        <motion.div 
+                        <motion.div
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: 'auto' }}
                           className="space-y-6 pt-2"
@@ -1257,11 +1243,10 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                 <div
                                   key={cake.flavor}
                                   onClick={() => setCakeFlavor(cake.flavor)}
-                                  className={`rounded-xl overflow-hidden border cursor-pointer bg-theatre-dark/40 transition-all duration-300 ${
-                                    isSelected 
-                                      ? 'border-theatre-gold shadow-md shadow-theatre-gold/10 scale-102' 
+                                  className={`rounded-xl overflow-hidden border cursor-pointer bg-theatre-dark/40 transition-all duration-300 ${isSelected
+                                      ? 'border-theatre-gold shadow-md shadow-theatre-gold/10 scale-102'
                                       : 'border-white/10 hover:border-white/20'
-                                  }`}
+                                    }`}
                                 >
                                   <div className="h-24 bg-gray-900 overflow-hidden">
                                     <img src={cake.img} alt={cake.flavor} className="w-full h-full object-cover" />
@@ -1309,27 +1294,25 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                       <div className="flex items-center space-x-4">
                         <button
                           onClick={() => setWantsDecor(true)}
-                          className={`px-6 py-3 rounded-xl border text-xs font-sans font-bold tracking-wider transition-all duration-300 cursor-pointer ${
-                            wantsDecor 
+                          className={`px-6 py-3 rounded-xl border text-xs font-sans font-bold tracking-wider transition-all duration-300 cursor-pointer ${wantsDecor
                               ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
                               : 'bg-white/5 border-white/10 text-gray-300'
-                          }`}
+                            }`}
                         >
                           Yes, Include Decor
                         </button>
                         <button
                           onClick={() => setWantsDecor(false)}
-                          className={`px-6 py-3 rounded-xl border text-xs font-sans font-bold tracking-wider transition-all duration-300 cursor-pointer ${
-                            !wantsDecor 
+                          className={`px-6 py-3 rounded-xl border text-xs font-sans font-bold tracking-wider transition-all duration-300 cursor-pointer ${!wantsDecor
                               ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
                               : 'bg-white/5 border-white/10 text-gray-300'
-                          }`}
+                            }`}
                         >
                           No, Skip Decor
                         </button>
                       </div>
 
-                     
+
                     </div>
                   </div>
                 )}
@@ -1345,24 +1328,24 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 pt-2">
                       {((dbAddons && dbAddons.length > 0)
                         ? dbAddons.map(addon => ({
-                            key: getAddonKey(addon.name),
-                            name: addon.name,
-                            price: `₹${addon.price.toLocaleString('en-IN')}`,
-                            icon: getAddonIcon(addon.name)
-                          }))
+                          key: getAddonKey(addon.name),
+                          name: addon.name,
+                          price: `₹${addon.price.toLocaleString('en-IN')}`,
+                          icon: getAddonIcon(addon.name)
+                        }))
                         : [
-                            { key: 'photography', name: 'Professional Photography', price: '₹1,500', icon: Camera },
-                            { key: 'videography', name: 'Cinematic Videography', price: '₹2,500', icon: Camera },
-                            { key: 'speaker', name: 'Bluetooth Speaker', price: '₹300', icon: Volume2 },
-                            { key: 'lighting', name: 'Special Lighting', price: '₹500', icon: Lightbulb },
-                            { key: 'message', name: 'Personalized Screen Msg', price: '₹400', icon: MessageSquare },
-                            { key: 'fog_entry', name: 'Fog Entry', price: '₹1,000', icon: Wind },
-                            { key: 'led_numbers', name: 'LED Numbers', price: '₹300', icon: Lightbulb },
-                            { key: 'candle_path', name: 'Candle Path', price: '₹400', icon: Sparkles },
-                            { key: 'event_sash', name: 'Event Sash', price: '₹150', icon: Star },
-                            { key: 'crown', name: 'Crown', price: '₹150', icon: Star },
-                            { key: 'karaoke', name: 'Karaoke Setup', price: '₹800', icon: Mic }
-                          ]
+                          { key: 'photography', name: 'Professional Photography', price: '₹1,500', icon: Camera },
+                          { key: 'videography', name: 'Cinematic Videography', price: '₹2,500', icon: Camera },
+                          { key: 'speaker', name: 'Bluetooth Speaker', price: '₹300', icon: Volume2 },
+                          { key: 'lighting', name: 'Special Lighting', price: '₹500', icon: Lightbulb },
+                          { key: 'message', name: 'Personalized Screen Msg', price: '₹400', icon: MessageSquare },
+                          { key: 'fog_entry', name: 'Fog Entry', price: '₹1,000', icon: Wind },
+                          { key: 'led_numbers', name: 'LED Numbers', price: '₹300', icon: Lightbulb },
+                          { key: 'candle_path', name: 'Candle Path', price: '₹400', icon: Sparkles },
+                          { key: 'event_sash', name: 'Event Sash', price: '₹150', icon: Star },
+                          { key: 'crown', name: 'Crown', price: '₹150', icon: Star },
+                          { key: 'karaoke', name: 'Karaoke Setup', price: '₹800', icon: Mic }
+                        ]
                       ).map(addon => {
                         const Icon = addon.icon;
                         const isSelected = selectedAddons.includes(addon.key);
@@ -1370,11 +1353,10 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           <div
                             key={addon.key}
                             onClick={() => toggleAddon(addon.key)}
-                            className={`p-4 rounded-xl border cursor-pointer flex flex-col justify-between min-h-[120px] transition-all duration-300 ${
-                              isSelected
+                            className={`p-4 rounded-xl border cursor-pointer flex flex-col justify-between min-h-[120px] transition-all duration-300 ${isSelected
                                 ? 'border-theatre-gold bg-theatre-gold/10 text-theatre-gold scale-102'
                                 : 'border-white/10 bg-theatre-dark/40 text-gray-400 hover:border-white/20'
-                            }`}
+                              }`}
                           >
                             <div className="flex justify-between items-start">
                               <div className="p-2 bg-white/5 rounded-lg text-gray-300">
@@ -1397,7 +1379,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
                     {/* Conditional inputs for LED Numbers or Event Sash */}
                     {(selectedAddons.includes('led_numbers') || selectedAddons.includes('event_sash')) && (
-                      <motion.div 
+                      <motion.div
                         initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 space-y-4 mt-6 max-w-md"
@@ -1461,16 +1443,14 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                               <div
                                 key={method.id}
                                 onClick={() => setPaymentMethod(method.id)}
-                                className={`p-4 rounded-xl border cursor-pointer flex items-center justify-between transition-all duration-300 ${
-                                  isSelected
+                                className={`p-4 rounded-xl border cursor-pointer flex items-center justify-between transition-all duration-300 ${isSelected
                                     ? 'border-theatre-gold bg-theatre-gold/5 text-theatre-gold'
                                     : 'border-white/10 bg-theatre-dark/40 text-gray-400 hover:border-white/20'
-                                }`}
+                                  }`}
                               >
                                 <span className="text-xs font-semibold uppercase tracking-wider">{method.name}</span>
-                                <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center ${
-                                  isSelected ? 'border-theatre-gold text-theatre-gold' : 'border-white/20'
-                                }`}>
+                                <div className={`w-4.5 h-4.5 rounded-full border flex items-center justify-center ${isSelected ? 'border-theatre-gold text-theatre-gold' : 'border-white/20'
+                                  }`}>
                                   {isSelected && <span className="w-2.5 h-2.5 bg-theatre-gold rounded-full" />}
                                 </div>
                               </div>
@@ -1602,7 +1582,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                   <ChevronLeft className="w-4 h-4" />
                   <span>Previous</span>
                 </button>
-                
+
                 {activeStep < 9 ? (
                   <button
                     type="button"
@@ -1627,14 +1607,14 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
           {activeStep <= 9 && (
             <div className="col-span-1 lg:col-span-4 bg-theatre-grey-deep/20 backdrop-blur-md border border-white/5 rounded-3xl p-6 space-y-6 sticky top-28">
               <h3 className="font-serif text-lg font-bold text-white border-b border-white/5 pb-2">Booking Summary</h3>
-              
+
               {/* Selected Slot summary */}
               <div className="space-y-3.5 text-xs font-light text-gray-400">
                 <div className="flex justify-between items-center text-sm font-semibold text-white">
                   <span>Selected Screen:</span>
                   <span>{selectedScreen ? `Screen ${selectedScreen}` : 'None'}</span>
                 </div>
-                
+
                 <div className="space-y-1.5 pt-1">
                   <div className="flex justify-between">
                     <span>Date:</span>
@@ -1644,7 +1624,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     <span className="flex-shrink-0">Time Slot:</span>
                     <span className="text-white text-right font-medium pl-4">{selectedTimeSlot || 'Not selected'}</span>
                   </div>
-                  
+
                   {/* Guests count split 1-by-1 rows */}
                   <div className="space-y-1.5 py-2 border-t border-b border-white/5 my-1.5">
                     <div className="flex justify-between font-semibold text-gray-300">
@@ -1682,7 +1662,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                   <div className="space-y-1.5 pt-3 border-t border-white/5">
                     <div className="flex justify-between font-medium text-gray-300">
                       <span>Base Screen Price:</span>
-                            <span className="text-white">₹{basePrice}</span>
+                      <span className="text-white">₹{basePrice}</span>
                     </div>
                     {additionalGuestCharges > 0 && (
                       <div className="flex justify-between text-gray-400 pl-2">
@@ -1713,7 +1693,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         <span className="text-white">₹{decorCharges}</span>
                       </div>
                     )}
-                    
+
                     {/* Add-ons detailed list */}
                     {selectedAddons.length > 0 && (
                       <div className="space-y-1 pt-1.5 pl-2 border-t border-white/5">
@@ -1749,7 +1729,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                 <div className="text-[10px] text-gray-500 text-center italic mt-1 font-sans">
                   * All prices are inclusive of GST
                 </div>
-                
+
                 {/* Advance details */}
                 <div className="bg-theatre-gold/10 p-3 rounded-xl border border-theatre-gold/25 mt-4 space-y-1 text-center font-sans">
                   <span className="text-[10px] text-gray-400 block uppercase font-bold">Lock Deposit Required</span>
