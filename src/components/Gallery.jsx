@@ -141,7 +141,8 @@ export default function Gallery({ preview, onViewMore }) {
           const catSet = new Set();
           
           apiData.forEach((item) => {
-            catSet.add(item.category);
+            const categoryName = typeof item.category === 'object' && item.category !== null ? item.category.name : item.category;
+            catSet.add(categoryName);
             
             items.push({
               ...item,
