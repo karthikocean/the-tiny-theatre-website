@@ -144,11 +144,31 @@ export default function Gallery({ preview, onViewMore }) {
             const categoryName = typeof item.category === 'object' && item.category !== null ? item.category.name : item.category;
             catSet.add(categoryName);
             
-            items.push({
-              ...item,
-              image: item.image ? getImageUrl(item.image?.path || item.image) : 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80',
-              videoUrl: item.videoUrl ? getImageUrl(item.videoUrl?.path || item.videoUrl) : null,
-            });
+            if (item.photos && item.photos.length > 0) {
+              item.photos.forEach((photo, idx) => {
+                items.push({
+                  ...item,
+                  id: `${item._id || item.id}-p-${idx}`,
+                  type: 'photo',
+                  category: categoryName,
+                  image: getImageUrl(photo?.path || photo),
+                  videoUrl: null
+                });
+              });
+            }
+            
+            if (item.videos && item.videos.length > 0) {
+              item.videos.forEach((video, idx) => {
+                items.push({
+                  ...item,
+                  id: `${item._id || item.id}-v-${idx}`,
+                  type: 'video',
+                  category: categoryName,
+                  image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80',
+                  videoUrl: getImageUrl(video?.path || video)
+                });
+              });
+            }
           });
           
           if (items.length > 0) {
