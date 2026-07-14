@@ -129,6 +129,8 @@ export default function Gallery({ preview, onViewMore }) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
   const [categories, setCategories] = useState(['Screen A', 'Screen B', 'Celebrations', 'Others']);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   useEffect(() => {
     const fetchGallery = async () => {
@@ -144,11 +146,31 @@ export default function Gallery({ preview, onViewMore }) {
             const categoryName = typeof item.category === 'object' && item.category !== null ? item.category.name : item.category;
             catSet.add(categoryName);
             
-            items.push({
-              ...item,
-              image: item.image ? getImageUrl(item.image?.path || item.image) : 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80',
-              videoUrl: item.videoUrl ? getImageUrl(item.videoUrl?.path || item.videoUrl) : null,
-            });
+            if (item.photos && item.photos.length > 0) {
+              item.photos.forEach((photo, idx) => {
+                items.push({
+                  ...item,
+                  id: `${item._id || item.id}-p-${idx}`,
+                  type: 'photo',
+                  category: categoryName,
+                  image: getImageUrl(photo?.path || photo),
+                  videoUrl: null
+                });
+              });
+            }
+            
+            if (item.videos && item.videos.length > 0) {
+              item.videos.forEach((video, idx) => {
+                items.push({
+                  ...item,
+                  id: `${item._id || item.id}-v-${idx}`,
+                  type: 'video',
+                  category: categoryName,
+                  image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80',
+                  videoUrl: getImageUrl(video?.path || video)
+                });
+              });
+            }
           });
           
           if (items.length > 0) {
@@ -179,6 +201,7 @@ export default function Gallery({ preview, onViewMore }) {
   const handleFilterChange = (cat) => {
     setActiveFilter(cat);
     setActiveSubFilter('photos');
+    setCurrentPage(1);
   };
 
   const filteredItems = galleryItems.filter(item => {
@@ -194,7 +217,8 @@ export default function Gallery({ preview, onViewMore }) {
     return true;
   });
 
-  const itemsToDisplay = preview ? galleryItems.slice(0, 3) : filteredItems;
+  const totalGalleryPages = Math.ceil(filteredItems.length / itemsPerPage);
+  const itemsToDisplay = preview ? galleryItems.slice(0, 3) : filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handlePrev = (e) => {
     e.stopPropagation();
@@ -255,7 +279,7 @@ export default function Gallery({ preview, onViewMore }) {
             </span>
             <div className="relative p-1 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center w-64 max-w-full">
               <button
-                onClick={() => setActiveSubFilter('photos')}
+                onClick={() => { setActiveSubFilter('photos'); setCurrentPage(1); }}
                 className={`relative z-10 flex-1 py-2.5 text-center text-xs font-sans font-bold uppercase tracking-wider transition-all duration-300 rounded-xl cursor-pointer ${
                   activeSubFilter === 'photos'
                     ? 'text-theatre-grey-deep bg-theatre-gold shadow-lg shadow-theatre-gold/15'
@@ -265,7 +289,7 @@ export default function Gallery({ preview, onViewMore }) {
                 Photos
               </button>
               <button
-                onClick={() => setActiveSubFilter('videos')}
+                onClick={() => { setActiveSubFilter('videos'); setCurrentPage(1); }}
                 className={`relative z-10 flex-1 py-2.5 text-center text-xs font-sans font-bold uppercase tracking-wider transition-all duration-300 rounded-xl cursor-pointer ${
                   activeSubFilter === 'videos'
                     ? 'text-theatre-grey-deep bg-theatre-gold shadow-lg shadow-theatre-gold/15'
@@ -318,6 +342,29 @@ export default function Gallery({ preview, onViewMore }) {
             </motion.div>
           ))}
         </div>
+
+        {/* Gallery Pagination Control */}
+        {!preview && totalGalleryPages > 1 && (
+          <div className="flex items-center justify-end space-x-2 pt-12">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="p-2.5 rounded-lg border border-white/10 bg-theatre-grey/10 text-gray-400 hover:text-white hover:border-white/20 disabled:opacity-30 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-xs text-gray-400 font-sans px-2">
+              Page {currentPage} of {totalGalleryPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalGalleryPages, prev + 1))}
+              disabled={currentPage === totalGalleryPages}
+              className="p-2.5 rounded-lg border border-white/10 bg-theatre-grey/10 text-gray-400 hover:text-white hover:border-white/20 disabled:opacity-30 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {preview && (
           <div className="text-center mt-16">
