@@ -7,18 +7,21 @@ export default function Hero() {
   const navigate = useNavigate();
 
   return (
-    <section id="home" className="relative min-h-[75vh] sm:min-h-screen flex items-center overflow-hidden bg-theatre-dark pt-16 sm:pt-0 pb-4 sm:pb-0">
-      {/* Background Theatre Image & Overlays */}
+    <section id="home" className="relative min-h-[85vh] sm:min-h-screen flex items-center overflow-hidden bg-theatre-dark pt-16 sm:pt-0 pb-4 sm:pb-0">
+      {/* Background Theatre Image — mobile */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ 
-          backgroundImage: `url('/banner.png')`,
-        }}
+        className="absolute inset-0 hero-banner-bg sm:hidden"
+        style={{ backgroundImage: `url('/bannermobile.png')` }}
       />
-      {/* Dark gradient mask - strong on the left for maximum readability, fading to transparent on the right */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black via-black/90 lg:via-black/35 to-transparent z-10" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/25 to-transparent z-10" />
-      <div className="absolute inset-0 bg-radial-gradient-hero z-10 opacity-50 pointer-events-none" />
+      {/* Background Theatre Image — desktop */}
+      <div 
+        className="absolute inset-0 hero-banner-bg hidden sm:block"
+        style={{ backgroundImage: `url('/banner.png')` }}
+      />
+      {/* Dark gradient mask - lighter on mobile so banner is visible, stronger on desktop for text */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 sm:from-black sm:via-black/90 lg:via-black/35 to-transparent z-10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-10" />
+      <div className="absolute inset-0 bg-radial-gradient-hero z-10 opacity-40 pointer-events-none" />
 
       {/* Interactive stage spotlights */}
       <div className="absolute top-0 left-1/4 w-[35vw] h-[80vh] bg-gradient-to-b from-theatre-gold/10 to-transparent transform -rotate-12 blur-3xl pointer-events-none z-10" />

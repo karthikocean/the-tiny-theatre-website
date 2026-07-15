@@ -159,6 +159,22 @@ body {
   background-image: radial-gradient(circle at center, rgba(123, 132, 145, 0.08) 0%, transparent 70%);
 }
 
+/* Hero Banner Background — Responsive */
+.hero-banner-bg {
+  background-repeat: no-repeat;
+  /* Mobile: stretch full image to fill the section — no cropping */
+  background-size: 100% 100%;
+  background-position: center center;
+}
+
+@media (min-width: 640px) {
+  .hero-banner-bg {
+    /* Desktop: cover for natural aspect-ratio fill */
+    background-size: cover;
+    background-position: center center;
+  }
+}
+
 /* Custom Date Picker Clickable Overlay */
 input[type="date"]::-webkit-calendar-picker-indicator {
   position: absolute;
