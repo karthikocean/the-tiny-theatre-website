@@ -51,13 +51,13 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       const container = stepperScrollRef.current;
       const visibleWidth = container.clientWidth;
       const stepIndex = activeStep - 1; // 0-indexed
-      
+
       // Calculate center coordinate of the active step inside the 700px content width
       const stepX = 16 + stepIndex * 83.5;
-      
+
       // Center it inside the container
       const targetScrollLeft = stepX - (visibleWidth / 2);
-      
+
       container.scrollTo({
         left: Math.max(0, targetScrollLeft),
         behavior: 'smooth'
@@ -308,10 +308,10 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   const activeCategories = selectedSlotObj?.ageCategories && selectedSlotObj.ageCategories.length > 0
     ? selectedSlotObj.ageCategories
     : [
-        { _id: 'default_adults', name: 'Adults', from: 11, to: 100, price: selectedScreen === 'A' ? 450 : 400 },
-        { _id: 'default_kids_3_10', name: 'Kids (3 to 10 Years)', from: 4, to: 10, price: selectedScreen === 'A' ? 250 : 200 },
-        { _id: 'default_kids_below_3', name: 'Kids (Below 3 Years)', from: 0, to: 3, price: 0 }
-      ];
+      { _id: 'default_adults', name: 'Adults', from: 11, to: 100, price: selectedScreen === 'A' ? 450 : 400 },
+      { _id: 'default_kids_3_10', name: 'Kids (3 to 10 Years)', from: 4, to: 10, price: selectedScreen === 'A' ? 250 : 200 },
+      { _id: 'default_kids_below_3', name: 'Kids (Below 3 Years)', from: 0, to: 3, price: 0 }
+    ];
 
   const totalGuests = activeCategories.reduce((sum, cat) => sum + Number(guestCounts[cat._id] || 0), 0);
 
@@ -342,7 +342,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   });
 
   const kids3to10Charges = 0; // Handled dynamically in additionalGuestCharges
-  
+
   // Setup fallback variables for backward compatibility in display tags
   const adultCategory = activeCategories.find(cat => cat.to >= 100 || cat.from >= 10);
   const guestRate = adultCategory ? adultCategory.price : (selectedScreen === 'A' ? 450 : selectedScreen === 'B' ? 400 : 0);
@@ -605,10 +605,10 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
       if (res.status) {
         if (advancePaymentRequired > 0) {
-            await addPaymentToBooking(res.response.data._id, {
-                amount: advancePaymentRequired,
-                method: paymentMethod
-            });
+          await addPaymentToBooking(res.response.data._id, {
+            amount: advancePaymentRequired,
+            method: paymentMethod
+          });
         }
         setBookingId(res.response.data.bookingId || `TT-${Math.floor(10000 + Math.random() * 90000)}`);
 
@@ -695,10 +695,10 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     <div className="flex flex-col items-center relative">
                       <div
                         className={`w-9 h-9 rounded-full flex items-center justify-center font-sans text-xs font-bold transition-all duration-300 border ${isCompleted
-                            ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
-                            : isActive
-                              ? 'bg-transparent border-theatre-gold text-theatre-gold shadow-md shadow-theatre-gold/20 scale-110'
-                              : 'bg-theatre-grey-deep/30 border-white/10 text-gray-500'
+                          ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
+                          : isActive
+                            ? 'bg-transparent border-theatre-gold text-theatre-gold shadow-md shadow-theatre-gold/20 scale-110'
+                            : 'bg-theatre-grey-deep/30 border-white/10 text-gray-500'
                           }`}
                       >
                         {isCompleted ? <Check className="w-4 h-4" /> : stepNum}
@@ -721,18 +721,16 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start max-w-6xl mx-auto">
 
-           {/* LEFT PANEL: Wizard Steps (Col Span 8 on large, Full on mobile) */}
-          <div className={`col-span-1 bg-theatre-grey-deep/20 backdrop-blur-md border border-white/5 rounded-3xl flex flex-col justify-between transition-all duration-300 ${
-            activeStep === 1 || activeStep === 10
+          {/* LEFT PANEL: Wizard Steps (Col Span 8 on large, Full on mobile) */}
+          <div className={`col-span-1 bg-theatre-grey-deep/20 backdrop-blur-md border border-white/5 rounded-3xl flex flex-col justify-between transition-all duration-300 ${activeStep === 1 || activeStep === 10
               ? 'lg:col-span-12'
               : 'lg:col-span-8'
-            } ${
-              activeStep === 10
-                ? 'p-4 sm:p-6 pt-2 sm:pt-2 min-h-0'
-                : `p-6 sm:p-8 ${(activeStep === 6 && !wantsCake) || activeStep === 7
-                  ? 'min-h-[300px]'
-                  : 'min-h-[480px]'
-                }`
+            } ${activeStep === 10
+              ? 'p-4 sm:p-6 pt-2 sm:pt-2 min-h-0'
+              : `p-6 sm:p-8 ${(activeStep === 6 && !wantsCake) || activeStep === 7
+                ? 'min-h-[300px]'
+                : 'min-h-[480px]'
+              }`
             }`}>
             <AnimatePresence mode="wait">
               <motion.div
@@ -779,13 +777,13 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         const isSelected = selectedScreen === screenCode;
 
                         const pricingInfo = screenCode === 'A' ? {
-                        
+
                           basePrice: '₹2,399',
                           extraGuest: '₹450 / each',
                           kids: '₹250 / each',
                           fallbackImg: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=400&q=80'
                         } : {
-                        
+
                           basePrice: '₹1,799',
                           extraGuest: '₹400 / each',
                           kids: '₹200 / each',
@@ -797,8 +795,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             key={screen._id || screenCode}
                             onClick={() => { setSelectedScreen(screenCode); setStepErrors({}); }}
                             className={`rounded-2xl overflow-hidden bg-theatre-dark/40 border cursor-pointer group transition-all duration-300 flex flex-col ${isSelected
-                                ? 'border-theatre-gold shadow-lg shadow-theatre-gold/15 scale-[1.01]'
-                                : 'border-white/10 hover:border-white/20'
+                              ? 'border-theatre-gold shadow-lg shadow-theatre-gold/15 scale-[1.01]'
+                              : 'border-white/10 hover:border-white/20'
                               }`}
                           >
                             <div className="relative h-56 sm:h-64 overflow-hidden bg-gray-900">
@@ -814,7 +812,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                               {/* <span className="absolute top-3 left-3 px-3 py-1 bg-theatre-gold text-theatre-grey-deep font-sans text-[10px] font-black uppercase rounded-full">
                                 {pricingInfo.badge}
                               </span>                             */}
-                              </div>
+                            </div>
                             <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
                               <div className="space-y-1.5">
                                 <h4 className="text-base sm:text-lg font-serif font-bold text-white">{screen.name}</h4>
@@ -831,8 +829,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
                               <button
                                 className={`w-full py-2.5 rounded-xl font-sans text-xs font-bold transition-all duration-300 ${isSelected
-                                    ? 'bg-theatre-gold text-theatre-grey-deep shadow-md'
-                                    : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
+                                  ? 'bg-theatre-gold text-theatre-grey-deep shadow-md'
+                                  : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
                                   }`}
                               >
                                 {isSelected ? 'Selected' : 'Select Screen'}
@@ -842,7 +840,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         );
                       })}
                     </div>
-                 </div>
+                  </div>
                 )}
 
                 {/* STEP 2: Choose Date & Time Slot */}
@@ -863,8 +861,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             min={new Date().toISOString().split('T')[0]}
                             value={selectedDate}
                             onChange={(e) => { setSelectedDate(e.target.value); setStepErrors({}); }}
-                            onClick={(e) => { try { e.target.showPicker(); } catch (err) {} }}
-                            onFocus={(e) => { try { e.target.showPicker(); } catch (err) {} }}
+                            onClick={(e) => { try { e.target.showPicker(); } catch (err) { } }}
+                            onFocus={(e) => { try { e.target.showPicker(); } catch (err) { } }}
                             className="w-full bg-theatre-dark/60 text-white pl-4 pr-10 py-3 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-sm font-sans scheme-dark cursor-pointer"
                           />
                           <CalendarIcon className="absolute right-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-theatre-gold pointer-events-none" />
@@ -903,7 +901,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                 {[...activeCategories].sort((a, b) => a.from - b.from).map((category) => {
                                   const isFree = category.price === 0;
                                   const isAdult = category.to >= 100 || category.from >= 10;
-                                  
+
                                   const ageRangeLabel = isAdult
                                     ? `${category.from}+ Years`
                                     : `${category.from} – ${category.to} Years`;
@@ -914,7 +912,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                     <div key={category._id} className="flex text-xs items-center justify-between px-5 py-3">
                                       {/* Left cell (Age category range) */}
                                       <span className="text-gray-300 font-semibold">{ageRangeLabel}</span>
-                                      
+
                                       {/* Right cell (Rate / Pricing details) */}
                                       <div className="text-right flex items-center space-x-2">
                                         <span className={`font-bold ${isFree ? 'text-emerald-400' : 'text-white'}`}>
@@ -988,10 +986,10 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                 }}
                                 disabled={isBooked}
                                 className={`py-3 px-4 rounded-xl text-left border transition-all duration-300 text-xs font-sans ${isSelected
-                                    ? 'border-theatre-gold bg-theatre-gold/10 text-theatre-gold shadow-md'
-                                    : isBooked
-                                      ? 'border-red-500/25 bg-red-950/15 text-gray-500 cursor-not-allowed opacity-50'
-                                      : 'border-white/10 bg-theatre-dark/40 text-gray-300 hover:border-white/20'
+                                  ? 'border-theatre-gold bg-theatre-gold/10 text-theatre-gold shadow-md'
+                                  : isBooked
+                                    ? 'border-red-500/25 bg-red-950/15 text-gray-500 cursor-not-allowed opacity-50'
+                                    : 'border-white/10 bg-theatre-dark/40 text-gray-300 hover:border-white/20'
                                   }`}
                               >
                                 <div className="font-bold mb-1">{slotLabel}</div>
@@ -1066,7 +1064,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                               {[...activeCategories].sort((a, b) => a.from - b.from).map((category) => {
                                 const isFree = category.price === 0;
                                 const isAdult = category.to >= 100 || category.from >= 10;
-                                
+
                                 const ageRangeLabel = isAdult
                                   ? `${category.from}+ Years`
                                   : `${category.from} – ${category.to} Years`;
@@ -1077,7 +1075,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                   <div key={category._id} className="flex text-xs items-center justify-between px-5 py-3">
                                     {/* Left cell (Age category range) */}
                                     <span className="text-gray-300 font-semibold">{ageRangeLabel}</span>
-                                    
+
                                     {/* Right cell (Rate / Pricing details) */}
                                     <div className="text-right flex items-center space-x-2">
                                       <span className={`font-bold ${isFree ? 'text-emerald-400' : 'text-white'}`}>
@@ -1229,11 +1227,11 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         </div>
 
                         {otpSent && !otpVerified && (
-                           <p className="text-theatre-gold text-xs tracking-wide mt-2 font-sans font-bold flex items-center space-x-1.5 bg-theatre-gold/10 border border-theatre-gold/25 p-2.5 rounded-xl max-w-xs">
-                             <span className="w-1.5 h-1.5 rounded-full bg-theatre-gold animate-ping"></span>
-                             <span>Simulated OTP Code: <strong className="text-white bg-theatre-gold/25 px-1.5 py-0.5 rounded font-mono text-sm tracking-widest ml-1">{generatedOtp}</strong></span>
-                           </p>
-                         )}
+                          <p className="text-theatre-gold text-xs tracking-wide mt-2 font-sans font-bold flex items-center space-x-1.5 bg-theatre-gold/10 border border-theatre-gold/25 p-2.5 rounded-xl max-w-xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-theatre-gold animate-ping"></span>
+                            <span>Simulated OTP Code: <strong className="text-white bg-theatre-gold/25 px-1.5 py-0.5 rounded font-mono text-sm tracking-widest ml-1">{generatedOtp}</strong></span>
+                          </p>
+                        )}
                         {otpError && (
                           <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
                             <AlertCircle className="w-3.5 h-3.5" />
@@ -1367,8 +1365,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           >
                             {/* Image Container (h-36 size, no golden outline, clean white/gray borders) */}
                             <div className={`relative w-full h-36 rounded-2xl overflow-hidden transition-all duration-300 border bg-theatre-dark/40 ${isSelected
-                                ? 'border-white/40 shadow-lg shadow-white/5'
-                                : 'border-white/10 hover:border-white/20'
+                              ? 'border-white/40 shadow-lg shadow-white/5'
+                              : 'border-white/10 hover:border-white/20'
                               }`}>
                               <img
                                 src={cat.image}
@@ -1408,8 +1406,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         <button
                           onClick={() => setWantsCake(true)}
                           className={`px-6 py-3 rounded-xl border text-xs font-sans font-bold tracking-wider transition-all duration-300 cursor-pointer ${wantsCake
-                              ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
-                              : 'bg-white/5 border-white/10 text-gray-300'
+                            ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
+                            : 'bg-white/5 border-white/10 text-gray-300'
                             }`}
                         >
                           Yes, Include Cake
@@ -1417,8 +1415,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         <button
                           onClick={() => setWantsCake(false)}
                           className={`px-6 py-3 rounded-xl border text-xs font-sans font-bold tracking-wider transition-all duration-300 cursor-pointer ${!wantsCake
-                              ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
-                              : 'bg-white/5 border-white/10 text-gray-300'
+                            ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
+                            : 'bg-white/5 border-white/10 text-gray-300'
                             }`}
                         >
                           No, Skip Cake
@@ -1461,8 +1459,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                         key={cake.flavor}
                                         onClick={() => setCakeFlavor(cake.flavor)}
                                         className={`rounded-xl overflow-hidden border cursor-pointer bg-theatre-dark/40 transition-all duration-300 ${isSelected
-                                            ? 'border-theatre-gold shadow-md shadow-theatre-gold/10 scale-102'
-                                            : 'border-white/10 hover:border-white/20'
+                                          ? 'border-theatre-gold shadow-md shadow-theatre-gold/10 scale-102'
+                                          : 'border-white/10 hover:border-white/20'
                                           }`}
                                       >
                                         <div className="h-28 sm:h-32 bg-gray-900 overflow-hidden">
@@ -1554,8 +1552,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         <button
                           onClick={() => setWantsDecor(true)}
                           className={`px-6 py-3 rounded-xl border text-xs font-sans font-bold tracking-wider transition-all duration-300 cursor-pointer ${wantsDecor
-                              ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
-                              : 'bg-white/5 border-white/10 text-gray-300'
+                            ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
+                            : 'bg-white/5 border-white/10 text-gray-300'
                             }`}
                         >
                           Yes, Include Decor
@@ -1563,8 +1561,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         <button
                           onClick={() => setWantsDecor(false)}
                           className={`px-6 py-3 rounded-xl border text-xs font-sans font-bold tracking-wider transition-all duration-300 cursor-pointer ${!wantsDecor
-                              ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
-                              : 'bg-white/5 border-white/10 text-gray-300'
+                            ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
+                            : 'bg-white/5 border-white/10 text-gray-300'
                             }`}
                         >
                           No, Skip Decor
@@ -1618,8 +1616,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                 key={addon.key}
                                 onClick={() => toggleAddon(addon.key)}
                                 className={`rounded-xl overflow-hidden border cursor-pointer flex flex-col justify-between transition-all duration-300 relative ${isSelected
-                                    ? 'border-theatre-gold bg-theatre-gold/5 text-theatre-gold scale-102 shadow-md shadow-theatre-gold/5'
-                                    : 'border-white/10 bg-theatre-dark/40 text-gray-400 hover:border-white/20'
+                                  ? 'border-theatre-gold bg-theatre-gold/5 text-theatre-gold scale-102 shadow-md shadow-theatre-gold/5'
+                                  : 'border-white/10 bg-theatre-dark/40 text-gray-400 hover:border-white/20'
                                   }`}
                               >
                                 {/* Selected Badge */}
@@ -1762,8 +1760,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                 key={method.id}
                                 onClick={() => setPaymentMethod(method.id)}
                                 className={`p-4 rounded-xl border cursor-pointer flex items-center justify-between transition-all duration-300 ${isSelected
-                                    ? 'border-theatre-gold bg-theatre-gold/5 text-theatre-gold'
-                                    : 'border-white/10 bg-theatre-dark/40 text-gray-400 hover:border-white/20'
+                                  ? 'border-theatre-gold bg-theatre-gold/5 text-theatre-gold'
+                                  : 'border-white/10 bg-theatre-dark/40 text-gray-400 hover:border-white/20'
                                   }`}
                               >
                                 <span className="text-xs font-semibold uppercase tracking-wider">{method.name}</span>

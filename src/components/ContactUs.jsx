@@ -30,7 +30,7 @@ export default function ContactUs({ selectedEventName, clearSelectedEvent }) {
 
     if (!formData.phone.trim()) {
       tempErrors.phone = 'Phone number is required.';
-    } else if (!/^[0-9]{10}$/.test(formData.phone)) {
+    } else if (!/^[6-9]\d{9}$/.test(formData.phone)) {
       tempErrors.phone = 'Please enter a valid 10-digit phone number.';
     }
 
@@ -268,9 +268,7 @@ export default function ContactUs({ selectedEventName, clearSelectedEvent }) {
                 <a href="mailto:bookings@tinytheatre.com" className="hover:text-theatre-gold transition-colors duration-300 block">
                   bookings@tinytheatre.com
                 </a>
-                <a href="mailto:info@tinytheatre.com" className="hover:text-theatre-gold transition-colors duration-300 block">
-                  info@tinytheatre.com
-                </a>
+                
               </p>
             </div>
 
