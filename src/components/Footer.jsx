@@ -76,10 +76,10 @@ export default function Footer() {
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-theatre-grey/5 rounded-full blur-[100px] pointer-events-none" />
 
       <div className="max-w-[85rem] mx-auto px-4 sm:px-8 lg:px-12 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-y-10 gap-x-6 lg:gap-x-8 pb-16 border-b border-white/5">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-12 gap-y-10 gap-x-6 lg:gap-x-8 pb-8 sm:pb-16 border-b border-white/5">
           
           {/* Col 1: Brand Info (Col 1-4) */}
-          <div className="lg:col-span-4 space-y-6">
+          <div className="col-span-2 md:col-span-1 lg:col-span-4 space-y-6">
             <a href="#home" onClick={(e) => handleNavClick(e, '/')} className="flex items-center group">
               <img 
                 src={logoImg} 
@@ -108,7 +108,7 @@ export default function Footer() {
           </div>
 
           {/* Col 2: Quick Links (Col 5-6) */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="col-span-1 lg:col-span-2 space-y-6">
             <h4 className="text-white font-serif text-base font-bold tracking-wide">Quick Links</h4>
             <ul className="space-y-3.5 text-sm font-light">
               {[
@@ -137,7 +137,7 @@ export default function Footer() {
           </div>
 
           {/* Col 3: Policies & Support (Col 7-9) */}
-          <div className="lg:col-span-3 space-y-6">
+          <div className="col-span-1 lg:col-span-3 space-y-6">
             <h4 className="text-white font-serif text-base font-bold tracking-wide">Policies & Support</h4>
             <ul className="space-y-3.5 text-sm font-light">
               {[
@@ -164,7 +164,7 @@ export default function Footer() {
           </div>
 
           {/* Col 4: Box Office Info */}
-          <div className="lg:col-span-3 space-y-6">
+          <div className="col-span-2 md:col-span-1 lg:col-span-3 space-y-6">
             <h4 className="text-white font-serif text-base font-bold tracking-wide">Box Office Info</h4>
             <ul className="space-y-4 text-sm font-light">
               <li className="flex items-start space-x-3">

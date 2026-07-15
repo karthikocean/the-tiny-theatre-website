@@ -120,7 +120,7 @@ export default function Testimonials() {
               >
                 <div className="space-y-6">
                   {/* Quote Icon and Rating */}
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0">
                     <Quote className="w-10 h-10 text-theatre-gold/20" />
                     <div className="flex space-x-1">
                       {[...Array(current.rating)].map((_, i) => (
@@ -130,13 +130,13 @@ export default function Testimonials() {
                   </div>
 
                   {/* Review Text */}
-                  <p className="text-gray-200 text-base sm:text-lg leading-relaxed font-sans font-light italic">
+                  <p className="text-gray-200 text-base sm:text-lg leading-relaxed font-sans font-light italic text-center sm:text-left">
                     "{current.review}"
                   </p>
                 </div>
 
                 {/* Reviewer Profile */}
-                <div className="flex items-center space-x-4 pt-6 mt-8 border-t border-white/10">
+                <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start space-y-3 sm:space-y-0 sm:space-x-4 pt-6 mt-8 border-t border-white/10 text-center sm:text-left">
                   <img
                     src={current.avatar}
                     alt={current.name}
