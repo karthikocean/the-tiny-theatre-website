@@ -34,7 +34,7 @@ import { getAddons } from '../Api/addonsapi';
 import { getSlots } from '../Api/slotsapi';
 import { getOccasions } from '../Api/occasionsapi';
 import { verifyCustomer } from '../Api/CustomerApi';
-import { createBooking } from '../Api/booking';
+import { createBooking, addPaymentToBooking } from '../Api/booking';
 import ShowNotifications from '../helper/showNotification';
 
 export default function BookNow({ selectedEventName, clearSelectedEvent }) {
@@ -525,13 +525,17 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
     setStepErrors({});
     setActiveStep(prev => prev + 1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 50);
   };
 
   const handlePrevStep = () => {
     setStepErrors({});
     setActiveStep(prev => Math.max(1, prev - 1));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 50);
   };
 
   // Mock Payment Action
@@ -567,18 +571,26 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         email: customerInfo.email,
         mobile: customerInfo.phone,
         ageCategory: ageCategoryVal,
+        ageCategoryCounts: guestCounts,
         count: totalGuests,
         occasion: occasionObj ? occasionObj._id : null,
         cakeSelection: wantsCake,
         cakeComment: wantsCake ? `${cakeFlavor} - ${cakeMessage}` : undefined,
         decoration: wantsDecor,
-        addons: addonIds
+        addons: addonIds,
+        totalAmount: totalAmount
       };
 
       const res = await createBooking(bookingData);
 
       if (res.status) {
-        setBookingId(res.response.bookingId || `TT-${Math.floor(10000 + Math.random() * 90000)}`);
+        if (advancePaymentRequired > 0) {
+            await addPaymentToBooking(res.response.data._id, {
+                amount: advancePaymentRequired,
+                method: paymentMethod
+            });
+        }
+        setBookingId(res.response.data.bookingId || `TT-${Math.floor(10000 + Math.random() * 90000)}`);
 
         setActiveStep(10);
         window.scrollTo({ top: 0, behavior: 'smooth' });
