@@ -562,6 +562,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         return !isAdult && count > 0;
       });
       const ageCategoryVal = hasKids ? 'Mixed' : 'Adults';
+      const selectedCakeObj = wantsCake ? dbCakes.find(c => c.name === cakeFlavor) : null;
+      const selectedCakeId = selectedCakeObj ? selectedCakeObj._id : undefined;
 
       const bookingData = {
         screen: screenObj._id,
@@ -575,7 +577,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         count: totalGuests,
         occasion: occasionObj ? occasionObj._id : null,
         cakeSelection: wantsCake,
-        cakeComment: wantsCake ? `${cakeFlavor} - ${cakeMessage}` : undefined,
+        cakeComment: wantsCake ? cakeMessage : undefined,
+        selectedCakeId: selectedCakeId ? [selectedCakeId] : [],
         decoration: wantsDecor,
         addons: addonIds,
         totalAmount: totalAmount
