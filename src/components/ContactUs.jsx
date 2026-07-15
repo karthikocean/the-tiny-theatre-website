@@ -30,8 +30,8 @@ export default function ContactUs({ selectedEventName, clearSelectedEvent }) {
 
     if (!formData.phone.trim()) {
       tempErrors.phone = 'Phone number is required.';
-    } else if (!/^\+?[0-9\s-]{10,15}$/.test(formData.phone)) {
-      tempErrors.phone = 'Please enter a valid phone number (min 10 digits).';
+    } else if (!/^[6-9]\d{9}$/.test(formData.phone)) {
+      tempErrors.phone = 'Please enter a valid 10-digit phone number.';
     }
 
     setErrors(tempErrors);
@@ -120,8 +120,8 @@ export default function ContactUs({ selectedEventName, clearSelectedEvent }) {
                     <input
                       type="text"
                       value={formData.fullName}
-                      onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                      placeholder="E.g., John Doe"
+                      onChange={(e) => setFormData({...formData, fullName: e.target.value.replace(/[^A-Za-z\s]/g, '')})}
+                      placeholder="Enter your name"
                       className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-2xl border border-white/10 focus:border-theatre-gold focus:ring-1 focus:ring-theatre-gold transition-all duration-300 text-sm placeholder:text-gray-600 outline-none"
                     />
                   </div>
@@ -145,7 +145,7 @@ export default function ContactUs({ selectedEventName, clearSelectedEvent }) {
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      placeholder="E.g., john@example.com"
+                      placeholder="Enter your email"
                       className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-2xl border border-white/10 focus:border-theatre-gold focus:ring-1 focus:ring-theatre-gold transition-all duration-300 text-sm placeholder:text-gray-600 outline-none"
                     />
                   </div>
@@ -169,9 +169,12 @@ export default function ContactUs({ selectedEventName, clearSelectedEvent }) {
                   <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
                   <input
                     type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={10}
                     value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    placeholder="E.g., +91 98765 43210"
+                    onChange={(e) => setFormData({...formData, phone: e.target.value.replace(/\D/g, '')})}
+                    placeholder="Enter your phone number"
                     className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-2xl border border-white/10 focus:border-theatre-gold focus:ring-1 focus:ring-theatre-gold transition-all duration-300 text-sm placeholder:text-gray-600 outline-none"
                   />
                 </div>
@@ -196,7 +199,7 @@ export default function ContactUs({ selectedEventName, clearSelectedEvent }) {
                     rows="4"
                     value={formData.message}
                     onChange={(e) => setFormData({...formData, message: e.target.value})}
-                    placeholder="E.g., Custom balloon decorations, catering requirements, or presentation setup..."
+                    placeholder="Enter your message"
                     className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-2xl border border-white/10 focus:border-theatre-gold focus:ring-1 focus:ring-theatre-gold transition-all duration-300 text-sm placeholder:text-gray-600 outline-none resize-none"
                   />
                 </div>
@@ -265,9 +268,7 @@ export default function ContactUs({ selectedEventName, clearSelectedEvent }) {
                 <a href="mailto:bookings@tinytheatre.com" className="hover:text-theatre-gold transition-colors duration-300 block">
                   bookings@tinytheatre.com
                 </a>
-                <a href="mailto:info@tinytheatre.com" className="hover:text-theatre-gold transition-colors duration-300 block">
-                  info@tinytheatre.com
-                </a>
+                
               </p>
             </div>
 

@@ -8,21 +8,19 @@ class ShowNotifications {
     const options = {
       position: "top-right",
       autoClose: 3000,
-      hideProgressBar: false,
+      hideProgressBar: true,
       closeOnClick: true,
       pauseOnHover: true,
       draggable: true,
       progress: undefined,
+      theme: "light",
       style: {
-        background: "var(--bg-card, #13100d)",
-        color: isSuccess ? "var(--success, #10b981)" : "var(--danger, #ef4444)",
+        background: "#ffffff",
+        color: "#4b5563",
         fontWeight: "500",
         borderRadius: "8px",
-        border: "1px solid var(--border-color, #1e1712)",
-        boxShadow: "0 8px 24px rgba(0, 0, 0, 0.5)",
-      },
-      progressStyle: {
-        background: isSuccess ? "var(--success, #10b981)" : "var(--danger, #ef4444)",
+        border: "1px solid #e5e7eb",
+        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
       },
     };
 
@@ -36,25 +34,30 @@ class ShowNotifications {
   static showNotification(message, type = "info") {
     const formattedMessage = formatErrorMessage(message);
     const baseStyle = {
-      background: "var(--bg-card, #13100d)",
-      color: "var(--text-primary, #eae3db)",
+      background: "#ffffff",
+      color: "#4b5563",
       fontWeight: "500",
       borderRadius: "8px",
-      border: "1px solid var(--border-color, #1e1712)",
-      boxShadow: "0 8px 24px rgba(0, 0, 0, 0.5)",
+      border: "1px solid #e5e7eb",
+      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
     };
 
     const options = {
       position: "top-right",
       autoClose: 3000,
-      hideProgressBar: false,
+      hideProgressBar: true,
       closeOnClick: true,
       pauseOnHover: true,
       draggable: true,
       progress: undefined,
-      style: baseStyle,
-      progressStyle: {
-        background: "var(--gold, #cca751)",
+      theme: "light",
+      style: {
+        background: "#ffffff",
+        color: "#4b5563",
+        fontWeight: "500",
+        borderRadius: "8px",
+        border: "1px solid #e5e7eb",
+        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
       },
     };
 
