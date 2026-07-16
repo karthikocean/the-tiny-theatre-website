@@ -34,6 +34,10 @@ export default function ContactUs({ selectedEventName, clearSelectedEvent }) {
       tempErrors.phone = 'Please enter a valid 10-digit phone number.';
     }
 
+    if (!formData.message.trim()) {
+      tempErrors.message = 'Message is required.';
+    }
+
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
   };
@@ -109,7 +113,7 @@ export default function ContactUs({ selectedEventName, clearSelectedEvent }) {
 
           {/* Right Column: Contact Form */}
           <div className="lg:col-span-6 bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl p-6 sm:p-10 border border-theatre-gold/45 shadow-xl flex flex-col justify-between">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} noValidate className="space-y-6">
               
               {/* Row 1: Name & Email */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -142,7 +146,8 @@ export default function ContactUs({ selectedEventName, clearSelectedEvent }) {
                   <div className="relative">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
                     <input
-                      type="email"
+                      type="text"
+                      inputMode="email"
                       value={formData.email}
                       onChange={(e) => setFormData({...formData, email: e.target.value})}
                       placeholder="Enter your email"
@@ -190,19 +195,33 @@ export default function ContactUs({ selectedEventName, clearSelectedEvent }) {
                 )}
               </div>
 
-              {/* Row 3: Message */}
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-300 block">Special Request / Message (Optional)</label>
+                <label className="text-sm font-semibold text-gray-300 block">Special Request / Message</label>
                 <div className="relative">
                   <MessageSquare className="absolute left-4 top-4.5 w-4.5 h-4.5 text-gray-500" />
                   <textarea
                     rows="4"
                     value={formData.message}
-                    onChange={(e) => setFormData({...formData, message: e.target.value})}
+                    onChange={(e) => {
+                      setFormData({...formData, message: e.target.value});
+                      if (errors.message) {
+                        setErrors(prev => ({ ...prev, message: null }));
+                      }
+                    }}
                     placeholder="Enter your message"
                     className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-2xl border border-white/10 focus:border-theatre-gold focus:ring-1 focus:ring-theatre-gold transition-all duration-300 text-sm placeholder:text-gray-600 outline-none resize-none"
                   />
                 </div>
+                {errors.message && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -5 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    className="flex items-center space-x-1 text-red-500 text-xs mt-1"
+                  >
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    <span>{errors.message}</span>
+                  </motion.div>
+                )}
               </div>
 
               {/* Submission button */}
