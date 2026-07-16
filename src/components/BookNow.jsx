@@ -483,11 +483,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       return !selectedDate || !selectedTimeSlot;
     }
     if (activeStep === 3) {
-      const cleanedPhone = (customerInfo.phone || '').replace(/\D/g, '');
-      const isPhoneValid = /^[6-9]\d{9}$/.test(cleanedPhone);
-      const isEmailValid = /\S+@\S+\.\S+/.test(customerInfo.email);
-      const isNameValid = customerInfo.fullName.trim().length > 0;
-      return !isNameValid || !isEmailValid || !isPhoneValid || !otpVerified;
+      return false;
     }
     if (activeStep === 4) {
       return totalGuests === 0;
@@ -1122,7 +1118,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             type="text"
                             value={customerInfo.fullName}
                             onChange={(e) => {
-                              setCustomerInfo({ ...customerInfo, fullName: e.target.value });
+                              const filteredVal = e.target.value.replace(/[^A-Za-z\s]/g, '');
+                              setCustomerInfo({ ...customerInfo, fullName: filteredVal });
                               setStepErrors(prev => ({ ...prev, fullName: null }));
                             }}
                             placeholder="Enter Full Name"
@@ -1143,11 +1140,24 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         <div className="relative">
                           <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
                           <input
-                            type="email"
-                            value={customerInfo.email}
+                            type="text"
+                            inputMode="email"
                             onChange={(e) => {
-                              setCustomerInfo({ ...customerInfo, email: e.target.value });
-                              setStepErrors(prev => ({ ...prev, email: null }));
+                              const val = e.target.value;
+                              setCustomerInfo({ ...customerInfo, email: val });
+                              if (stepErrors.email) {
+                                if (val.trim() && /\S+@\S+\.\S+/.test(val)) {
+                                  setStepErrors(prev => ({ ...prev, email: null }));
+                                }
+                              } else {
+                                setStepErrors(prev => ({ ...prev, email: null }));
+                              }
+                            }}
+                            onBlur={(e) => {
+                              const val = e.target.value.trim();
+                              if (val && !/\S+@\S+\.\S+/.test(val)) {
+                                setStepErrors(prev => ({ ...prev, email: 'Please provide a valid email.' }));
+                              }
                             }}
                             placeholder="Enter Email Address"
                             className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-sm placeholder:text-gray-600"
@@ -1789,9 +1799,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             <span className="text-white">Payable Now (Advance):</span>
                             <span className="text-theatre-gold text-lg">₹{advancePaymentRequired}</span>
                           </div>
-                          <p className="text-[10px] text-gray-500 font-light leading-relaxed">
-                            * The remaining balance of ₹{remainingBalance} is payable at the venue on your event date via card/UPI/cash.
-                          </p>
+                          <div className="p-3.5 bg-theatre-gold/5 border border-theatre-gold/20 rounded-xl flex items-start space-x-2.5">
+                            <AlertCircle className="w-4.5 h-4.5 text-theatre-gold mt-0.5 flex-shrink-0 animate-pulse" />
+                            <p className="text-[12px] text-gray-300 font-normal leading-relaxed">
+                              The remaining balance of <span className="text-white font-extrabold text-sm tracking-wide">₹{remainingBalance}</span> is payable at the venue on your event date via Card / UPI / Cash.
+                            </p>
+                          </div>
                         </div>
 
                         <button
