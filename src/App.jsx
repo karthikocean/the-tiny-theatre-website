@@ -9,6 +9,7 @@ import PerfectFor from './components/PerfectFor';
 import WhyChooseUs from './components/WhyChooseUs';
 import BookingProcess from './components/BookingProcess';
 import Gallery from './components/Gallery';
+import Screens from './components/Screens';
 import Testimonials from './components/Testimonials';
 import BookNow from './components/BookNow';
 import ContactUs from './components/ContactUs';
@@ -71,7 +72,7 @@ function AppContent() {
   };
 
   return (
-    <div className="bg-theatre-dark text-white font-sans overflow-x-hidden min-h-screen relative selection:bg-theatre-gold selection:text-theatre-grey-deep">
+    <div className="w-full max-w-full bg-theatre-dark text-white font-sans overflow-x-hidden min-h-screen relative selection:bg-theatre-gold selection:text-theatre-grey-deep">
       
       {/* Curtain Preloader */}
       <AnimatePresence>
@@ -113,8 +114,7 @@ function AppContent() {
               <img 
                 src={logoImg} 
                 alt="The Tiny Theatre" 
-                className="h-28 sm:h-36 w-auto object-contain mx-auto" 
-                // style={{ filter: 'drop-shadow(0 0 30px rgba(244, 196, 48, 0.8)) brightness(1.25) saturate(1.4) contrast(1.1)' }}
+                className="h-28 sm:h-36 w-auto object-contain mx-auto"
               />
               <p className="text-theatre-gold mt-4 font-serif text-sm sm:text-base tracking-[0.25em] uppercase font-bold">
                 Opening Curtains...
@@ -135,70 +135,77 @@ function AppContent() {
               <Hero />
               <WhyChooseUs preview={true} onViewMore={() => navigate('/why-choose-us')} />
               <PerfectFor />
+              <Screens preview={true} onViewMore={() => navigate('/screens')} />
               <BookingProcess preview={true} onViewMore={() => navigate('/booking-process')} />
               <Gallery preview={true} onViewMore={() => navigate('/gallery')} />
               <Testimonials />
             </>
           } />
           
+          <Route path="/screens" element={
+            <div className="pt-24 sm:pt-32">
+              <Screens preview={false} />
+            </div>
+          } />
+          
 
 
           <Route path="/offers" element={
-            <div className="pt-32">
+            <div className="pt-24 sm:pt-32">
               <CouponPage />
             </div>
           } />
 
           <Route path="/why-choose-us" element={
-            <div className="pt-32">
+            <div className="pt-24 sm:pt-32">
               <WhyChooseUs preview={false} />
             </div>
           } />
 
           <Route path="/booking-process" element={
-            <div className="pt-32">
+            <div className="pt-24 sm:pt-32">
               <BookingProcess preview={false} />
             </div>
           } />
 
           <Route path="/gallery" element={
-            <div className="pt-32">
+            <div className="pt-24 sm:pt-32">
               <Gallery preview={false} />
             </div>
           } />
 
           <Route path="/terms-and-conditions" element={
-            <div className="pt-32">
+            <div className="pt-24 sm:pt-32">
               <TermsAndConditions />
             </div>
           } />
 
           <Route path="/privacy-policy" element={
-            <div className="pt-32">
+            <div className="pt-24 sm:pt-32">
               <PrivacyPolicy />
             </div>
           } />
 
           <Route path="/contact" element={
-            <div className="pt-32">
+            <div className="pt-24 sm:pt-32">
               <ContactUs selectedEventName={selectedEvent} clearSelectedEvent={handleClearSelectedEvent} />
             </div>
           } />
 
           <Route path="/book-now" element={
-            <div className="pt-32">
+            <div className="pt-24 sm:pt-32">
               <BookNow selectedEventName={selectedEvent} clearSelectedEvent={handleClearSelectedEvent} />
             </div>
           } />
 
           <Route path="/cancellation-policy" element={
-            <div className="pt-32">
+            <div className="pt-24 sm:pt-32">
               <CancellationPolicy />
             </div>
           } />
 
           <Route path="/house-rules" element={
-            <div className="pt-32">
+            <div className="pt-24 sm:pt-32">
               <HouseRules />
             </div>
           } />

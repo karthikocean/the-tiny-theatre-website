@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Clock, MapPin, Tag } from 'lucide-react';
+import { Calendar, Clock, MapPin, Tag, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const eventsData = [
   {
@@ -73,12 +73,17 @@ export const eventsData = [
 
 export default function Events({ onBookEvent, preview, onViewMore }) {
   const [activeFilter, setActiveFilter] = useState('All');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3;
 
   const filters = ['All', 'Celebrations', 'Romance', 'Get Together', 'Corporate'];
 
   const filteredEvents = activeFilter === 'All'
     ? eventsData
     : eventsData.filter(event => event.category === activeFilter);
+
+  const totalEventPages = Math.ceil(filteredEvents.length / itemsPerPage);
+  const paginatedEvents = filteredEvents.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleBookClick = (eventName) => {
     onBookEvent(eventName);
@@ -113,7 +118,7 @@ export default function Events({ onBookEvent, preview, onViewMore }) {
             {filters.map((filter) => (
               <button
                 key={filter}
-                onClick={() => setActiveFilter(filter)}
+                onClick={() => { setActiveFilter(filter); setCurrentPage(1); }}
                 className={`px-5 py-2.5 rounded-full text-sm font-semibold tracking-wide transition-all duration-300 border ${
                   activeFilter === filter
                     ? 'bg-theatre-gold text-theatre-grey-deep border-theatre-gold shadow-lg shadow-theatre-gold/15 scale-105'
@@ -132,7 +137,7 @@ export default function Events({ onBookEvent, preview, onViewMore }) {
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
         >
           <AnimatePresence mode="popLayout">
-            {(preview ? eventsData.slice(0, 3) : filteredEvents).map((event) => (
+            {(preview ? eventsData.slice(0, 3) : paginatedEvents).map((event) => (
               <motion.div
                 layout
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -205,6 +210,29 @@ export default function Events({ onBookEvent, preview, onViewMore }) {
             ))}
           </AnimatePresence>
         </motion.div>
+
+        {/* Events Pagination Control */}
+        {!preview && totalEventPages > 1 && (
+          <div className="flex items-center justify-end space-x-2 pt-12">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="p-2.5 rounded-lg border border-white/10 bg-theatre-grey/10 text-gray-400 hover:text-white hover:border-white/20 disabled:opacity-30 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="text-xs text-gray-400 font-sans px-2">
+              Page {currentPage} of {totalEventPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalEventPages, prev + 1))}
+              disabled={currentPage === totalEventPages}
+              className="p-2.5 rounded-lg border border-white/10 bg-theatre-grey/10 text-gray-400 hover:text-white hover:border-white/20 disabled:opacity-30 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {preview && (
           <div className="text-center mt-16">

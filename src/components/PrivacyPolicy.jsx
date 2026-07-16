@@ -1,28 +1,91 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { Shield, ArrowLeft } from 'lucide-react';
+import { Shield } from 'lucide-react';
+import { getTerms } from '../Api/Termsapi';
 
 export default function PrivacyPolicy() {
-  const navigate = useNavigate();
+  const [privacyData, setPrivacyData] = useState(null);
 
-  const collectedInfo = [
-    "Name",
-    "Mobile number",
-    "Email address",
-    "Booking details",
-    "Payment information (processed through secure payment providers)",
-    "Messages or enquiries submitted through our website or WhatsApp"
+  useEffect(() => {
+    const fetchPrivacy = async () => {
+      try {
+        const res = await getTerms({ title: 'privacy' });
+        if (res.status && res.response?.data?.length > 0) {
+          setPrivacyData(res.response.data[0]);
+        }
+      } catch (err) {
+        console.error("Error fetching privacy policy:", err);
+      }
+    };
+    fetchPrivacy();
+  }, []);
+
+  const fallbackSections = [
+    {
+      title: "Information We Collect",
+      points: [
+        "We may collect:",
+        "Name",
+        "Mobile number",
+        "Email address",
+        "Booking details",
+        "Payment information (processed through secure payment providers)",
+        "Messages or enquiries submitted through our website or WhatsApp"
+      ]
+    },
+    {
+      title: "How We Use Your Information",
+      points: [
+        "Your information is used to:",
+        "Confirm and manage bookings",
+        "Communicate about your reservation",
+        "Process payments",
+        "Provide customer support",
+        "Improve our services",
+        "Send booking confirmations and important updates",
+        "We may also send promotional offers if you have chosen to receive them. You can opt out at any time."
+      ]
+    },
+    {
+      title: "Information Sharing",
+      points: [
+        "We do not sell or rent your personal information. We may share information only with trusted service providers who help us process payments, manage bookings, or operate our business, and only as necessary."
+      ]
+    },
+    {
+      title: "Data Security",
+      points: [
+        "We take reasonable technical and organisational measures to safeguard your personal information. However, no method of electronic storage or transmission is completely secure."
+      ]
+    },
+    {
+      title: "Cookies",
+      points: [
+        "Our website may use cookies and similar technologies to improve your browsing experience, analyse website usage, and enhance our services."
+      ]
+    },
+    {
+      title: "Your Rights",
+      points: [
+        "You may request access to, correction of, or deletion of your personal information, subject to applicable legal requirements."
+      ]
+    },
+    {
+      title: "Policy Updates",
+      points: [
+        "We may update this Privacy Policy from time to time. The latest version will always be available on our website."
+      ]
+    }
   ];
 
-  const infoUsage = [
-    "Confirm and manage bookings",
-    "Communicate about your reservation",
-    "Process payments",
-    "Provide customer support",
-    "Improve our services",
-    "Send booking confirmations and important updates"
-  ];
+  const displayIntro = privacyData?.introText || "At The Tiny Theatre, we value your privacy and are committed to protecting your personal information.";
+  const displaySections = privacyData?.sections || fallbackSections;
+
+  const displayLastUpdated = privacyData?.createdAt
+    ? `Last Updated: ${new Date(privacyData.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`
+    : privacyData?.updatedAt
+    ? `Last Updated: ${new Date(privacyData.updatedAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`
+    : "Last Updated: July 11, 2026";
 
   return (
     <section className="relative py-24 bg-theatre-dark min-h-screen overflow-hidden">
@@ -33,15 +96,6 @@ export default function PrivacyPolicy() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
        
-         
-
-        {/* Subtitle */}
-        <div className="text-center mb-2">
-          <span className="text-theatre-gold text-xs font-semibold tracking-[0.25em] uppercase">
-            → SECURITY & PRIVACY ←
-          </span>
-        </div>
-
         {/* Title */}
         <h1 className="text-center font-serif text-4xl sm:text-5xl font-bold text-white mb-4 leading-tight">
           Privacy <span className="text-theatre-gold">Policy</span>
@@ -56,146 +110,54 @@ export default function PrivacyPolicy() {
 
         {/* Last Updated */}
         <p className="text-center text-gray-400 text-xs tracking-wider uppercase mb-16">
-          Last Updated: July 2026
+          {displayLastUpdated}
         </p>
 
         {/* Introduction */}
         <div className="bg-theatre-grey-deep/30 border border-theatre-gold/25 rounded-2xl p-6 sm:p-8 mb-16 text-gray-300 font-sans font-light leading-relaxed text-center sm:text-left">
-          At The Tiny Theatre, we value your privacy and are committed to protecting your personal information.
+          {displayIntro}
         </div>
 
         {/* Policy Sections */}
         <div className="space-y-16">
-          {/* Section 1: Information We Collect */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5 }}
-            className="space-y-4"
-          >
-            <h3 className="font-serif text-2xl font-bold text-white tracking-wide border-b border-white/5 pb-2">
-              Information We Collect
-            </h3>
-            <p className="text-gray-300 font-sans font-light text-base sm:text-lg leading-relaxed mb-4">
-              We may collect:
-            </p>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {collectedInfo.map((info, idx) => (
-                <li key={idx} className="flex items-start space-x-3 text-gray-300 font-sans font-light text-base leading-relaxed bg-theatre-grey-deep/20 p-3.5 rounded-xl border border-white/5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-theatre-gold mt-2 flex-shrink-0" />
-                  <span>{info}</span>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-
-          {/* Section 2: How We Use Your Information */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5 }}
-            className="space-y-4"
-          >
-            <h3 className="font-serif text-2xl font-bold text-white tracking-wide border-b border-white/5 pb-2">
-              How We Use Your Information
-            </h3>
-            <p className="text-gray-300 font-sans font-light text-base sm:text-lg leading-relaxed mb-4">
-              Your information is used to:
-            </p>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {infoUsage.map((usage, idx) => (
-                <li key={idx} className="flex items-start space-x-3 text-gray-300 font-sans font-light text-base leading-relaxed bg-theatre-grey-deep/20 p-3.5 rounded-xl border border-white/5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-theatre-gold mt-2 flex-shrink-0" />
-                  <span>{usage}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="text-gray-300 font-sans font-light text-base sm:text-lg leading-relaxed mt-4 pt-2">
-              We may also send promotional offers if you have chosen to receive them. You can opt out at any time.
-            </p>
-          </motion.div>
-
-          {/* Section 3: Information Sharing */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5 }}
-            className="space-y-4"
-          >
-            <h3 className="font-serif text-2xl font-bold text-white tracking-wide border-b border-white/5 pb-2">
-              Information Sharing
-            </h3>
-            <p className="text-gray-300 font-sans font-light text-base sm:text-lg leading-relaxed">
-              We do not sell or rent your personal information. We may share information only with trusted service providers who help us process payments, manage bookings, or operate our business, and only as necessary.
-            </p>
-          </motion.div>
-
-          {/* Section 4: Data Security */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5 }}
-            className="space-y-4"
-          >
-            <h3 className="font-serif text-2xl font-bold text-white tracking-wide border-b border-white/5 pb-2">
-              Data Security
-            </h3>
-            <p className="text-gray-300 font-sans font-light text-base sm:text-lg leading-relaxed">
-              We take reasonable technical and organisational measures to safeguard your personal information. However, no method of electronic storage or transmission is completely secure.
-            </p>
-          </motion.div>
-
-          {/* Section 5: Cookies */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5 }}
-            className="space-y-4"
-          >
-            <h3 className="font-serif text-2xl font-bold text-white tracking-wide border-b border-white/5 pb-2">
-              Cookies
-            </h3>
-            <p className="text-gray-300 font-sans font-light text-base sm:text-lg leading-relaxed">
-              Our website may use cookies and similar technologies to improve your browsing experience, analyse website usage, and enhance our services.
-            </p>
-          </motion.div>
-
-          {/* Section 6: Your Rights */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5 }}
-            className="space-y-4"
-          >
-            <h3 className="font-serif text-2xl font-bold text-white tracking-wide border-b border-white/5 pb-2">
-              Your Rights
-            </h3>
-            <p className="text-gray-300 font-sans font-light text-base sm:text-lg leading-relaxed">
-              You may request access to, correction of, or deletion of your personal information, subject to applicable legal requirements.
-            </p>
-          </motion.div>
-
-          {/* Section 7: Policy Updates */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5 }}
-            className="space-y-4"
-          >
-            <h3 className="font-serif text-2xl font-bold text-white tracking-wide border-b border-white/5 pb-2">
-              Policy Updates
-            </h3>
-            <p className="text-gray-300 font-sans font-light text-base sm:text-lg leading-relaxed">
-              We may update this Privacy Policy from time to time. The latest version will always be available on our website.
-            </p>
-          </motion.div>
+          {displaySections.map((section, idx) => (
+            <motion.div
+              key={section.id || idx}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.5 }}
+              className="space-y-4"
+            >
+              <h3 className="font-serif text-2xl font-bold text-white tracking-wide border-b border-white/5 pb-2">
+                {section.title}
+              </h3>
+              
+              {/* If points has a colon in the first item, show it as introductory text, else list/para */}
+              {section.points && section.points.length > 0 && section.points[0].includes(":") ? (
+                <>
+                  <p className="text-gray-300 font-sans font-light text-base sm:text-lg leading-relaxed mb-4">
+                    {section.points[0]}
+                  </p>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {section.points.slice(1).map((point, pIdx) => (
+                      <li key={pIdx} className="flex items-start space-x-3 text-gray-300 font-sans font-light text-base leading-relaxed bg-theatre-grey-deep/20 p-3.5 rounded-xl border border-white/5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-theatre-gold mt-2 flex-shrink-0" />
+                        <span>{point}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                // Render as simple paragraphs
+                section.points && section.points.map((point, pIdx) => (
+                  <p key={pIdx} className="text-gray-300 font-sans font-light text-base sm:text-lg leading-relaxed">
+                    {point}
+                  </p>
+                ))
+              )}
+            </motion.div>
+          ))}
         </div>
 
         {/* End Note */}

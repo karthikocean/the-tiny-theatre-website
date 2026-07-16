@@ -143,9 +143,11 @@ export default function TermsAndConditions() {
       }))
     : fallbackSections;
 
-  const displayLastUpdated = termsData?.updatedAt
-    ? `Last Updated: ${new Date(termsData.updatedAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`
-    : "Last Updated: July 2026";
+  const displayLastUpdated = termsData?.createdAt
+    ? `Last Updated: ${new Date(termsData.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`
+    : termsData?.updatedAt
+    ? `Last Updated: ${new Date(termsData.updatedAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`
+    : "Last Updated: July 10, 2026";
 
   return (
     <section className="relative py-24 bg-theatre-dark min-h-screen overflow-hidden">
@@ -154,17 +156,7 @@ export default function TermsAndConditions() {
       <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-theatre-gold/5 rounded-full blur-[120px] translate-x-1/3 translate-y-1/3 pointer-events-none" />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
-        
-
-        {/* Subtitle */}
-        <div className="text-center mb-2">
-          <span className="text-theatre-gold text-xs font-semibold tracking-[0.25em] uppercase">
-            → HOUSE POLICIES ←
-          </span>
-        </div>
-
-        {/* Title */}
+                {/* Title */}
         <h1 className="text-center font-serif text-4xl sm:text-5xl font-bold text-white mb-4 leading-tight">
           Terms & <span className="text-theatre-gold">Conditions</span>
         </h1>

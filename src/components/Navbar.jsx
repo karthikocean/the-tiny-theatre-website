@@ -11,6 +11,7 @@ export default function Navbar() {
 
   const menuItems = [
     { name: 'Home', href: '#home', path: '/' },
+    // { name: 'Our Screens', href: '#screens', path: '/screens' },
     { name: 'Why Choose Us', href: '#why-choose-us', path: '/why-choose-us' },
     { name: 'Booking Process', href: '#booking-process', path: '/booking-process' },
     { name: 'Gallery', href: '#gallery', path: '/gallery' },
@@ -76,7 +77,7 @@ export default function Navbar() {
           </a>
 
           {/* Desktop Nav Links */}
-          <div className="hidden lg:flex items-center space-x-3 xl:space-x-6">
+          <div className="hidden xl:flex items-center space-x-3 xl:space-x-6">
             {menuItems.map((item) => {
               const isActive = location.pathname === item.path;
               return (
@@ -131,7 +132,7 @@ export default function Navbar() {
           </div>
 
           {/* Mobile hamburger menu */}
-          <div className="flex lg:hidden">
+          <div className="flex xl:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="inline-flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-white hover:bg-theatre-grey/20 transition-all duration-300"
@@ -146,7 +147,7 @@ export default function Navbar() {
 
       {/* Mobile Drawer */}
       <div
-        className={`lg:hidden absolute top-full left-0 w-full glass-dark transition-all duration-300 ease-in-out ${
+        className={`xl:hidden absolute top-full left-0 w-full glass-dark transition-all duration-300 ease-in-out ${
           isOpen ? 'opacity-100 translate-y-0 visible' : 'opacity-0 -translate-y-4 invisible'
         }`}
       >
