@@ -33,6 +33,7 @@ import { getImageUrl } from '../Api/api';
 import { getAddons } from '../Api/addonsapi';
 import { getSlots } from '../Api/slotsapi';
 import { getOccasions } from '../Api/occasionsapi';
+import { getDecorations } from '../Api/decorationapi';
 import { verifyCustomer } from '../Api/CustomerApi';
 import { createBooking, addPaymentToBooking } from '../Api/booking';
 import ShowNotifications from '../helper/showNotification';
@@ -250,12 +251,31 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
           setDbOccasions(activeOccasions);
         }
       } catch (err) {
-        console.error('Error fetching occasions:', err);
+        console.error('Error fetching occasions in BookNow:', err);
       } finally {
         setLoadingOccasions(false);
       }
     };
     fetchOccasions();
+  }, []);
+
+  // Dynamic decorations fetching
+  const [dbDecorations, setDbDecorations] = useState([]);
+  useEffect(() => {
+    const fetchDecorations = async () => {
+      try {
+        const res = await getDecorations();
+        if (res && res.status && res.response && res.response.data) {
+          const activeDecorations = res.response.data.filter(
+            (dec) => (dec.isActive === 1 || dec.isActive === true)
+          );
+          setDbDecorations(activeDecorations);
+        }
+      } catch (err) {
+        console.error('Error fetching decorations in BookNow:', err);
+      }
+    };
+    fetchDecorations();
   }, []);
 
   // Dynamic cakes fetching
@@ -362,11 +382,6 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     });
   }
   const cakeCharges = wantsCake ? cakePrices[cakeFlavor] || 800 : 0;
-
-  // Decor charges: flat rates inclusive of GST
-  const decorCharges = wantsDecor ? (selectedScreen === 'A' ? 900 : 800) : 0;
-
-  // Add-on pricing definitions
   const getAddonIcon = (name) => {
     const n = name.toLowerCase();
     if (n.includes('photography')) return Camera;
@@ -425,6 +440,21 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   }
 
   const addonsCharges = selectedAddons.reduce((sum, key) => sum + (addonsPrices[key]?.price || 0), 0);
+  
+  let decorCharges = 0;
+  let autoDecoration = null;
+  if (wantsDecor) {
+    const currentScreenObj = screens.find(s => {
+      const code = s.name.toLowerCase().includes('b') ? 'B' : 'A';
+      return code === selectedScreen;
+    });
+    if (currentScreenObj) {
+      autoDecoration = dbDecorations.find(d => 
+        d.screen?._id === currentScreenObj._id || d.screen === currentScreenObj._id
+      );
+      if (autoDecoration) decorCharges = autoDecoration.price || 0;
+    }
+  }
 
   const subtotal = basePrice + additionalGuestCharges + kids3to10Charges + cakeCharges + decorCharges + addonsCharges;
   const gstCharges = 0; // Inclusive of GST
@@ -596,6 +626,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         cakeComment: wantsCake ? cakeMessage : undefined,
         selectedCakeId: selectedCakeId ? [selectedCakeId] : [],
         decoration: wantsDecor,
+        decorationId: wantsDecor && autoDecoration ? autoDecoration._id : undefined,
         addons: addonIds,
         totalAmount: totalAmount
       };
@@ -1581,7 +1612,36 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           No, Skip Decor
                         </button>
                       </div>
+                      {/* Display decoration price when wantsDecor is true */}
+                      {wantsDecor && (
+                        <motion.div 
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="pt-4"
+                        >
+                          {(() => {
+                            const currentScreenObj = screens.find(s => {
+                              const code = s.name.toLowerCase().includes('b') ? 'B' : 'A';
+                              return code === selectedScreen;
+                            });
+                            const decor = currentScreenObj ? dbDecorations.find(d => 
+                              d.screen?._id === currentScreenObj._id || d.screen === currentScreenObj._id
+                            ) : null;
 
+                            if (decor) {
+                              return (
+                                <div className="text-theatre-gold text-sm font-semibold">
+                                  ✓ Decoration will be added (₹{decor.price})
+                                </div>
+                              );
+                            }
+                            return (
+                              <p className="text-gray-400 text-xs">No decorations available for this screen.</p>
+                            );
+                          })()}
+                        </motion.div>
+                      )}
 
                     </div>
                   </div>
