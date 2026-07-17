@@ -830,7 +830,9 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
             : 'lg:col-span-8'
             } ${activeStep === 10
             ? 'p-4 sm:p-6 pt-2 sm:pt-2 min-h-0'
-            : `p-6 sm:px-8 sm:pt-8 ${pbClass} ${minHeightClass}`
+            : activeStep === 1
+              ? 'p-0 sm:p-8 min-h-0'
+              : `p-6 sm:px-8 sm:pt-8 ${pbClass} ${minHeightClass}`
             }`}>
             <AnimatePresence mode="wait">
               <motion.div
