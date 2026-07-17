@@ -36,18 +36,6 @@ export default function BookingProcess({ preview, onViewMore }) {
     },
     {
       step: '03',
-      title: 'Enter Your Details',
-      emoji: '👤',
-      desc: 'Provide your booking information.',
-      icon: UserCheck,
-      details: [
-        'Full Name',
-        'Mobile Number (OTP Verification)',
-        'Email Address'
-      ]
-    },
-    {
-      step: '04',
       title: 'Select Number of Guests',
       emoji: '👥',
       desc: 'Tell us how many people will be joining. Pricing is automatically calculated based on the selected screen and guest count.',
@@ -55,7 +43,7 @@ export default function BookingProcess({ preview, onViewMore }) {
       details: []
     },
     {
-      step: '05',
+      step: '04',
       title: 'Choose Your Occasion',
       emoji: '🎉',
       desc: 'Make your celebration special. Select an occasion such as:',
@@ -74,13 +62,28 @@ export default function BookingProcess({ preview, onViewMore }) {
       ]
     },
     {
-      step: '06',
-      title: 'Customize Your Celebration',
+      step: '05',
+      title: 'Cake Selection',
       emoji: '🎂',
-      desc: 'Personalize your experience. Choose optional services like:',
+      desc: 'Would you like a cake? You can select multiple cake flavors for your celebration.',
+      icon: Cake,
+      details: []
+    },
+    {
+      step: '06',
+      title: 'Decoration Package',
+      emoji: '🎊',
+      desc: 'Personalize your experience. Choose optional decoration services for your screening room.',
+      icon: PlusCircle,
+      details: []
+    },
+    {
+      step: '07',
+      title: 'Celebration Add-ons',
+      emoji: '✨',
+      desc: 'Select extra bespoke services to capture and elevate your booking:',
       icon: Cake,
       details: [
-        'Cakes',
         'Fog Entry',
         'Decoration',
         'LED numbers',
@@ -91,24 +94,19 @@ export default function BookingProcess({ preview, onViewMore }) {
       ]
     },
     {
-      step: '07',
-      title: 'Review Your Booking',
-      emoji: '📋',
-      desc: 'Check everything before payment. Review:',
-      icon: ClipboardCheck,
+      step: '08',
+      title: 'Enter Your Details',
+      emoji: '👤',
+      desc: 'Provide your booking information.',
+      icon: UserCheck,
       details: [
-        'Selected Screen',
-        'Date & Time',
-        'Number of Guests',
-        'Occasion',
-        'Decorations',
-        'Cake',
-        'Add-ons',
-        'Total Amount'
+        'Full Name',
+        'Mobile Number (OTP Verification)',
+        'Email Address'
       ]
     },
     {
-      step: '08',
+      step: '09',
       title: 'Pay Advance Amount',
       emoji: '💳',
       desc: 'Secure your booking instantly. Pay the required ₹1,000 advance using our secure online payment gateway.',
@@ -116,7 +114,7 @@ export default function BookingProcess({ preview, onViewMore }) {
       details: []
     },
     {
-      step: '09',
+      step: '10',
       title: 'Booking Confirmed',
       emoji: '✅',
       desc: "You're all set! Once payment is successful, you'll receive:",

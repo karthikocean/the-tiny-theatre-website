@@ -188,7 +188,7 @@ function AppContent() {
 
           <Route path="/contact" element={
             <div className="pt-32">
-              <ContactUs selectedEventName={selectedEvent} clearSelectedEvent={handleClearSelectedEvent} />
+              <ContactUs />
             </div>
           } />
 
