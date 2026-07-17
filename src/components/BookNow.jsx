@@ -33,6 +33,7 @@ import { getImageUrl } from '../Api/api';
 import { getAddons } from '../Api/addonsapi';
 import { getSlots } from '../Api/slotsapi';
 import { getOccasions } from '../Api/occasionsapi';
+import { getDecorations } from '../Api/decorationapi';
 import { verifyCustomer } from '../Api/CustomerApi';
 import { createBooking, addPaymentToBooking } from '../Api/booking';
 import ShowNotifications from '../helper/showNotification';
@@ -109,15 +110,17 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
   const [eventCategory, setEventCategory] = useState(selectedEventName || '');
 
-  // Cake customization
+  // Cake customization - MULTISELECT
   const [wantsCake, setWantsCake] = useState(false);
+  const [selectedCakes, setSelectedCakes] = useState([]); // array of { flavor, message }
   const [cakeFlavor, setCakeFlavor] = useState('Chocolate Truffle');
   const [cakeMessage, setCakeMessage] = useState('');
   const [cakePage, setCakePage] = useState(1);
   const cakesPerPage = 8;
 
-  // Decoration package toggle & optional details
+
   const [wantsDecor, setWantsDecor] = useState(false);
+  const [selectedDecorId, setSelectedDecorId] = useState(null);
 
   // Add-ons checklist & details
   const [selectedAddons, setSelectedAddons] = useState([]);
@@ -250,13 +253,54 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
           setDbOccasions(activeOccasions);
         }
       } catch (err) {
-        console.error('Error fetching occasions:', err);
+        console.error('Error fetching occasions in BookNow:', err);
       } finally {
         setLoadingOccasions(false);
       }
     };
     fetchOccasions();
   }, []);
+
+  // Dynamic decorations fetching
+  const [dbDecorations, setDbDecorations] = useState([]);
+  useEffect(() => {
+    const fetchDecorations = async () => {
+      try {
+        const res = await getDecorations();
+        if (res && res.status && res.response && res.response.data) {
+          const activeDecorations = res.response.data.filter(
+            (dec) => (dec.isActive === 1 || dec.isActive === true)
+          );
+          setDbDecorations(activeDecorations);
+        }
+      } catch (err) {
+        console.error('Error fetching decorations in BookNow:', err);
+      }
+    };
+    fetchDecorations();
+  }, []);
+
+  // Auto-select the first decoration package when screen changes
+  useEffect(() => {
+    if (selectedScreen && dbDecorations.length > 0) {
+      const currentScreenObj = screens.find(s => {
+        const code = s.name.toLowerCase().includes('b') ? 'B' : 'A';
+        return code === selectedScreen;
+      });
+      if (currentScreenObj) {
+        const screenDecs = dbDecorations.filter(d => 
+          d.screen?._id === currentScreenObj._id || d.screen === currentScreenObj._id
+        );
+        if (screenDecs.length > 0) {
+          setSelectedDecorId(screenDecs[0]._id);
+        } else {
+          setSelectedDecorId(null);
+        }
+      }
+    } else {
+      setSelectedDecorId(null);
+    }
+  }, [selectedScreen, dbDecorations, screens]);
 
   // Dynamic cakes fetching
   const [dbCakes, setDbCakes] = useState([]);
@@ -286,10 +330,9 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
   // Set default cake selection when cakes load
   useEffect(() => {
-    if (dbCakes && dbCakes.length > 0) {
-      setCakeFlavor(dbCakes[0].name);
-    }
+    // nothing needed for multiselect
   }, [dbCakes]);
+
 
   const handleUpdateGuestCount = (catId, newCount) => {
     setGuestCounts(prev => ({
@@ -349,7 +392,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   const kidsCategory = activeCategories.find(cat => cat.from === 4 && cat.to === 10);
   const kids3to10Rate = kidsCategory ? kidsCategory.price : (selectedScreen === 'A' ? 250 : selectedScreen === 'B' ? 200 : 0);
 
-  // Cake flavor prices
+  // Cake prices map
   const cakePrices = {
     'Chocolate Truffle': 800,
     'Red Velvet': 900,
@@ -361,12 +404,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       cakePrices[cake.name] = cake.price;
     });
   }
-  const cakeCharges = wantsCake ? cakePrices[cakeFlavor] || 800 : 0;
-
-  // Decor charges: flat rates inclusive of GST
-  const decorCharges = wantsDecor ? (selectedScreen === 'A' ? 900 : 800) : 0;
-
-  // Add-on pricing definitions
+  const cakeCharges = wantsCake
+    ? (selectedCakes.length > 0
+        ? selectedCakes.reduce((sum, item) => sum + (cakePrices[item.flavor] || 800), 0)
+        : (cakePrices[cakeFlavor] || 800)
+      )
+    : 0;
   const getAddonIcon = (name) => {
     const n = name.toLowerCase();
     if (n.includes('photography')) return Camera;
@@ -425,6 +468,24 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   }
 
   const addonsCharges = selectedAddons.reduce((sum, key) => sum + (addonsPrices[key]?.price || 0), 0);
+  
+  const currentScreenObj = screens.find(s => {
+    const code = s.name.toLowerCase().includes('b') ? 'B' : 'A';
+    return code === selectedScreen;
+  });
+
+  const screenDecorations = currentScreenObj
+    ? dbDecorations.filter(d => d.screen?._id === currentScreenObj._id || d.screen === currentScreenObj._id)
+    : [];
+
+  const activeDecoration = (selectedDecorId && screenDecorations.find(d => d._id === selectedDecorId)) || screenDecorations[0] || null;
+
+  const decorationPrice = activeDecoration 
+    ? activeDecoration.price 
+    : (selectedScreen === 'B' ? 800 : 900);
+
+  const decorCharges = wantsDecor ? decorationPrice : 0;
+  const autoDecoration = wantsDecor ? activeDecoration : null;
 
   const subtotal = basePrice + additionalGuestCharges + kids3to10Charges + cakeCharges + decorCharges + addonsCharges;
   const gstCharges = 0; // Inclusive of GST
@@ -475,6 +536,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   };
 
   // Next Step Disabled helper
+  // New step order:
+  // 1=Screen, 2=Slot, 3=Guests, 4=Occasion, 5=Cake, 6=Decor, 7=Add-ons, 8=Details, 9=Payment
   const isNextDisabled = () => {
     if (activeStep === 1) {
       return !selectedScreen;
@@ -486,15 +549,15 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       return false;
     }
     if (activeStep === 4) {
-      return totalGuests === 0;
-    }
-    if (activeStep === 5) {
       return !eventCategory;
     }
     return false;
   };
 
+
   // Step Validation logic before proceeding
+  // New step order:
+  // 1=Screen, 2=Slot, 3=Guests, 4=Occasion, 5=Cake, 6=Decor, 7=Add-ons, 8=Details, 9=Payment
   const handleNextStep = () => {
     const errors = {};
     if (activeStep === 1 && !selectedScreen) {
@@ -511,7 +574,30 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       }
     }
     if (activeStep === 3) {
-      if (!customerInfo.fullName.trim()) errors.fullName = 'Full Name is required.';
+      if (totalGuests > maxCapacity) {
+        errors.guests = `Selected screen capacity is max ${maxCapacity} guests. Please contact the team.`;
+        setStepErrors(errors);
+        return;
+      }
+      if (totalGuests === 0) {
+        errors.guests = 'Please select at least 1 guest.';
+        setStepErrors(errors);
+        return;
+      }
+    }
+    if (activeStep === 4) {
+      if (!eventCategory) {
+        errors.occasion = 'Please select an occasion to continue.';
+        setStepErrors(errors);
+        return;
+      }
+    }
+    if (activeStep === 8) {
+      if (!customerInfo.fullName.trim()) {
+        errors.fullName = 'Full Name is required.';
+      } else if (/\d/.test(customerInfo.fullName)) {
+        errors.fullName = 'Full Name cannot contain numbers.';
+      }
       if (!customerInfo.email.trim() || !/\S+@\S+\.\S+/.test(customerInfo.email)) errors.email = 'Please provide a valid email.';
       const cleanedPhone = (customerInfo.phone || '').replace(/\D/g, '');
       if (!customerInfo.phone.trim()) {
@@ -521,13 +607,6 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       }
       if (!otpVerified) errors.otp = 'Please verify your phone number via OTP first.';
       if (Object.keys(errors).length > 0) {
-        setStepErrors(errors);
-        return;
-      }
-    }
-    if (activeStep === 4) {
-      if (totalGuests > maxCapacity) {
-        errors.guests = `Selected screen capacity is max ${maxCapacity} guests. Please reduce count or select Screen A.`;
         setStepErrors(errors);
         return;
       }
@@ -545,6 +624,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 50);
   };
+
 
   const handlePrevStep = () => {
     setStepErrors({});
@@ -578,8 +658,25 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         return !isAdult && count > 0;
       });
       const ageCategoryVal = hasKids ? 'Mixed' : 'Adults';
-      const selectedCakeObj = wantsCake ? dbCakes.find(c => c.name === cakeFlavor) : null;
-      const selectedCakeId = selectedCakeObj ? selectedCakeObj._id : undefined;
+      let selectedCakeIds = [];
+      let consolidatedCakeComment = '';
+      if (wantsCake) {
+        if (selectedCakes.length > 0) {
+          selectedCakes.forEach(item => {
+            const cakeObj = dbCakes.find(c => c.name === item.flavor);
+            if (cakeObj) {
+              selectedCakeIds.push(cakeObj._id);
+            }
+          });
+          consolidatedCakeComment = selectedCakes.map(sc => `${sc.flavor}: ${sc.message || 'No message'}`).join(' | ');
+        } else if (cakeFlavor) {
+          const cakeObj = dbCakes.find(c => c.name === cakeFlavor);
+          if (cakeObj) {
+            selectedCakeIds.push(cakeObj._id);
+          }
+          consolidatedCakeComment = cakeMessage;
+        }
+      }
 
       const bookingData = {
         screen: screenObj._id,
@@ -593,9 +690,10 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         count: totalGuests,
         occasion: occasionObj ? occasionObj._id : null,
         cakeSelection: wantsCake,
-        cakeComment: wantsCake ? cakeMessage : undefined,
-        selectedCakeId: selectedCakeId ? [selectedCakeId] : [],
+        cakeComment: wantsCake ? consolidatedCakeComment : undefined,
+        selectedCakeId: selectedCakeIds,
         decoration: wantsDecor,
+        decorationId: wantsDecor && autoDecoration ? autoDecoration._id : undefined,
         addons: addonIds,
         totalAmount: totalAmount
       };
@@ -643,8 +741,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     setOtpVerified(false);
     setGuestCounts({});
     setWantsCake(false);
-    setCakeFlavor('Chocolate Truffle');
-    setCakeMessage('');
+    setSelectedCakes([]);
     setWantsDecor(false);
     setSelectedAddons([]);
     setLedNumberText('');
@@ -654,6 +751,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       clearSelectedEvent();
     }
   };
+
 
   // Toggle addons selections
   const toggleAddon = (addonKey) => {
@@ -665,12 +763,18 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   };
 
   const stepNames = [
-    'Screen', 'Slot', 'Details', 'Guests', 'Occasion',
-    'Cake', 'Decor', 'Add-ons', 'Payment'
+    'Screen', 'Slot', 'Guests', 'Occasion',
+    'Cake', 'Decor', 'Add-ons', 'Details', 'Payment'
   ];
 
+  const isSkippedStep = (activeStep === 5 && !wantsCake) || (activeStep === 6 && !wantsDecor);
+  const pbClass = isSkippedStep ? 'max-sm:pb-6 pb-6' : 'max-sm:pb-24 pb-20';
+  const minHeightClass = isSkippedStep 
+    ? 'min-h-[220px]' 
+    : (activeStep === 7 ? 'min-h-[300px]' : 'min-h-[480px]');
+
   return (
-    <section id="book-now" className={`relative bg-theatre-dark/95 overflow-hidden min-h-screen transition-all duration-500 ${activeStep === 10 ? 'py-6 md:py-8' : 'py-16'
+    <section id="book-now" className={`relative bg-theatre-dark/95 overflow-x-hidden min-h-screen transition-all duration-500 ${activeStep === 10 ? 'py-6 md:py-8' : 'pt-16 pb-20 sm:py-16'
       }`}>
       {/* Visual backgrounds */}
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-theatre-grey/10 rounded-full blur-[120px] pointer-events-none" />
@@ -718,18 +822,15 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start max-w-6xl mx-auto mb-4">
 
           {/* LEFT PANEL: Wizard Steps (Col Span 8 on large, Full on mobile) */}
           <div className={`col-span-1 bg-theatre-grey-deep/20 backdrop-blur-md border border-white/5 rounded-3xl flex flex-col justify-between transition-all duration-300 ${activeStep === 1 || activeStep === 10
-              ? 'lg:col-span-12'
-              : 'lg:col-span-8'
+            ? 'lg:col-span-12'
+            : 'lg:col-span-8'
             } ${activeStep === 10
-              ? 'p-4 sm:p-6 pt-2 sm:pt-2 min-h-0'
-              : `p-6 sm:p-8 ${(activeStep === 6 && !wantsCake) || activeStep === 7
-                ? 'min-h-[300px]'
-                : 'min-h-[480px]'
-              }`
+            ? 'p-4 sm:p-6 pt-2 sm:pt-2 min-h-0'
+            : `p-6 sm:px-8 sm:pt-8 ${pbClass} ${minHeightClass}`
             }`}>
             <AnimatePresence mode="wait">
               <motion.div
@@ -742,8 +843,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
               >
                 {/* STEP 1: Select Screen */}
                 {activeStep === 1 && (
-                  <div className="space-y-6 max-w-2xl mx-auto w-full">
-                    <div className="space-y-1 text-center">
+                  <div className="max-w-2xl mx-auto w-full">
+                    <div className="space-y-1 text-center py-5">
                       <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">Step 1: Select Screen</h3>
                       <p className="text-xs sm:text-sm text-gray-400">Choose between our premium private theatre halls based on seating capacity.</p>
                     </div>
@@ -897,7 +998,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
                               {/* Clean list with horizontal dividers */}
                               <div className="border border-white/10 rounded-xl overflow-hidden divide-y divide-white/10 bg-white/[0.01]">
-                                {[...activeCategories].sort((a, b) => a.from - b.from).map((category) => {
+                                {[...activeCategories].sort((a, b) => b.from - a.from).map((category) => {
                                   const isFree = category.price === 0;
                                   const isAdult = category.to >= 100 || category.from >= 10;
 
@@ -1060,7 +1161,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
                             {/* Clean list with horizontal dividers */}
                             <div className="border border-white/10 rounded-xl overflow-hidden divide-y divide-white/10 bg-white/[0.01]">
-                              {[...activeCategories].sort((a, b) => a.from - b.from).map((category) => {
+                              {[...activeCategories].sort((a, b) => b.from - a.from).map((category) => {
                                 const isFree = category.price === 0;
                                 const isAdult = category.to >= 100 || category.from >= 10;
 
@@ -1100,184 +1201,16 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                   </div>
                 )}
 
-                {/* STEP 3: Customer Information */}
+                {/* STEP 3: Number of People */}
                 {activeStep === 3 && (
                   <div className="space-y-6">
                     <div className="space-y-1">
-                      <h3 className="text-xl font-serif font-bold text-white">Step 3: Customer Information</h3>
-                      <p className="text-xs sm:text-sm text-gray-400">Fill in your contact details and verify your phone number via SMS OTP code.</p>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
-                      {/* Name input */}
-                      <div className="space-y-2">
-                        <label className="text-sm font-semibold text-gray-300 block">Full Name</label>
-                        <div className="relative">
-                          <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
-                          <input
-                            type="text"
-                            value={customerInfo.fullName}
-                            onChange={(e) => {
-                              const filteredVal = e.target.value.replace(/[^A-Za-z\s]/g, '');
-                              setCustomerInfo({ ...customerInfo, fullName: filteredVal });
-                              setStepErrors(prev => ({ ...prev, fullName: null }));
-                            }}
-                            placeholder="Enter Full Name"
-                            className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-sm placeholder:text-gray-600"
-                          />
-                        </div>
-                        {stepErrors.fullName && (
-                          <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
-                            <AlertCircle className="w-3.5 h-3.5" />
-                            <span>{stepErrors.fullName}</span>
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Email input */}
-                      <div className="space-y-2">
-                        <label className="text-sm font-semibold text-gray-300 block">Email Address</label>
-                        <div className="relative">
-                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
-                          <input
-                            type="text"
-                            inputMode="email"
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setCustomerInfo({ ...customerInfo, email: val });
-                              if (stepErrors.email) {
-                                if (val.trim() && /\S+@\S+\.\S+/.test(val)) {
-                                  setStepErrors(prev => ({ ...prev, email: null }));
-                                }
-                              } else {
-                                setStepErrors(prev => ({ ...prev, email: null }));
-                              }
-                            }}
-                            onBlur={(e) => {
-                              const val = e.target.value.trim();
-                              if (val && !/\S+@\S+\.\S+/.test(val)) {
-                                setStepErrors(prev => ({ ...prev, email: 'Please provide a valid email.' }));
-                              }
-                            }}
-                            placeholder="Enter Email Address"
-                            className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-sm placeholder:text-gray-600"
-                          />
-                        </div>
-                        {stepErrors.email && (
-                          <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
-                            <AlertCircle className="w-3.5 h-3.5" />
-                            <span>{stepErrors.email}</span>
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Phone input with OTP verification trigger */}
-                      <div className="space-y-2">
-                        <label className="text-sm font-semibold text-gray-300 block">Mobile Number</label>
-                        <div className="relative flex items-center space-x-3">
-                          <div className="relative flex-grow">
-                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
-                            <input
-                              type="tel"
-                              maxLength={10}
-                              disabled={otpVerified}
-                              value={customerInfo.phone}
-                              onChange={(e) => {
-                                const val = e.target.value.replace(/\D/g, '');
-                                setCustomerInfo({ ...customerInfo, phone: val });
-                                setStepErrors(prev => ({ ...prev, phone: null }));
-                              }}
-                              placeholder="Enter Mobile Number"
-                              className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-sm placeholder:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                            />
-                          </div>
-                          {!otpVerified && (
-                            <button
-                              type="button"
-                              onClick={handleSendOtp}
-                              disabled={sendingOtp}
-                              className="bg-theatre-gold hover:bg-theatre-gold-light text-theatre-grey-deep font-sans text-[11px] font-bold px-3.5 py-2.5 rounded-lg shadow-md transition-all duration-300 cursor-pointer disabled:opacity-50 flex-shrink-0"
-                            >
-                              {sendingOtp ? 'Sending...' : otpSent ? 'Resend' : 'Send OTP'}
-                            </button>
-                          )}
-                        </div>
-                        {stepErrors.phone && (
-                          <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
-                            <AlertCircle className="w-3.5 h-3.5" />
-                            <span>{stepErrors.phone}</span>
-                          </p>
-                        )}
-                      </div>
-
-                      {/* OTP verification input code */}
-                      <div className="space-y-2">
-                        <label className="text-sm font-semibold text-gray-300 block">OTP Code</label>
-                        <div className="relative flex items-center space-x-3">
-                          <div className="relative flex-grow">
-                            <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
-                            <input
-                              type="text"
-                              inputMode="numeric"
-                              pattern="[0-9]*"
-                              maxLength={4}
-                              disabled={!otpSent || otpVerified}
-                              value={customerInfo.otp}
-                              onChange={(e) => setCustomerInfo({ ...customerInfo, otp: e.target.value.replace(/\D/g, '') })}
-                              placeholder="Enter 4-Digit OTP"
-                              className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-sm placeholder:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                            />
-                          </div>
-                          {otpSent && !otpVerified && (
-                            <button
-                              type="button"
-                              onClick={handleVerifyOtp}
-                              className="bg-green-500 hover:bg-green-600 text-white font-sans text-[11px] font-bold px-3.5 py-2.5 rounded-lg shadow-md transition-all duration-300 cursor-pointer flex-shrink-0"
-                            >
-                              Verify Code
-                            </button>
-                          )}
-                        </div>
-
-                        {otpSent && !otpVerified && (
-                          <p className="text-theatre-gold text-xs tracking-wide mt-2 font-sans font-bold flex items-center space-x-1.5 bg-theatre-gold/10 border border-theatre-gold/25 p-2.5 rounded-xl max-w-xs">
-                            <span className="w-1.5 h-1.5 rounded-full bg-theatre-gold animate-ping"></span>
-                            <span>Simulated OTP Code: <strong className="text-white bg-theatre-gold/25 px-1.5 py-0.5 rounded font-mono text-sm tracking-widest ml-1">{generatedOtp}</strong></span>
-                          </p>
-                        )}
-                        {otpError && (
-                          <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
-                            <AlertCircle className="w-3.5 h-3.5" />
-                            <span>{otpError}</span>
-                          </p>
-                        )}
-                        {otpVerified && (
-                          <p className="text-green-400 text-xs flex items-center space-x-1 mt-1">
-                            <Check className="w-4 h-4" />
-                            <span>Mobile verified successfully!</span>
-                          </p>
-                        )}
-                        {stepErrors.otp && !otpVerified && (
-                          <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
-                            <AlertCircle className="w-3.5 h-3.5" />
-                            <span>{stepErrors.otp}</span>
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* STEP 4: Number of People */}
-                {activeStep === 4 && (
-                  <div className="space-y-6">
-                    <div className="space-y-1">
-                      <h3 className="text-xl font-serif font-bold text-white">Step 4: Number of People</h3>
+                      <h3 className="text-xl font-serif font-bold text-white">Step 3: Number of People</h3>
                       <p className="text-xs sm:text-sm text-gray-400">Specify guest counts. Base booking covers up to 4 adults; additional adults and kids are charged according to screen rules.</p>
                     </div>
 
                     <div className="max-w-md space-y-6 pt-2">
-                      {activeCategories.map((category) => {
+                      {[...activeCategories].sort((a, b) => b.from - a.from).map((category) => {
                         const count = guestCounts[category._id] || 0;
                         const isFree = category.price === 0;
 
@@ -1341,13 +1274,22 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                   </div>
                 )}
 
-                {/* STEP 5: Choose Occasions */}
-                {activeStep === 5 && (
+                {/* STEP 4: Choose Occasions */}
+                {activeStep === 4 && (
+
                   <div className="space-y-6">
                     <div className="space-y-1">
-                      <h3 className="text-xl font-serif font-bold text-white">Step 5: Choose Occasions</h3>
+                      <h3 className="text-xl font-serif font-bold text-white">Step 4: Choose Occasions</h3>
+
                       <p className="text-xs sm:text-sm text-gray-400">Tell us what special occasion you are celebrating to customize your experience.</p>
                     </div>
+
+                    {stepErrors.occasion && (
+                      <div className="p-3.5 bg-red-950/30 border border-red-500/30 text-red-400 text-xs rounded-xl flex items-center space-x-2">
+                        <AlertCircle className="w-4.5 h-4.5 flex-shrink-0" />
+                        <span>{stepErrors.occasion}</span>
+                      </div>
+                    )}
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 pt-2">
                       {((dbOccasions && dbOccasions.length > 0)
@@ -1376,15 +1318,20 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             onClick={() => setEventCategory(cat.name)}
                             className="flex flex-col items-center cursor-pointer group select-none"
                           >
-                            {/* Image Container (h-36 size, no golden outline, clean white/gray borders) */}
-                            <div className={`relative w-full h-36 rounded-2xl overflow-hidden transition-all duration-300 border bg-theatre-dark/40 ${isSelected
-                              ? 'border-white/40 shadow-lg shadow-white/5'
-                              : 'border-white/10 hover:border-white/20'
+                            <div className={`relative w-full h-36 rounded-2xl overflow-hidden transition-all duration-300 border ${isSelected
+                              ? 'border-theatre-gold bg-gradient-to-t from-theatre-gold/20 to-theatre-gold/5 shadow-md shadow-theatre-gold/15 scale-[1.02]'
+                              : 'border-white/10 bg-theatre-dark/40 hover:border-white/20'
                               }`}>
+                              {/* Selected Badge */}
+                              {isSelected && (
+                                <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-theatre-gold text-theatre-grey-deep flex items-center justify-center z-10 shadow-md">
+                                  <Check className="w-3 h-3" />
+                                </span>
+                              )}
                               <img
                                 src={cat.image}
                                 alt={cat.name}
-                                className={`w-full h-full object-cover transition-transform duration-500 ${isSelected ? 'scale-105' : 'group-hover:scale-105'
+                                className={`w-full h-full object-cover transition-transform duration-500 ${isSelected ? 'scale-105 brightness-90' : 'group-hover:scale-105'
                                   }`}
                                 onError={(e) => {
                                   e.target.onerror = null;
@@ -1405,12 +1352,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                   </div>
                 )}
 
-                {/* STEP 6: Cake Selection */}
-                {activeStep === 6 && (
+                {/* STEP 5: Cake Selection - MULTISELECT */}
+                {activeStep === 5 && (
                   <div className="space-y-6">
                     <div className="space-y-1">
-                      <h3 className="text-xl font-serif font-bold text-white">Step 6: Cake Selection (Optional)</h3>
-                      <p className="text-xs sm:text-sm text-gray-400">Would you like us to arrange a fresh celebration cake for your slot?</p>
+                      <h3 className="text-xl font-serif font-bold text-white">Step 5: Cake Selection (Optional)</h3>
+                      <p className="text-xs sm:text-sm text-gray-400">Would you like us to arrange celebration cakes? You can select multiple!</p>
                     </div>
 
                     <div className="space-y-6 pt-2">
@@ -1455,27 +1402,44 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                     ? dbCakes.map(cake => ({
                                       flavor: cake.name,
                                       price: `₹${cake.price.toLocaleString('en-IN')}`,
+                                      rawPrice: cake.price,
                                       img: getImageUrl(cake.image?.path || cake.image)
                                     }))
                                     : [
-                                      { flavor: 'Chocolate Truffle', price: '₹800', img: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=300&q=80' },
-                                      { flavor: 'Red Velvet', price: '₹900', img: 'https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=300&q=80' },
-                                      { flavor: 'Butterscotch', price: '₹800', img: 'https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&w=300&q=80' },
-                                      { flavor: 'Black Forest', price: '₹750', img: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=300&q=80' }
+                                      { flavor: 'Chocolate Truffle', price: '₹800', rawPrice: 800, img: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=300&q=80' },
+                                      { flavor: 'Red Velvet', price: '₹900', rawPrice: 900, img: 'https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=300&q=80' },
+                                      { flavor: 'Butterscotch', price: '₹800', rawPrice: 800, img: 'https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&w=300&q=80' },
+                                      { flavor: 'Black Forest', price: '₹750', rawPrice: 750, img: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=300&q=80' }
                                     ];
                                   const totalCakePages = Math.ceil(cakeList.length / cakesPerPage);
                                   const paginatedCakes = cakeList.slice((cakePage - 1) * cakesPerPage, cakePage * cakesPerPage);
                                   return paginatedCakes.map(cake => {
-                                    const isSelected = cakeFlavor === cake.flavor;
+                                    const isSelected = selectedCakes.some(sc => sc.flavor === cake.flavor);
+                                    const selectedEntry = selectedCakes.find(sc => sc.flavor === cake.flavor);
                                     return (
                                       <div
                                         key={cake.flavor}
-                                        onClick={() => setCakeFlavor(cake.flavor)}
-                                        className={`rounded-xl overflow-hidden border cursor-pointer bg-theatre-dark/40 transition-all duration-300 ${isSelected
-                                          ? 'border-theatre-gold shadow-md shadow-theatre-gold/10 scale-102'
+                                        onClick={() => {
+                                          setCakeFlavor(cake.flavor);
+                                          setSelectedCakes(prev => {
+                                            if (prev.some(sc => sc.flavor === cake.flavor)) {
+                                              return prev.filter(sc => sc.flavor !== cake.flavor);
+                                            } else {
+                                              return [...prev, { flavor: cake.flavor, message: '' }];
+                                            }
+                                          });
+                                        }}
+                                        className={`rounded-xl overflow-hidden border cursor-pointer bg-theatre-dark/40 transition-all duration-300 relative ${isSelected
+                                          ? 'border-theatre-gold shadow-md shadow-theatre-gold/10 scale-102 bg-theatre-gold/5'
                                           : 'border-white/10 hover:border-white/20'
                                           }`}
                                       >
+                                        {/* Selected Badge */}
+                                        {isSelected && (
+                                          <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-theatre-gold text-theatre-grey-deep flex items-center justify-center z-10 shadow-md">
+                                            <Check className="w-3 h-3" />
+                                          </span>
+                                        )}
                                         <div className="h-28 sm:h-32 bg-gray-900 overflow-hidden">
                                           <img src={cake.img} alt={cake.flavor} className="w-full h-full object-cover" />
                                         </div>
@@ -1483,6 +1447,23 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                           <h4 className="text-xs font-bold text-white truncate">{cake.flavor}</h4>
                                           <span className="text-xs text-theatre-gold font-bold">{cake.price}</span>
                                         </div>
+                                        {/* Per-cake message input */}
+                                        {isSelected && (
+                                          <input
+                                            type="text"
+                                            maxLength={30}
+                                            onClick={(e) => e.stopPropagation()}
+                                            value={selectedEntry?.message || ''}
+                                            onChange={(e) => {
+                                              const val = e.target.value;
+                                              setSelectedCakes(prev => prev.map(sc =>
+                                                sc.flavor === cake.flavor ? { ...sc, message: val } : sc
+                                              ));
+                                            }}
+                                            placeholder={`Message for ${cake.flavor} (max 30 chars)`}
+                                            className="w-full bg-theatre-dark/60 text-white px-3 py-2 rounded-xl border border-theatre-gold/30 focus:border-theatre-gold outline-none text-[10px] transition-all duration-300 placeholder:text-gray-600"
+                                          />
+                                        )}
                                       </div>
                                     );
                                   });
@@ -1530,33 +1511,26 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             </div>
                           )}
 
-                          {/* Message on Cake input */}
-                          <div className="space-y-2 mt-4 max-w-sm">
-                            <label className="text-xs font-semibold text-gray-300 block">Message on Cake (Optional - Max 30 Characters)</label>
-                            <input
-                              type="text"
-                              maxLength={30}
-                              value={cakeMessage}
-                              onChange={(e) => setCakeMessage(e.target.value)}
-                              placeholder="E.g., Happy Birthday John"
-                              className="w-full bg-theatre-dark/60 text-white px-4 py-2.5 rounded-xl border border-white/10 focus:border-theatre-gold outline-none text-xs transition-all duration-300 placeholder:text-gray-600"
-                            />
-                            <div className="text-right text-[10px] text-gray-500">
-                              {cakeMessage.length}/30 characters
+                          {/* Cake Message global (legacy field kept for multiselect) */}
+                          {selectedCakes.length > 0 && (
+                            <div className="mt-2 p-3 bg-theatre-gold/5 border border-theatre-gold/20 rounded-xl">
+                              <p className="text-[10px] text-theatre-gold font-semibold">✓ {selectedCakes.length} Cake{selectedCakes.length > 1 ? 's' : ''} Selected — Enter a message below each cake card.</p>
                             </div>
-                          </div>
+                          )}
                         </motion.div>
                       )}
                     </div>
                   </div>
                 )}
 
-                {/* STEP 7: Decorations */}
-                {activeStep === 7 && (
+                {/* STEP 6: Decorations */}
+                {activeStep === 6 && (
                   <div className="space-y-6">
                     <div className="space-y-1">
-                      <h3 className="text-xl font-serif font-bold text-white">Step 7: Decoration Package (Optional)</h3>
-                      <p className="text-xs sm:text-sm text-gray-400">Would you like us to decorate the private screening room for your celebration?</p>
+                      <h3 className="text-xl font-serif font-bold text-white">Step 6: Decoration Package (Optional)</h3>
+                      <p className="text-xs sm:text-md text-gray-400 font-sans">
+                        Would you like us to decorate the private screening room for your celebration?
+                      </p>
                     </div>
 
                     <div className="space-y-6 pt-2">
@@ -1569,7 +1543,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             : 'bg-white/5 border-white/10 text-gray-300'
                             }`}
                         >
-                          Yes, Include Decor
+                          Yes, Include Decor (₹{decorationPrice})
                         </button>
                         <button
                           onClick={() => setWantsDecor(false)}
@@ -1581,17 +1555,84 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           No, Skip Decor
                         </button>
                       </div>
-
+                      {/* Display decoration price when wantsDecor is true */}
+                      {wantsDecor && (
+                        <motion.div 
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="pt-4"
+                        >
+                          <div className="max-w-2xl">
+                            {screenDecorations.length > 0 ? (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {screenDecorations.map((decor) => {
+                                  const isSelected = selectedDecorId === decor._id || (!selectedDecorId && screenDecorations[0]?._id === decor._id);
+                                  return (
+                                    <div
+                                      key={decor._id}
+                                      onClick={() => setSelectedDecorId(decor._id)}
+                                      className={`relative p-5 rounded-2xl border transition-all duration-300 cursor-pointer ${
+                                        isSelected
+                                          ? 'border-theatre-gold bg-gradient-to-t from-theatre-gold/20 to-theatre-gold/5 shadow-md shadow-theatre-gold/15 scale-[1.02]'
+                                          : 'border-white/10 bg-theatre-dark/40 hover:border-white/20'
+                                      } text-white`}
+                                    >
+                                      {isSelected && (
+                                        <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-theatre-gold text-theatre-grey-deep flex items-center justify-center z-10 shadow-md">
+                                          <Check className="w-3 h-3" />
+                                        </span>
+                                      )}
+                                      <div className="flex items-center space-x-3 mb-2">
+                                        <Gift className="w-5 h-5 text-theatre-gold" />
+                                        <h4 className="text-sm font-bold text-white">{decor.name}</h4>
+                                      </div>
+                                      <br />
+                                      <div className="flex justify-between items-baseline">
+                                        <span className="text-lg font-bold text-theatre-gold">₹{decor.price}</span>
+                                        <span className="text-[10px] text-gray-500 font-medium">(GST Inclusive)</span>
+                                      </div>
+                                      <div className="mt-3 text-[10px] bg-theatre-gold/10 text-theatre-gold font-sans font-bold px-2 py-1 rounded border border-theatre-gold/25 inline-block">
+                                        {isSelected ? 'Selected' : 'Click to Select'}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <div className="relative p-5 rounded-2xl border transition-all duration-300 border-theatre-gold bg-gradient-to-t from-theatre-gold/20 to-theatre-gold/5 shadow-md shadow-theatre-gold/15 scale-[1.02] text-white">
+                                <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-theatre-gold text-theatre-grey-deep flex items-center justify-center z-10 shadow-md">
+                                  <Check className="w-3 h-3" />
+                                </span>
+                                <div className="flex items-center space-x-3 mb-2">
+                                  <Gift className="w-5 h-5 text-theatre-gold" />
+                                  <h4 className="text-sm font-bold text-white">
+                                    Screen {selectedScreen} Decoration
+                                  </h4>
+                                </div>
+                                <br />
+                                <div className="flex justify-between items-baseline">
+                                  <span className="text-lg font-bold text-theatre-gold">₹{decorationPrice}</span>
+                                  <span className="text-[10px] text-gray-500 font-medium">(GST Inclusive)</span>
+                                </div>
+                                <div className="mt-3 text-[10px] bg-theatre-gold/10 text-theatre-gold font-sans font-bold px-2 py-1 rounded border border-theatre-gold/25 inline-block">
+                                  Selected Screen
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
 
                     </div>
                   </div>
                 )}
 
-                {/* STEP 8: Add-ons */}
-                {activeStep === 8 && (
+                {/* STEP 7: Add-ons */}
+                {activeStep === 7 && (
                   <div className="space-y-6">
                     <div className="space-y-1">
-                      <h3 className="text-xl font-serif font-bold text-white">Step 8: Celebration Add-ons</h3>
+                      <h3 className="text-xl font-serif font-bold text-white">Step 7: Celebration Add-ons</h3>
                       <p className="text-xs sm:text-sm text-gray-400">Select extra bespoke services to capture and elevate your booking.</p>
                     </div>
 
@@ -1750,6 +1791,159 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                   </div>
                 )}
 
+                {/* STEP 8: Customer Information */}
+                {activeStep === 8 && (
+                  <div className="space-y-6">
+                    <div className="space-y-1">
+                      <h3 className="text-xl font-serif font-bold text-white">Step 8: Customer Information</h3>
+                      <p className="text-xs sm:text-sm text-gray-400">Fill in your contact details and verify your phone number via SMS OTP code.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+                      {/* Name input */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-300 block">Full Name</label>
+                        <div className="relative">
+                          <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
+                          <input
+                            type="text"
+                            value={customerInfo.fullName}
+                            onChange={(e) => {
+                              const cleanedVal = e.target.value.replace(/[0-9]/g, '');
+                              setCustomerInfo({ ...customerInfo, fullName: cleanedVal });
+                              setStepErrors(prev => ({ ...prev, fullName: null }));
+                            }}
+                            placeholder="Enter Full Name"
+                            className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-sm placeholder:text-gray-600"
+                          />
+                        </div>
+                        {stepErrors.fullName && (
+                          <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
+                            <AlertCircle className="w-3.5 h-3.5" />
+                            <span>{stepErrors.fullName}</span>
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Email input */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-300 block">Email Address</label>
+                        <div className="relative">
+                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
+                          <input
+                            type="email"
+                            value={customerInfo.email}
+                            onChange={(e) => {
+                              setCustomerInfo({ ...customerInfo, email: e.target.value });
+                              setStepErrors(prev => ({ ...prev, email: null }));
+                            }}
+                            placeholder="Enter Email Address"
+                            className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-sm placeholder:text-gray-600"
+                          />
+                        </div>
+                        {stepErrors.email && (
+                          <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
+                            <AlertCircle className="w-3.5 h-3.5" />
+                            <span>{stepErrors.email}</span>
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Phone input with OTP verification trigger */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-300 block">Mobile Number</label>
+                        <div className="relative flex items-center space-x-3">
+                          <div className="relative flex-grow">
+                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
+                            <input
+                              type="tel"
+                              maxLength={10}
+                              disabled={otpVerified}
+                              value={customerInfo.phone}
+                              onChange={(e) => {
+                                const val = e.target.value.replace(/\D/g, '');
+                                setCustomerInfo({ ...customerInfo, phone: val });
+                                setStepErrors(prev => ({ ...prev, phone: null }));
+                              }}
+                              placeholder="Enter Mobile Number"
+                              className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-sm placeholder:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                            />
+                          </div>
+                          {!otpVerified && (
+                            <button
+                              type="button"
+                              onClick={handleSendOtp}
+                              disabled={sendingOtp}
+                              className="bg-theatre-gold hover:bg-theatre-gold-light text-theatre-grey-deep font-sans text-[11px] font-bold px-3.5 py-2.5 rounded-lg shadow-md transition-all duration-300 cursor-pointer disabled:opacity-50 flex-shrink-0"
+                            >
+                              {sendingOtp ? 'Sending...' : otpSent ? 'Resend' : 'Send OTP'}
+                            </button>
+                          )}
+                        </div>
+                        {stepErrors.phone && (
+                          <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
+                            <AlertCircle className="w-3.5 h-3.5" />
+                            <span>{stepErrors.phone}</span>
+                          </p>
+                        )}
+                      </div>
+
+                      {/* OTP verification input code */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-300 block">OTP Code</label>
+                        <div className="relative flex items-center space-x-3">
+                          <div className="relative flex-grow">
+                            <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
+                            <input
+                              type="text"
+                              maxLength={4}
+                              disabled={!otpSent || otpVerified}
+                              value={customerInfo.otp}
+                              onChange={(e) => setCustomerInfo({ ...customerInfo, otp: e.target.value })}
+                              placeholder="Enter 4-Digit OTP"
+                              className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-sm placeholder:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                            />
+                          </div>
+                          {otpSent && !otpVerified && (
+                            <button
+                              type="button"
+                              onClick={handleVerifyOtp}
+                              className="bg-green-500 hover:bg-green-600 text-white font-sans text-[11px] font-bold px-3.5 py-2.5 rounded-lg shadow-md transition-all duration-300 cursor-pointer flex-shrink-0"
+                            >
+                              Verify Code
+                            </button>
+                          )}
+                        </div>
+
+                        {otpSent && !otpVerified && (
+                          <p className="text-theatre-gold text-[10px] tracking-wide mt-1 animate-pulse">
+                            Tip: For simulation, use the OTP shown in the notification.
+                          </p>
+                        )}
+                        {otpError && (
+                          <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
+                            <AlertCircle className="w-3.5 h-3.5" />
+                            <span>{otpError}</span>
+                          </p>
+                        )}
+                        {otpVerified && (
+                          <p className="text-green-400 text-xs flex items-center space-x-1 mt-1">
+                            <Check className="w-4 h-4" />
+                            <span>Mobile verified successfully!</span>
+                          </p>
+                        )}
+                        {stepErrors.otp && !otpVerified && (
+                          <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
+                            <AlertCircle className="w-3.5 h-3.5" />
+                            <span>{stepErrors.otp}</span>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+
                 {/* STEP 9: Payment Gateway */}
                 {activeStep === 9 && (
                   <div className="space-y-6">
@@ -1899,7 +2093,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
             {/* Stepper Bottom Controls */}
             {activeStep <= 9 && (
-              <div className="flex justify-between items-center pt-8 border-t border-white/5 mt-8">
+              <div className="hidden sm:flex justify-between items-center pt-8 border-t border-white/5 mt-8 relative">
                 <button
                   type="button"
                   onClick={handlePrevStep}
@@ -1915,15 +2109,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     type="button"
                     onClick={handleNextStep}
                     disabled={isNextDisabled()}
-                    className="inline-flex items-center space-x-1.5 bg-theatre-gold hover:bg-theatre-gold-light text-theatre-grey-deep font-sans text-xs font-bold px-6 py-3 rounded-xl shadow-md hover:shadow-theatre-gold/15 transition-all duration-300 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="inline-flex items-center space-x-1.5 space-y-1 bg-theatre-gold hover:bg-theatre-gold-light text-theatre-grey-deep font-sans text-xs font-bold px-6 py-3 rounded-xl shadow-md hover:shadow-theatre-gold/15 transition-all duration-300 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <span>Proceed Next</span>
                     <ChevronRight className="w-4 h-4 text-theatre-grey-deep" />
                   </button>
                 ) : (
-                  // <span className="text-xs text-theatre-gold font-sans font-semibold animate-pulse">
-                  //   Please authorize payment on right summary panel
-                  // </span>
                   <></>
                 )}
               </div>
@@ -2010,15 +2201,29 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                       </div>
                     ))}
                     {selectedTimeSlot && wantsCake && (
-                      <div className="flex flex-col space-y-1 pl-1 text-gray-400">
-                        <div className="flex justify-between items-center">
-                          <span>Cake ({cakeFlavor}):</span>
-                          <span className="text-white">₹{cakeCharges}</span>
-                        </div>
-                        {cakeMessage && (
-                          <div className="text-[10px] text-gray-500 italic pl-2 font-mono break-words leading-relaxed max-w-xs whitespace-pre-wrap">
-                            <span className="text-gray-600 not-italic uppercase tracking-wider text-[8px] font-bold block mb-0.5"></span>
-                            <span className="text-gray-400">"{cakeMessage}"</span>
+                      <div className="space-y-1 pt-1.5 pl-2 border-t border-white/5">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Cakes:</span>
+                        {selectedCakes.length > 0 ? (
+                          selectedCakes.map((sc, idx) => {
+                            const price = cakePrices[sc.flavor] || 800;
+                            return (
+                              <div key={idx} className="flex flex-col space-y-0.5 text-[11px] text-gray-400 pl-1 font-mono">
+                                <div className="flex justify-between">
+                                  <span>+ {sc.flavor}:</span>
+                                  <span className="text-white">₹{price}</span>
+                                </div>
+                                {sc.message && (
+                                  <div className="text-[9px] text-gray-500 italic pl-3 break-words max-w-xs">
+                                    "{sc.message}"
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <div className="flex justify-between text-[11px] text-gray-400 pl-1 font-mono">
+                            <span>+ {cakeFlavor}:</span>
+                            <span className="text-white">₹{cakePrices[cakeFlavor] || 800}</span>
                           </div>
                         )}
                       </div>
@@ -2062,7 +2267,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                   <span>Total Amount:</span>
                   <span className="text-theatre-gold">₹{selectedTimeSlot ? totalAmount : 0}</span>
                 </div>
-                <div className="text-[10px] text-gray-500 text-center italic mt-1 font-sans">
+                <div className="text-xs text-theatre-gold text-center font-bold mt-2 font-sans bg-theatre-gold/10 py-1.5 rounded-lg border border-theatre-gold/30 shadow-md">
                   * All prices are inclusive of GST
                 </div>
 
@@ -2081,6 +2286,35 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         </div>
 
       </div>
+
+      {/* Mobile-Only Fixed Bottom Controls */}
+      {activeStep <= 9 && (
+        <div className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#17191d]/95 backdrop-blur-md border-t border-white/10 p-4 shadow-[0_-8px_30px_rgba(0,0,0,0.5)] flex justify-between items-center">
+          <button
+            type="button"
+            onClick={handlePrevStep}
+            disabled={activeStep === 1}
+            className="inline-flex items-center space-x-1.5 text-xs font-bold text-gray-400 hover:text-white transition-colors duration-300 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Previous</span>
+          </button>
+
+          {activeStep < 9 ? (
+            <button
+              type="button"
+              onClick={handleNextStep}
+              disabled={isNextDisabled()}
+              className="inline-flex items-center space-x-1.5 bg-theatre-gold hover:bg-theatre-gold-light text-theatre-grey-deep font-sans text-xs font-bold px-6 py-3 rounded-xl shadow-md hover:shadow-theatre-gold/15 transition-all duration-300 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <span>Proceed Next</span>
+              <ChevronRight className="w-4 h-4 text-theatre-grey-deep" />
+            </button>
+          ) : (
+            <></>
+          )}
+        </div>
+      )}
     </section>
   );
 }

@@ -7,11 +7,16 @@ export default function Hero() {
   const navigate = useNavigate();
 
   return (
-    <section id="home" className="relative min-h-[85vh] sm:min-h-screen flex items-center overflow-hidden bg-theatre-dark pt-16 sm:pt-0 pb-15 sm:pb-0">
+    <section id="home" className="relative min-h-screen flex items-center overflow-hidden bg-theatre-dark pt-16 sm:pt-0 pb-15 sm:pb-0">
       {/* Background Theatre Image — mobile */}
       <div 
         className="absolute inset-0 hero-banner-bg sm:hidden"
-        style={{ backgroundImage: `url('/bannermobile.png')` }}
+        style={{ 
+          background: `linear-gradient(180deg, #0000009d 0%, #00000080 100%), url('/banner.png')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
       />
       {/* Background Theatre Image — desktop */}
       <div 
@@ -19,8 +24,8 @@ export default function Hero() {
         style={{ backgroundImage: `url('/banner.png')` }}
       />
       {/* Dark gradient mask - lighter on mobile so banner is visible, stronger on desktop for text */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 sm:from-black sm:via-black/90 lg:via-black/35 to-transparent z-10" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-10" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 sm:from-black sm:via-black/90 lg:via-black/35 to-transparent z-10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent z-10" />
       <div className="absolute inset-0 bg-radial-gradient-hero z-10 opacity-40 pointer-events-none" />
 
       {/* Interactive stage spotlights */}
@@ -75,7 +80,7 @@ export default function Hero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4, ease: 'easeOut' }}
-              className="text-xs sm:text-sm text-gray-300 max-w-lg mb-4 sm:mb-6 leading-relaxed font-sans font-light text-center lg:text-justify"
+              className="text-xs xs:text-sm sm:text-sm md:text-xs lg:text-xs text-light-100 max-w-lg mb-4 sm:mb-6 leading-relaxed font-sans sm:font-extrabold md:font-light lg:font-light text-center lg:text-justify"
             >
               Escape the crowds and enjoy your own private cinema with your favorite people. Whether
               it's a birthday, anniversary, proposal, date night, bride to be, family gathering, corporate
