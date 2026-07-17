@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -33,6 +33,7 @@ import { getImageUrl } from '../Api/api';
 import { getAddons } from '../Api/addonsapi';
 import { getSlots } from '../Api/slotsapi';
 import { getOccasions } from '../Api/occasionsapi';
+import { getDecorations } from '../Api/decorationapi';
 import { verifyCustomer } from '../Api/CustomerApi';
 import { createBooking, addPaymentToBooking } from '../Api/booking';
 import ShowNotifications from '../helper/showNotification';
@@ -43,6 +44,27 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
   // Current active step of the wizard (1 to 11)
   const [activeStep, setActiveStep] = useState(1);
+
+  const stepperScrollRef = useRef(null);
+
+  useEffect(() => {
+    if (stepperScrollRef.current) {
+      const container = stepperScrollRef.current;
+      const visibleWidth = container.clientWidth;
+      const stepIndex = activeStep - 1; // 0-indexed
+
+      // Calculate center coordinate of the active step inside the 700px content width
+      const stepX = 16 + stepIndex * 83.5;
+
+      // Center it inside the container
+      const targetScrollLeft = stepX - (visibleWidth / 2);
+
+      container.scrollTo({
+        left: Math.max(0, targetScrollLeft),
+        behavior: 'smooth'
+      });
+    }
+  }, [activeStep]);
 
   // Default Date helper
   const getTodayDateString = () => {
@@ -229,12 +251,31 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
           setDbOccasions(activeOccasions);
         }
       } catch (err) {
-        console.error('Error fetching occasions:', err);
+        console.error('Error fetching occasions in BookNow:', err);
       } finally {
         setLoadingOccasions(false);
       }
     };
     fetchOccasions();
+  }, []);
+
+  // Dynamic decorations fetching
+  const [dbDecorations, setDbDecorations] = useState([]);
+  useEffect(() => {
+    const fetchDecorations = async () => {
+      try {
+        const res = await getDecorations();
+        if (res && res.status && res.response && res.response.data) {
+          const activeDecorations = res.response.data.filter(
+            (dec) => (dec.isActive === 1 || dec.isActive === true)
+          );
+          setDbDecorations(activeDecorations);
+        }
+      } catch (err) {
+        console.error('Error fetching decorations in BookNow:', err);
+      }
+    };
+    fetchDecorations();
   }, []);
 
   // Dynamic cakes fetching
@@ -286,10 +327,10 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   const activeCategories = selectedSlotObj?.ageCategories && selectedSlotObj.ageCategories.length > 0
     ? selectedSlotObj.ageCategories
     : [
-        { _id: 'default_adults', name: 'Adults', from: 11, to: 100, price: selectedScreen === 'A' ? 450 : 400 },
-        { _id: 'default_kids_3_10', name: 'Kids (3 to 10 Years)', from: 4, to: 10, price: selectedScreen === 'A' ? 250 : 200 },
-        { _id: 'default_kids_below_3', name: 'Kids (Below 3 Years)', from: 0, to: 3, price: 0 }
-      ];
+      { _id: 'default_adults', name: 'Adults', from: 11, to: 100, price: selectedScreen === 'A' ? 450 : 400 },
+      { _id: 'default_kids_3_10', name: 'Kids (3 to 10 Years)', from: 4, to: 10, price: selectedScreen === 'A' ? 250 : 200 },
+      { _id: 'default_kids_below_3', name: 'Kids (Below 3 Years)', from: 0, to: 3, price: 0 }
+    ];
 
   const totalGuests = activeCategories.reduce((sum, cat) => sum + Number(guestCounts[cat._id] || 0), 0);
 
@@ -320,7 +361,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   });
 
   const kids3to10Charges = 0; // Handled dynamically in additionalGuestCharges
-  
+
   // Setup fallback variables for backward compatibility in display tags
   const adultCategory = activeCategories.find(cat => cat.to >= 100 || cat.from >= 10);
   const guestRate = adultCategory ? adultCategory.price : (selectedScreen === 'A' ? 450 : selectedScreen === 'B' ? 400 : 0);
@@ -339,16 +380,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       cakePrices[cake.name] = cake.price;
     });
   }
-  // Multiselect cake total
-  const cakeCharges = wantsCake
-    ? selectedCakes.reduce((sum, sc) => sum + (cakePrices[sc.flavor] || 800), 0)
-    : 0;
-
-
-  // Decor charges: flat rates inclusive of GST
-  const decorCharges = wantsDecor ? (selectedScreen === 'A' ? 900 : 800) : 0;
-
-  // Add-on pricing definitions
+  const cakeCharges = wantsCake ? cakePrices[cakeFlavor] || 800 : 0;
   const getAddonIcon = (name) => {
     const n = name.toLowerCase();
     if (n.includes('photography')) return Camera;
@@ -407,6 +439,21 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   }
 
   const addonsCharges = selectedAddons.reduce((sum, key) => sum + (addonsPrices[key]?.price || 0), 0);
+  
+  let decorCharges = 0;
+  let autoDecoration = null;
+  if (wantsDecor) {
+    const currentScreenObj = screens.find(s => {
+      const code = s.name.toLowerCase().includes('b') ? 'B' : 'A';
+      return code === selectedScreen;
+    });
+    if (currentScreenObj) {
+      autoDecoration = dbDecorations.find(d => 
+        d.screen?._id === currentScreenObj._id || d.screen === currentScreenObj._id
+      );
+      if (autoDecoration) decorCharges = autoDecoration.price || 0;
+    }
+  }
 
   const subtotal = basePrice + additionalGuestCharges + kids3to10Charges + cakeCharges + decorCharges + addonsCharges;
   const gstCharges = 0; // Inclusive of GST
@@ -427,7 +474,6 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       setSendingOtp(false);
       const newOtp = Math.floor(1000 + Math.random() * 9000).toString();
       setGeneratedOtp(newOtp);
-      ShowNotifications.showAlertNotification("Your OTP is " + newOtp, true);
       setOtpSent(true);
       setOtpError('');
     }, 1200);
@@ -468,17 +514,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       return !selectedDate || !selectedTimeSlot;
     }
     if (activeStep === 3) {
-      return totalGuests === 0;
-    }
-    if (activeStep === 4) {
-      return !eventCategory;
-    }
-    if (activeStep === 8) {
-      const cleanedPhone = (customerInfo.phone || '').replace(/\D/g, '');
-      const isPhoneValid = /^[6-9]\d{9}$/.test(cleanedPhone);
-      const isEmailValid = /\S+@\S+\.\S+/.test(customerInfo.email);
-      const isNameValid = customerInfo.fullName.trim().length > 0;
-      return !isNameValid || !isEmailValid || !isPhoneValid || !otpVerified;
+      return false;
     }
     return false;
   };
@@ -576,6 +612,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         return !isAdult && count > 0;
       });
       const ageCategoryVal = hasKids ? 'Mixed' : 'Adults';
+      const selectedCakeObj = wantsCake ? dbCakes.find(c => c.name === cakeFlavor) : null;
+      const selectedCakeId = selectedCakeObj ? selectedCakeObj._id : undefined;
 
       const bookingData = {
         screen: screenObj._id,
@@ -589,10 +627,10 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         count: totalGuests,
         occasion: occasionObj ? occasionObj._id : null,
         cakeSelection: wantsCake,
-        cakeComment: wantsCake && selectedCakes.length > 0
-          ? selectedCakes.map(sc => `${sc.flavor}${sc.message ? ` - ${sc.message}` : ''}`).join(', ')
-          : undefined,
+        cakeComment: wantsCake ? cakeMessage : undefined,
+        selectedCakeId: selectedCakeId ? [selectedCakeId] : [],
         decoration: wantsDecor,
+        decorationId: wantsDecor && autoDecoration ? autoDecoration._id : undefined,
         addons: addonIds,
         totalAmount: totalAmount
       };
@@ -601,10 +639,10 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
       if (res.status) {
         if (advancePaymentRequired > 0) {
-            await addPaymentToBooking(res.response.data._id, {
-                amount: advancePaymentRequired,
-                method: paymentMethod
-            });
+          await addPaymentToBooking(res.response.data._id, {
+            amount: advancePaymentRequired,
+            method: paymentMethod
+          });
         }
         setBookingId(res.response.data.bookingId || `TT-${Math.floor(10000 + Math.random() * 90000)}`);
 
@@ -681,7 +719,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
         {activeStep <= 9 && (
           /* horizontal Progress Steps Bar */
-          <div className="max-w-5xl mx-auto mb-12 overflow-x-auto pb-4 scrollbar-thin">
+          <div ref={stepperScrollRef} className="w-full max-w-5xl mx-auto mb-12 overflow-x-auto pb-4 scrollbar-thin">
             <div className="flex items-center justify-between min-w-[700px] px-4">
               {stepNames.map((name, index) => {
                 const stepNum = index + 1;
@@ -692,10 +730,10 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     <div className="flex flex-col items-center relative">
                       <div
                         className={`w-9 h-9 rounded-full flex items-center justify-center font-sans text-xs font-bold transition-all duration-300 border ${isCompleted
-                            ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
-                            : isActive
-                              ? 'bg-transparent border-theatre-gold text-theatre-gold shadow-md shadow-theatre-gold/20 scale-110'
-                              : 'bg-theatre-grey-deep/30 border-white/10 text-gray-500'
+                          ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
+                          : isActive
+                            ? 'bg-transparent border-theatre-gold text-theatre-gold shadow-md shadow-theatre-gold/20 scale-110'
+                            : 'bg-theatre-grey-deep/30 border-white/10 text-gray-500'
                           }`}
                       >
                         {isCompleted ? <Check className="w-4 h-4" /> : stepNum}
@@ -718,18 +756,16 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start max-w-6xl mx-auto">
 
-           {/* LEFT PANEL: Wizard Steps (Col Span 8 on large, Full on mobile) */}
-          <div className={`col-span-1 bg-theatre-grey-deep/20 backdrop-blur-md border border-white/5 rounded-3xl flex flex-col justify-between transition-all duration-300 ${
-            activeStep === 1 || activeStep === 10
+          {/* LEFT PANEL: Wizard Steps (Col Span 8 on large, Full on mobile) */}
+          <div className={`col-span-1 bg-theatre-grey-deep/20 backdrop-blur-md border border-white/5 rounded-3xl flex flex-col justify-between transition-all duration-300 ${activeStep === 1 || activeStep === 10
               ? 'lg:col-span-12'
               : 'lg:col-span-8'
-            } ${
-              activeStep === 10
-                ? 'p-4 sm:p-6 pt-2 sm:pt-2 min-h-0'
-                : `p-6 sm:p-8 max-sm:pb-28 ${(activeStep === 6 && !wantsCake) || activeStep === 7
-                  ? 'min-h-[300px]'
-                  : 'min-h-[480px]'
-                }`
+            } ${activeStep === 10
+              ? 'p-4 sm:p-6 pt-2 sm:pt-2 min-h-0'
+              : `p-6 sm:p-8 ${(activeStep === 6 && !wantsCake) || activeStep === 7
+                ? 'min-h-[300px]'
+                : 'min-h-[480px]'
+              }`
             }`}>
             <AnimatePresence mode="wait">
               <motion.div
@@ -776,13 +812,13 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         const isSelected = selectedScreen === screenCode;
 
                         const pricingInfo = screenCode === 'A' ? {
-                        
+
                           basePrice: '₹2,399',
                           extraGuest: '₹450 / each',
                           kids: '₹250 / each',
                           fallbackImg: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=400&q=80'
                         } : {
-                        
+
                           basePrice: '₹1,799',
                           extraGuest: '₹400 / each',
                           kids: '₹200 / each',
@@ -794,8 +830,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             key={screen._id || screenCode}
                             onClick={() => { setSelectedScreen(screenCode); setStepErrors({}); }}
                             className={`rounded-2xl overflow-hidden bg-theatre-dark/40 border cursor-pointer group transition-all duration-300 flex flex-col ${isSelected
-                                ? 'border-theatre-gold shadow-lg shadow-theatre-gold/15 scale-[1.01]'
-                                : 'border-white/10 hover:border-white/20'
+                              ? 'border-theatre-gold shadow-lg shadow-theatre-gold/15 scale-[1.01]'
+                              : 'border-white/10 hover:border-white/20'
                               }`}
                           >
                             <div className="relative h-56 sm:h-64 overflow-hidden bg-gray-900">
@@ -811,7 +847,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                               {/* <span className="absolute top-3 left-3 px-3 py-1 bg-theatre-gold text-theatre-grey-deep font-sans text-[10px] font-black uppercase rounded-full">
                                 {pricingInfo.badge}
                               </span>                             */}
-                              </div>
+                            </div>
                             <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
                               <div className="space-y-1.5">
                                 <h4 className="text-base sm:text-lg font-serif font-bold text-white">{screen.name}</h4>
@@ -828,8 +864,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
                               <button
                                 className={`w-full py-2.5 rounded-xl font-sans text-xs font-bold transition-all duration-300 ${isSelected
-                                    ? 'bg-theatre-gold text-theatre-grey-deep shadow-md'
-                                    : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
+                                  ? 'bg-theatre-gold text-theatre-grey-deep shadow-md'
+                                  : 'bg-white/5 border border-white/10 text-gray-300 hover:bg-white/10'
                                   }`}
                               >
                                 {isSelected ? 'Selected' : 'Select Screen'}
@@ -839,7 +875,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         );
                       })}
                     </div>
-                 </div>
+                  </div>
                 )}
 
                 {/* STEP 2: Choose Date & Time Slot */}
@@ -860,6 +896,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             min={new Date().toISOString().split('T')[0]}
                             value={selectedDate}
                             onChange={(e) => { setSelectedDate(e.target.value); setStepErrors({}); }}
+                            onClick={(e) => { try { e.target.showPicker(); } catch (err) { } }}
+                            onFocus={(e) => { try { e.target.showPicker(); } catch (err) { } }}
                             className="w-full bg-theatre-dark/60 text-white pl-4 pr-10 py-3 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-sm font-sans scheme-dark cursor-pointer"
                           />
                           <CalendarIcon className="absolute right-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-theatre-gold pointer-events-none" />
@@ -872,7 +910,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         )}
 
                         {selectedScreen && selectedTimeSlot && (
-                          <div className="mt-4 rounded-2xl overflow-hidden border border-white/10 bg-theatre-grey-deep/15 backdrop-blur-md">
+                          <div className="hidden md:block mt-4 rounded-2xl overflow-hidden border border-white/10 bg-theatre-grey-deep/15 backdrop-blur-md">
                             {/* Base Price Header Bar */}
                             <div className="flex items-center justify-between px-5 py-4 bg-white/[0.03] border-b border-white/10">
                               <div>
@@ -898,7 +936,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                 {[...activeCategories].sort((a, b) => a.from - b.from).map((category) => {
                                   const isFree = category.price === 0;
                                   const isAdult = category.to >= 100 || category.from >= 10;
-                                  
+
                                   const ageRangeLabel = isAdult
                                     ? `${category.from}+ Years`
                                     : `${category.from} – ${category.to} Years`;
@@ -909,7 +947,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                     <div key={category._id} className="flex text-xs items-center justify-between px-5 py-3">
                                       {/* Left cell (Age category range) */}
                                       <span className="text-gray-300 font-semibold">{ageRangeLabel}</span>
-                                      
+
                                       {/* Right cell (Rate / Pricing details) */}
                                       <div className="text-right flex items-center space-x-2">
                                         <span className={`font-bold ${isFree ? 'text-emerald-400' : 'text-white'}`}>
@@ -983,10 +1021,10 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                 }}
                                 disabled={isBooked}
                                 className={`py-3 px-4 rounded-xl text-left border transition-all duration-300 text-xs font-sans ${isSelected
-                                    ? 'border-theatre-gold bg-theatre-gold/10 text-theatre-gold shadow-md'
-                                    : isBooked
-                                      ? 'border-red-500/25 bg-red-950/15 text-gray-500 cursor-not-allowed opacity-50'
-                                      : 'border-white/10 bg-theatre-dark/40 text-gray-300 hover:border-white/20'
+                                  ? 'border-theatre-gold bg-theatre-gold/10 text-theatre-gold shadow-md'
+                                  : isBooked
+                                    ? 'border-red-500/25 bg-red-950/15 text-gray-500 cursor-not-allowed opacity-50'
+                                    : 'border-white/10 bg-theatre-dark/40 text-gray-300 hover:border-white/20'
                                   }`}
                               >
                                 <div className="font-bold mb-1">{slotLabel}</div>
@@ -1016,22 +1054,84 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     </div>
 
                     {selectedDate && selectedTimeSlot && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="p-4 bg-theatre-gold/10 border border-theatre-gold/20 rounded-xl flex items-center justify-between mt-4"
-                      >
-                        <div className="flex items-center space-x-3 text-sm text-gray-300">
-                          <CalendarIcon className="w-5 h-5 text-theatre-gold" />
-                          <div>
-                            <span className="font-semibold text-white block">Selected Slot Summary</span>
-                            <span className="text-xs">{formatDateDisplay(selectedDate)} @ {selectedTimeSlot}</span>
+                      <div className="space-y-4 mt-4">
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="p-4 bg-theatre-gold/10 border border-theatre-gold/20 rounded-xl flex items-center justify-between"
+                        >
+                          <div className="flex items-center space-x-3 text-sm text-gray-300">
+                            <CalendarIcon className="w-5 h-5 text-theatre-gold" />
+                            <div>
+                              <span className="font-semibold text-white block">Selected Slot Summary</span>
+                              <span className="text-xs">{formatDateDisplay(selectedDate)} @ {selectedTimeSlot}</span>
+                            </div>
+                          </div>
+                          <span className="text-[10px] px-2 py-0.5 bg-green-500/25 border border-green-500/30 text-green-400 rounded-full font-bold uppercase tracking-wider">
+                            Reserved
+                          </span>
+                        </motion.div>
+
+                        {/* Mobile-only Base Price & Additional Guest Charges Card */}
+                        <div className="md:hidden rounded-2xl overflow-hidden border border-white/10 bg-theatre-grey-deep/15 backdrop-blur-md">
+                          {/* Base Price Header Bar */}
+                          <div className="flex items-center justify-between px-5 py-4 bg-white/[0.03] border-b border-white/10">
+                            <div>
+                              <span className="text-xs uppercase font-bold tracking-wider text-gray-300 block">Base Price</span>
+                              <span className="text-[10px] text-gray-400 font-medium mt-0.5 block">Covers up to 4 members</span>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-xl font-bold text-theatre-gold">₹{basePrice}</div>
+                              <div className="text-[9px] text-gray-500 font-medium mt-0.5">(Inc. GST)</div>
+                            </div>
+                          </div>
+
+                          <div className="p-5 space-y-4">
+                            {/* Divider Title */}
+                            <div className="flex items-center text-[10px] font-bold uppercase text-gray-400 tracking-wider">
+                              <div className="flex-grow h-px bg-white/10"></div>
+                              <span className="px-0">Additional Guest Charges (Above 4 Members)</span>
+                              <div className="flex-grow h-px bg-white/10"></div>
+                            </div>
+
+                            {/* Clean list with horizontal dividers */}
+                            <div className="border border-white/10 rounded-xl overflow-hidden divide-y divide-white/10 bg-white/[0.01]">
+                              {[...activeCategories].sort((a, b) => a.from - b.from).map((category) => {
+                                const isFree = category.price === 0;
+                                const isAdult = category.to >= 100 || category.from >= 10;
+
+                                const ageRangeLabel = isAdult
+                                  ? `${category.from}+ Years`
+                                  : `${category.from} – ${category.to} Years`;
+
+                                const rateText = isFree ? "FREE" : `₹${category.price} / each`;
+
+                                return (
+                                  <div key={category._id} className="flex text-xs items-center justify-between px-5 py-3">
+                                    {/* Left cell (Age category range) */}
+                                    <span className="text-gray-300 font-semibold">{ageRangeLabel}</span>
+
+                                    {/* Right cell (Rate / Pricing details) */}
+                                    <div className="text-right flex items-center space-x-2">
+                                      <span className={`font-bold ${isFree ? 'text-emerald-400' : 'text-white'}`}>
+                                        {rateText}
+                                      </span>
+                                      <span className="text-[9px] text-gray-500 font-medium">(Inc. GST)</span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+
+                            {/* Bottom Warning */}
+                            <div className="bg-theatre-gold/5 border border-theatre-gold/15 rounded-xl p-2.5 text-center">
+                              <p className="text-[11px] text-theatre-gold font-sans font-medium">
+                                All prices shown are final and inclusive of GST.
+                              </p>
+                            </div>
                           </div>
                         </div>
-                        <span className="text-[10px] px-2 py-0.5 bg-green-500/25 border border-green-500/30 text-green-400 rounded-full font-bold uppercase tracking-wider">
-                          Reserved
-                        </span>
-                      </motion.div>
+                      </div>
                     )}
                   </div>
                 )}
@@ -1044,6 +1144,171 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     <div className="space-y-1">
                       <h3 className="text-xl font-serif font-bold text-white">Step 3: Number of People</h3>
 
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+                      {/* Name input */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-300 block">Full Name</label>
+                        <div className="relative">
+                          <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
+                          <input
+                            type="text"
+                            value={customerInfo.fullName}
+                            onChange={(e) => {
+                              const filteredVal = e.target.value.replace(/[^A-Za-z\s]/g, '');
+                              setCustomerInfo({ ...customerInfo, fullName: filteredVal });
+                              setStepErrors(prev => ({ ...prev, fullName: null }));
+                            }}
+                            placeholder="Enter Full Name"
+                            className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-sm placeholder:text-gray-600"
+                          />
+                        </div>
+                        {stepErrors.fullName && (
+                          <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
+                            <AlertCircle className="w-3.5 h-3.5" />
+                            <span>{stepErrors.fullName}</span>
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Email input */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-300 block">Email Address</label>
+                        <div className="relative">
+                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
+                          <input
+                            type="text"
+                            inputMode="email"
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setCustomerInfo({ ...customerInfo, email: val });
+                              if (stepErrors.email) {
+                                if (val.trim() && /\S+@\S+\.\S+/.test(val)) {
+                                  setStepErrors(prev => ({ ...prev, email: null }));
+                                }
+                              } else {
+                                setStepErrors(prev => ({ ...prev, email: null }));
+                              }
+                            }}
+                            onBlur={(e) => {
+                              const val = e.target.value.trim();
+                              if (val && !/\S+@\S+\.\S+/.test(val)) {
+                                setStepErrors(prev => ({ ...prev, email: 'Please provide a valid email.' }));
+                              }
+                            }}
+                            placeholder="Enter Email Address"
+                            className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-sm placeholder:text-gray-600"
+                          />
+                        </div>
+                        {stepErrors.email && (
+                          <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
+                            <AlertCircle className="w-3.5 h-3.5" />
+                            <span>{stepErrors.email}</span>
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Phone input with OTP verification trigger */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-300 block">Mobile Number</label>
+                        <div className="relative flex items-center space-x-3">
+                          <div className="relative flex-grow">
+                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
+                            <input
+                              type="tel"
+                              maxLength={10}
+                              disabled={otpVerified}
+                              value={customerInfo.phone}
+                              onChange={(e) => {
+                                const val = e.target.value.replace(/\D/g, '');
+                                setCustomerInfo({ ...customerInfo, phone: val });
+                                setStepErrors(prev => ({ ...prev, phone: null }));
+                              }}
+                              placeholder="Enter Mobile Number"
+                              className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-sm placeholder:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                            />
+                          </div>
+                          {!otpVerified && (
+                            <button
+                              type="button"
+                              onClick={handleSendOtp}
+                              disabled={sendingOtp}
+                              className="bg-theatre-gold hover:bg-theatre-gold-light text-theatre-grey-deep font-sans text-[11px] font-bold px-3.5 py-2.5 rounded-lg shadow-md transition-all duration-300 cursor-pointer disabled:opacity-50 flex-shrink-0"
+                            >
+                              {sendingOtp ? 'Sending...' : otpSent ? 'Resend' : 'Send OTP'}
+                            </button>
+                          )}
+                        </div>
+                        {stepErrors.phone && (
+                          <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
+                            <AlertCircle className="w-3.5 h-3.5" />
+                            <span>{stepErrors.phone}</span>
+                          </p>
+                        )}
+                      </div>
+
+                      {/* OTP verification input code */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-semibold text-gray-300 block">OTP Code</label>
+                        <div className="relative flex items-center space-x-3">
+                          <div className="relative flex-grow">
+                            <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              maxLength={4}
+                              disabled={!otpSent || otpVerified}
+                              value={customerInfo.otp}
+                              onChange={(e) => setCustomerInfo({ ...customerInfo, otp: e.target.value.replace(/\D/g, '') })}
+                              placeholder="Enter 4-Digit OTP"
+                              className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-sm placeholder:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                            />
+                          </div>
+                          {otpSent && !otpVerified && (
+                            <button
+                              type="button"
+                              onClick={handleVerifyOtp}
+                              className="bg-green-500 hover:bg-green-600 text-white font-sans text-[11px] font-bold px-3.5 py-2.5 rounded-lg shadow-md transition-all duration-300 cursor-pointer flex-shrink-0"
+                            >
+                              Verify Code
+                            </button>
+                          )}
+                        </div>
+
+                        {otpSent && !otpVerified && (
+                          <p className="text-theatre-gold text-xs tracking-wide mt-2 font-sans font-bold flex items-center space-x-1.5 bg-theatre-gold/10 border border-theatre-gold/25 p-2.5 rounded-xl max-w-xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-theatre-gold animate-ping"></span>
+                            <span>Simulated OTP Code: <strong className="text-white bg-theatre-gold/25 px-1.5 py-0.5 rounded font-mono text-sm tracking-widest ml-1">{generatedOtp}</strong></span>
+                          </p>
+                        )}
+                        {otpError && (
+                          <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
+                            <AlertCircle className="w-3.5 h-3.5" />
+                            <span>{otpError}</span>
+                          </p>
+                        )}
+                        {otpVerified && (
+                          <p className="text-green-400 text-xs flex items-center space-x-1 mt-1">
+                            <Check className="w-4 h-4" />
+                            <span>Mobile verified successfully!</span>
+                          </p>
+                        )}
+                        {stepErrors.otp && !otpVerified && (
+                          <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
+                            <AlertCircle className="w-3.5 h-3.5" />
+                            <span>{stepErrors.otp}</span>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+
+                {/* STEP 4: Number of People */}
+                {activeStep === 4 && (
+                  <div className="space-y-6">
+                    <div className="space-y-1">
+                      <h3 className="text-xl font-serif font-bold text-white">Step 4: Number of People</h3>
                       <p className="text-xs sm:text-sm text-gray-400">Specify guest counts. Base booking covers up to 4 adults; additional adults and kids are charged according to screen rules.</p>
                     </div>
 
@@ -1069,19 +1334,19 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                 {ageLabel} ({rateDesc})
                               </span>
                             </div>
-                            <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0 ml-4">
                               <button
                                 type="button"
                                 onClick={() => handleUpdateGuestCount(category._id, Math.max(0, count - 1))}
-                                className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white flex items-center justify-center font-bold text-lg cursor-pointer"
+                                className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white flex items-center justify-center font-bold text-sm sm:text-lg cursor-pointer"
                               >
                                 -
                               </button>
-                              <span className="font-sans font-bold text-base w-6 text-center text-white">{count}</span>
+                              <span className="font-sans font-bold text-sm sm:text-base w-5 sm:w-6 text-center text-white">{count}</span>
                               <button
                                 type="button"
                                 onClick={() => handleUpdateGuestCount(category._id, count + 1)}
-                                className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white flex items-center justify-center font-bold text-lg cursor-pointer"
+                                className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white flex items-center justify-center font-bold text-sm sm:text-lg cursor-pointer"
                               >
                                 +
                               </button>
@@ -1150,8 +1415,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             className="flex flex-col items-center cursor-pointer group select-none"
                           >
                             <div className={`relative w-full h-36 rounded-2xl overflow-hidden transition-all duration-300 border bg-theatre-dark/40 ${isSelected
-                                ? 'border-theatre-gold shadow-lg shadow-theatre-gold/20 bg-theatre-gold/10'
-                                : 'border-white/10 hover:border-white/20'
+                              ? 'border-white/40 shadow-lg shadow-white/5'
+                              : 'border-white/10 hover:border-white/20'
                               }`}>
                               <img
                                 src={cat.image}
@@ -1196,8 +1461,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         <button
                           onClick={() => setWantsCake(true)}
                           className={`px-6 py-3 rounded-xl border text-xs font-sans font-bold tracking-wider transition-all duration-300 cursor-pointer ${wantsCake
-                              ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
-                              : 'bg-white/5 border-white/10 text-gray-300'
+                            ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
+                            : 'bg-white/5 border-white/10 text-gray-300'
                             }`}
                         >
                           Yes, Include Cake
@@ -1205,8 +1470,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         <button
                           onClick={() => setWantsCake(false)}
                           className={`px-6 py-3 rounded-xl border text-xs font-sans font-bold tracking-wider transition-all duration-300 cursor-pointer ${!wantsCake
-                              ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
-                              : 'bg-white/5 border-white/10 text-gray-300'
+                            ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
+                            : 'bg-white/5 border-white/10 text-gray-300'
                             }`}
                         >
                           No, Skip Cake
@@ -1226,7 +1491,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             </div>
                           ) : (
                             <div className="space-y-6">
-                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 {(() => {
                                   const cakeList = (dbCakes && dbCakes.length > 0)
                                     ? dbCakes.map(cake => ({
@@ -1247,35 +1512,20 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                     const isSelected = selectedCakes.some(sc => sc.flavor === cake.flavor);
                                     const selectedEntry = selectedCakes.find(sc => sc.flavor === cake.flavor);
                                     return (
-                                      <div key={cake.flavor} className="flex flex-col space-y-2">
-                                        <div
-                                          onClick={() => {
-                                            setSelectedCakes(prev => {
-                                              if (prev.some(sc => sc.flavor === cake.flavor)) {
-                                                return prev.filter(sc => sc.flavor !== cake.flavor);
-                                              } else {
-                                                return [...prev, { flavor: cake.flavor, message: '' }];
-                                              }
-                                            });
-                                          }}
-                                          className={`rounded-xl overflow-hidden border cursor-pointer bg-theatre-dark/40 transition-all duration-300 relative ${
-                                            isSelected
-                                              ? 'border-theatre-gold shadow-md shadow-theatre-gold/10 scale-102'
-                                              : 'border-white/10 hover:border-white/20'
+                                      <div
+                                        key={cake.flavor}
+                                        onClick={() => setCakeFlavor(cake.flavor)}
+                                        className={`rounded-xl overflow-hidden border cursor-pointer bg-theatre-dark/40 transition-all duration-300 ${isSelected
+                                          ? 'border-theatre-gold shadow-md shadow-theatre-gold/10 scale-102'
+                                          : 'border-white/10 hover:border-white/20'
                                           }`}
-                                        >
-                                          {isSelected && (
-                                            <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-theatre-gold text-theatre-grey-deep flex items-center justify-center z-10 shadow-md">
-                                              <Check className="w-3 h-3" />
-                                            </span>
-                                          )}
-                                          <div className="h-24 bg-gray-900 overflow-hidden">
-                                            <img src={cake.img} alt={cake.flavor} className="w-full h-full object-cover" />
-                                          </div>
-                                          <div className="p-3 text-center space-y-1">
-                                            <h4 className="text-xs font-bold text-white truncate">{cake.flavor}</h4>
-                                            <span className="text-xs text-theatre-gold font-bold">{cake.price}</span>
-                                          </div>
+                                      >
+                                        <div className="h-28 sm:h-32 bg-gray-900 overflow-hidden">
+                                          <img src={cake.img} alt={cake.flavor} className="w-full h-full object-cover" />
+                                        </div>
+                                        <div className="pt-2 pb-2 px-3 text-center space-y-0.5">
+                                          <h4 className="text-xs font-bold text-white truncate">{cake.flavor}</h4>
+                                          <span className="text-xs text-theatre-gold font-bold">{cake.price}</span>
                                         </div>
                                         {/* Per-cake message input */}
                                         {isSelected && (
@@ -1307,7 +1557,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                   <div className="flex items-center justify-end space-x-2 pt-2">
                                     <button
                                       type="button"
-                                      onClick={() => setCakePage(prev => Math.max(1, prev - 1))}
+                                      onClick={() => {
+                                        setCakePage(prev => Math.max(1, prev - 1));
+                                        setTimeout(() => {
+                                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                                        }, 50);
+                                      }}
                                       disabled={cakePage === 1}
                                       className="p-2 rounded-lg border border-white/10 bg-theatre-dark/40 text-gray-400 hover:text-white hover:border-white/20 disabled:opacity-30 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
                                     >
@@ -1318,7 +1573,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                     </span>
                                     <button
                                       type="button"
-                                      onClick={() => setCakePage(prev => Math.min(totalCakePages, prev + 1))}
+                                      onClick={() => {
+                                        setCakePage(prev => Math.min(totalCakePages, prev + 1));
+                                        setTimeout(() => {
+                                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                                        }, 50);
+                                      }}
                                       disabled={cakePage === totalCakePages}
                                       className="p-2 rounded-lg border border-white/10 bg-theatre-dark/40 text-gray-400 hover:text-white hover:border-white/20 disabled:opacity-30 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
                                     >
@@ -1361,8 +1621,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         <button
                           onClick={() => setWantsDecor(true)}
                           className={`px-6 py-3 rounded-xl border text-xs font-sans font-bold tracking-wider transition-all duration-300 cursor-pointer ${wantsDecor
-                              ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep shadow-lg shadow-theatre-gold/20'
-                              : 'bg-white/5 border-white/10 text-gray-300'
+                            ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
+                            : 'bg-white/5 border-white/10 text-gray-300'
                             }`}
                         >
                           Yes, Include Decor (₹{selectedScreen === 'B' ? '800' : '900'})
@@ -1370,22 +1630,44 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         <button
                           onClick={() => setWantsDecor(false)}
                           className={`px-6 py-3 rounded-xl border text-xs font-sans font-bold tracking-wider transition-all duration-300 cursor-pointer ${!wantsDecor
-                              ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
-                              : 'bg-white/5 border-white/10 text-gray-300'
+                            ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
+                            : 'bg-white/5 border-white/10 text-gray-300'
                             }`}
                         >
                           No, Skip Decor
                         </button>
                       </div>
+                      {/* Display decoration price when wantsDecor is true */}
+                      {wantsDecor && (
+                        <motion.div 
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="pt-4"
+                        >
+                          {(() => {
+                            const currentScreenObj = screens.find(s => {
+                              const code = s.name.toLowerCase().includes('b') ? 'B' : 'A';
+                              return code === selectedScreen;
+                            });
+                            const decor = currentScreenObj ? dbDecorations.find(d => 
+                              d.screen?._id === currentScreenObj._id || d.screen === currentScreenObj._id
+                            ) : null;
 
-                      {/* Decoration Pricing Badge */}
-                      <div className="p-4 bg-theatre-gold/5 border border-theatre-gold/20 rounded-2xl max-w-sm mt-4 font-sans">
-                        <span className="text-[10px] font-black tracking-widest text-theatre-gold uppercase block mb-1">Package Pricing</span>
-                        <span className="text-sm font-semibold text-white block">
-                          ₹{selectedScreen === 'B' ? '800' : '900'} (GST Inclusive)
-                        </span>
-                        <span className="text-[10px] text-gray-500 block mt-0.5">Flat rate decoration service for your selected Screen {selectedScreen || 'A'}.</span>
-                      </div>
+                            if (decor) {
+                              return (
+                                <div className="text-theatre-gold text-sm font-semibold">
+                                  ✓ Decoration will be added (₹{decor.price})
+                                </div>
+                              );
+                            }
+                            return (
+                              <p className="text-gray-400 text-xs">No decorations available for this screen.</p>
+                            );
+                          })()}
+                        </motion.div>
+                      )}
+
                     </div>
                   </div>
                 )}
@@ -1432,8 +1714,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                 key={addon.key}
                                 onClick={() => toggleAddon(addon.key)}
                                 className={`rounded-xl overflow-hidden border cursor-pointer flex flex-col justify-between transition-all duration-300 relative ${isSelected
-                                    ? 'border-theatre-gold bg-theatre-gold/5 text-theatre-gold scale-102 shadow-md shadow-theatre-gold/5'
-                                    : 'border-white/10 bg-theatre-dark/40 text-gray-400 hover:border-white/20'
+                                  ? 'border-theatre-gold bg-theatre-gold/5 text-theatre-gold scale-102 shadow-md shadow-theatre-gold/5'
+                                  : 'border-white/10 bg-theatre-dark/40 text-gray-400 hover:border-white/20'
                                   }`}
                               >
                                 {/* Selected Badge */}
@@ -1477,7 +1759,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           <div className="flex items-center justify-end space-x-2 pt-2">
                             <button
                               type="button"
-                              onClick={() => setAddonPage(prev => Math.max(1, prev - 1))}
+                              onClick={() => {
+                                setAddonPage(prev => Math.max(1, prev - 1));
+                                setTimeout(() => {
+                                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }, 50);
+                              }}
                               disabled={addonPage === 1}
                               className="p-2 rounded-lg border border-white/10 bg-theatre-dark/40 text-gray-400 hover:text-white hover:border-white/20 disabled:opacity-30 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
                             >
@@ -1488,7 +1775,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             </span>
                             <button
                               type="button"
-                              onClick={() => setAddonPage(prev => Math.min(totalAddonPages, prev + 1))}
+                              onClick={() => {
+                                setAddonPage(prev => Math.min(totalAddonPages, prev + 1));
+                                setTimeout(() => {
+                                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }, 50);
+                              }}
                               disabled={addonPage === totalAddonPages}
                               className="p-2 rounded-lg border border-white/10 bg-theatre-dark/40 text-gray-400 hover:text-white hover:border-white/20 disabled:opacity-30 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
                             >
@@ -1718,8 +2010,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                 key={method.id}
                                 onClick={() => setPaymentMethod(method.id)}
                                 className={`p-4 rounded-xl border cursor-pointer flex items-center justify-between transition-all duration-300 ${isSelected
-                                    ? 'border-theatre-gold bg-theatre-gold/5 text-theatre-gold'
-                                    : 'border-white/10 bg-theatre-dark/40 text-gray-400 hover:border-white/20'
+                                  ? 'border-theatre-gold bg-theatre-gold/5 text-theatre-gold'
+                                  : 'border-white/10 bg-theatre-dark/40 text-gray-400 hover:border-white/20'
                                   }`}
                               >
                                 <span className="text-xs font-semibold uppercase tracking-wider">{method.name}</span>
@@ -1744,9 +2036,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             <span className="text-white">Payable Now (Advance):</span>
                             <span className="text-theatre-gold text-lg">₹{advancePaymentRequired}</span>
                           </div>
-                          <p className="text-[10px] text-gray-500 font-light leading-relaxed">
-                            * The remaining balance of ₹{remainingBalance} is payable at the venue on your event date via card/UPI/cash.
-                          </p>
+                          <div className="p-3.5 bg-theatre-gold/5 border border-theatre-gold/20 rounded-xl flex items-start space-x-2.5">
+                            <AlertCircle className="w-4.5 h-4.5 text-theatre-gold mt-0.5 flex-shrink-0 animate-pulse" />
+                            <p className="text-[12px] text-gray-300 font-normal leading-relaxed">
+                              The remaining balance of <span className="text-white font-extrabold text-sm tracking-wide">₹{remainingBalance}</span> is payable at the venue on your event date via Card / UPI / Cash.
+                            </p>
+                          </div>
                         </div>
 
                         <button
@@ -1836,7 +2131,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     </div>
                   </div>
                 )}
-              </motion.div>
+                </div>
+   )} </motion.div>
             </AnimatePresence>
 
             {/* Stepper Bottom Controls */}
@@ -1951,14 +2247,18 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         <span className="text-white">₹{breakdown.charge}</span>
                       </div>
                     ))}
-                    {selectedTimeSlot && wantsCake && selectedCakes.length > 0 && (
-                      <div className="flex flex-col space-y-0.5 pl-2 text-gray-400">
-                        {selectedCakes.map((sc, idx) => (
-                          <div key={idx} className="flex justify-between">
-                            <span>Cake ({sc.flavor}){sc.message ? ` — "${sc.message}"` : ''}:</span>
-                            <span className="text-white">₹{cakePrices[sc.flavor] || 800}</span>
+                    {selectedTimeSlot && wantsCake && (
+                      <div className="flex flex-col space-y-1 pl-1 text-gray-400">
+                        <div className="flex justify-between items-center">
+                          <span>Cake ({cakeFlavor}):</span>
+                          <span className="text-white">₹{cakeCharges}</span>
+                        </div>
+                        {cakeMessage && (
+                          <div className="text-[10px] text-gray-500 italic pl-2 font-mono break-words leading-relaxed max-w-xs whitespace-pre-wrap">
+                            <span className="text-gray-600 not-italic uppercase tracking-wider text-[8px] font-bold block mb-0.5"></span>
+                            <span className="text-gray-400">"{cakeMessage}"</span>
                           </div>
-                        ))}
+                        )}
                       </div>
                     )}
                     {selectedTimeSlot && wantsDecor && (

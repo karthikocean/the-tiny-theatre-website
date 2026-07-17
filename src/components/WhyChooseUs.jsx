@@ -103,7 +103,7 @@ export default function WhyChooseUs({ preview, onViewMore }) {
           </h2>
           <div className="w-20 h-1 bg-gradient-to-r from-theatre-gold to-theatre-grey rounded-full mb-8" />
           <p className="text-gray-400 text-sm sm:text-base font-sans font-light leading-relaxed">
-            At The Tiny Theatre, we believe every celebration deserves a private, comfortable, and unforgettable experience. Here's what makes us special:
+            At The Tiny Theatre, we believe every celebration deserves a private, comfortable, and unforgettable experience. Here's what makes us special
           </p>
         </div>
 

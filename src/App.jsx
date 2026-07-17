@@ -72,7 +72,7 @@ function AppContent() {
   };
 
   return (
-    <div className="bg-theatre-dark text-white font-sans overflow-x-hidden min-h-screen relative selection:bg-theatre-gold selection:text-theatre-grey-deep">
+    <div className="w-full max-w-full bg-theatre-dark text-white font-sans overflow-x-hidden min-h-screen relative selection:bg-theatre-gold selection:text-theatre-grey-deep">
       
       {/* Curtain Preloader */}
       <AnimatePresence>
@@ -80,7 +80,7 @@ function AppContent() {
           <motion.div
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.1, delay: 2.2 }}
+            transition={{ duration: 0.1, delay: 0 }}
             className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
           >
             {/* Left Curtain */}
@@ -143,7 +143,7 @@ function AppContent() {
           } />
           
           <Route path="/screens" element={
-            <div className="pt-32">
+            <div className="pt-24 sm:pt-32">
               <Screens preview={false} />
             </div>
           } />
@@ -151,37 +151,37 @@ function AppContent() {
 
 
           <Route path="/offers" element={
-            <div className="pt-32">
+            <div className="pt-24 sm:pt-32">
               <CouponPage />
             </div>
           } />
 
           <Route path="/why-choose-us" element={
-            <div className="pt-32">
+            <div className="pt-24 sm:pt-32">
               <WhyChooseUs preview={false} />
             </div>
           } />
 
           <Route path="/booking-process" element={
-            <div className="pt-32">
+            <div className="pt-24 sm:pt-32">
               <BookingProcess preview={false} />
             </div>
           } />
 
           <Route path="/gallery" element={
-            <div className="pt-32">
+            <div className="pt-24 sm:pt-32">
               <Gallery preview={false} />
             </div>
           } />
 
           <Route path="/terms-and-conditions" element={
-            <div className="pt-32">
+            <div className="pt-24 sm:pt-32">
               <TermsAndConditions />
             </div>
           } />
 
           <Route path="/privacy-policy" element={
-            <div className="pt-32">
+            <div className="pt-24 sm:pt-32">
               <PrivacyPolicy />
             </div>
           } />
@@ -193,19 +193,19 @@ function AppContent() {
           } />
 
           <Route path="/book-now" element={
-            <div className="pt-32">
+            <div className="pt-24 sm:pt-32">
               <BookNow selectedEventName={selectedEvent} clearSelectedEvent={handleClearSelectedEvent} />
             </div>
           } />
 
           <Route path="/cancellation-policy" element={
-            <div className="pt-32">
+            <div className="pt-24 sm:pt-32">
               <CancellationPolicy />
             </div>
           } />
 
           <Route path="/house-rules" element={
-            <div className="pt-32">
+            <div className="pt-24 sm:pt-32">
               <HouseRules />
             </div>
           } />
