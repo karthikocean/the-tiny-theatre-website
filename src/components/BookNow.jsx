@@ -113,6 +113,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   // Cake customization - MULTISELECT
   const [wantsCake, setWantsCake] = useState(false);
   const [selectedCakes, setSelectedCakes] = useState([]); // array of { flavor, message }
+  const [cakeFlavor, setCakeFlavor] = useState('Chocolate Truffle');
+  const [cakeMessage, setCakeMessage] = useState('');
   const [cakePage, setCakePage] = useState(1);
   const cakesPerPage = 8;
 
@@ -380,7 +382,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       cakePrices[cake.name] = cake.price;
     });
   }
-  const cakeCharges = wantsCake ? cakePrices[cakeFlavor] || 800 : 0;
+  const cakeCharges = wantsCake
+    ? (selectedCakes.length > 0
+        ? selectedCakes.reduce((sum, item) => sum + (cakePrices[item.flavor] || 800), 0)
+        : (cakePrices[cakeFlavor] || 800)
+      )
+    : 0;
   const getAddonIcon = (name) => {
     const n = name.toLowerCase();
     if (n.includes('photography')) return Camera;
@@ -540,7 +547,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     }
     if (activeStep === 3) {
       if (totalGuests > maxCapacity) {
-        errors.guests = `Selected screen capacity is max ${maxCapacity} guests. Please contact our owner to discuss — +91 7338848840.`;
+        errors.guests = `Selected screen capacity is max ${maxCapacity} guests. Please contact the team.`;
         setStepErrors(errors);
         return;
       }
@@ -551,7 +558,11 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       }
     }
     if (activeStep === 8) {
-      if (!customerInfo.fullName.trim()) errors.fullName = 'Full Name is required.';
+      if (!customerInfo.fullName.trim()) {
+        errors.fullName = 'Full Name is required.';
+      } else if (/\d/.test(customerInfo.fullName)) {
+        errors.fullName = 'Full Name cannot contain numbers.';
+      }
       if (!customerInfo.email.trim() || !/\S+@\S+\.\S+/.test(customerInfo.email)) errors.email = 'Please provide a valid email.';
       const cleanedPhone = (customerInfo.phone || '').replace(/\D/g, '');
       if (!customerInfo.phone.trim()) {
@@ -612,8 +623,25 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         return !isAdult && count > 0;
       });
       const ageCategoryVal = hasKids ? 'Mixed' : 'Adults';
-      const selectedCakeObj = wantsCake ? dbCakes.find(c => c.name === cakeFlavor) : null;
-      const selectedCakeId = selectedCakeObj ? selectedCakeObj._id : undefined;
+      let selectedCakeIds = [];
+      let consolidatedCakeComment = '';
+      if (wantsCake) {
+        if (selectedCakes.length > 0) {
+          selectedCakes.forEach(item => {
+            const cakeObj = dbCakes.find(c => c.name === item.flavor);
+            if (cakeObj) {
+              selectedCakeIds.push(cakeObj._id);
+            }
+          });
+          consolidatedCakeComment = selectedCakes.map(sc => `${sc.flavor}: ${sc.message || 'No message'}`).join(' | ');
+        } else if (cakeFlavor) {
+          const cakeObj = dbCakes.find(c => c.name === cakeFlavor);
+          if (cakeObj) {
+            selectedCakeIds.push(cakeObj._id);
+          }
+          consolidatedCakeComment = cakeMessage;
+        }
+      }
 
       const bookingData = {
         screen: screenObj._id,
@@ -627,8 +655,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         count: totalGuests,
         occasion: occasionObj ? occasionObj._id : null,
         cakeSelection: wantsCake,
-        cakeComment: wantsCake ? cakeMessage : undefined,
-        selectedCakeId: selectedCakeId ? [selectedCakeId] : [],
+        cakeComment: wantsCake ? consolidatedCakeComment : undefined,
+        selectedCakeId: selectedCakeIds,
         decoration: wantsDecor,
         decorationId: wantsDecor && autoDecoration ? autoDecoration._id : undefined,
         addons: addonIds,
@@ -706,7 +734,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
 
   return (
-    <section id="book-now" className={`relative bg-theatre-dark/95 overflow-hidden min-h-screen transition-all duration-500 ${activeStep === 10 ? 'py-6 md:py-8' : 'py-16'
+    <section id="book-now" className={`relative bg-theatre-dark/95 overflow-x-hidden min-h-screen transition-all duration-500 ${activeStep === 10 ? 'py-6 md:py-8' : 'pt-16 pb-32 sm:py-16'
       }`}>
       {/* Visual backgrounds */}
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-theatre-grey/10 rounded-full blur-[120px] pointer-events-none" />
@@ -762,7 +790,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
               : 'lg:col-span-8'
             } ${activeStep === 10
               ? 'p-4 sm:p-6 pt-2 sm:pt-2 min-h-0'
-              : `p-6 sm:p-8 ${(activeStep === 6 && !wantsCake) || activeStep === 7
+              : `p-6 sm:p-8 max-sm:pb-28 ${(activeStep === 6 && !wantsCake) || activeStep === 7
                 ? 'min-h-[300px]'
                 : 'min-h-[480px]'
               }`
@@ -933,7 +961,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
                               {/* Clean list with horizontal dividers */}
                               <div className="border border-white/10 rounded-xl overflow-hidden divide-y divide-white/10 bg-white/[0.01]">
-                                {[...activeCategories].sort((a, b) => a.from - b.from).map((category) => {
+                                {[...activeCategories].sort((a, b) => b.from - a.from).map((category) => {
                                   const isFree = category.price === 0;
                                   const isAdult = category.to >= 100 || category.from >= 10;
 
@@ -1096,7 +1124,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
                             {/* Clean list with horizontal dividers */}
                             <div className="border border-white/10 rounded-xl overflow-hidden divide-y divide-white/10 bg-white/[0.01]">
-                              {[...activeCategories].sort((a, b) => a.from - b.from).map((category) => {
+                              {[...activeCategories].sort((a, b) => b.from - a.from).map((category) => {
                                 const isFree = category.price === 0;
                                 const isAdult = category.to >= 100 || category.from >= 10;
 
@@ -1136,184 +1164,16 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                   </div>
                 )}
 
-
                 {/* STEP 3: Number of People */}
                 {activeStep === 3 && (
-
                   <div className="space-y-6">
                     <div className="space-y-1">
                       <h3 className="text-xl font-serif font-bold text-white">Step 3: Number of People</h3>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
-                      {/* Name input */}
-                      <div className="space-y-2">
-                        <label className="text-sm font-semibold text-gray-300 block">Full Name</label>
-                        <div className="relative">
-                          <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
-                          <input
-                            type="text"
-                            value={customerInfo.fullName}
-                            onChange={(e) => {
-                              const filteredVal = e.target.value.replace(/[^A-Za-z\s]/g, '');
-                              setCustomerInfo({ ...customerInfo, fullName: filteredVal });
-                              setStepErrors(prev => ({ ...prev, fullName: null }));
-                            }}
-                            placeholder="Enter Full Name"
-                            className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-sm placeholder:text-gray-600"
-                          />
-                        </div>
-                        {stepErrors.fullName && (
-                          <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
-                            <AlertCircle className="w-3.5 h-3.5" />
-                            <span>{stepErrors.fullName}</span>
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Email input */}
-                      <div className="space-y-2">
-                        <label className="text-sm font-semibold text-gray-300 block">Email Address</label>
-                        <div className="relative">
-                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
-                          <input
-                            type="text"
-                            inputMode="email"
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setCustomerInfo({ ...customerInfo, email: val });
-                              if (stepErrors.email) {
-                                if (val.trim() && /\S+@\S+\.\S+/.test(val)) {
-                                  setStepErrors(prev => ({ ...prev, email: null }));
-                                }
-                              } else {
-                                setStepErrors(prev => ({ ...prev, email: null }));
-                              }
-                            }}
-                            onBlur={(e) => {
-                              const val = e.target.value.trim();
-                              if (val && !/\S+@\S+\.\S+/.test(val)) {
-                                setStepErrors(prev => ({ ...prev, email: 'Please provide a valid email.' }));
-                              }
-                            }}
-                            placeholder="Enter Email Address"
-                            className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-sm placeholder:text-gray-600"
-                          />
-                        </div>
-                        {stepErrors.email && (
-                          <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
-                            <AlertCircle className="w-3.5 h-3.5" />
-                            <span>{stepErrors.email}</span>
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Phone input with OTP verification trigger */}
-                      <div className="space-y-2">
-                        <label className="text-sm font-semibold text-gray-300 block">Mobile Number</label>
-                        <div className="relative flex items-center space-x-3">
-                          <div className="relative flex-grow">
-                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
-                            <input
-                              type="tel"
-                              maxLength={10}
-                              disabled={otpVerified}
-                              value={customerInfo.phone}
-                              onChange={(e) => {
-                                const val = e.target.value.replace(/\D/g, '');
-                                setCustomerInfo({ ...customerInfo, phone: val });
-                                setStepErrors(prev => ({ ...prev, phone: null }));
-                              }}
-                              placeholder="Enter Mobile Number"
-                              className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-sm placeholder:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                            />
-                          </div>
-                          {!otpVerified && (
-                            <button
-                              type="button"
-                              onClick={handleSendOtp}
-                              disabled={sendingOtp}
-                              className="bg-theatre-gold hover:bg-theatre-gold-light text-theatre-grey-deep font-sans text-[11px] font-bold px-3.5 py-2.5 rounded-lg shadow-md transition-all duration-300 cursor-pointer disabled:opacity-50 flex-shrink-0"
-                            >
-                              {sendingOtp ? 'Sending...' : otpSent ? 'Resend' : 'Send OTP'}
-                            </button>
-                          )}
-                        </div>
-                        {stepErrors.phone && (
-                          <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
-                            <AlertCircle className="w-3.5 h-3.5" />
-                            <span>{stepErrors.phone}</span>
-                          </p>
-                        )}
-                      </div>
-
-                      {/* OTP verification input code */}
-                      <div className="space-y-2">
-                        <label className="text-sm font-semibold text-gray-300 block">OTP Code</label>
-                        <div className="relative flex items-center space-x-3">
-                          <div className="relative flex-grow">
-                            <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-500" />
-                            <input
-                              type="text"
-                              inputMode="numeric"
-                              pattern="[0-9]*"
-                              maxLength={4}
-                              disabled={!otpSent || otpVerified}
-                              value={customerInfo.otp}
-                              onChange={(e) => setCustomerInfo({ ...customerInfo, otp: e.target.value.replace(/\D/g, '') })}
-                              placeholder="Enter 4-Digit OTP"
-                              className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3.5 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-sm placeholder:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                            />
-                          </div>
-                          {otpSent && !otpVerified && (
-                            <button
-                              type="button"
-                              onClick={handleVerifyOtp}
-                              className="bg-green-500 hover:bg-green-600 text-white font-sans text-[11px] font-bold px-3.5 py-2.5 rounded-lg shadow-md transition-all duration-300 cursor-pointer flex-shrink-0"
-                            >
-                              Verify Code
-                            </button>
-                          )}
-                        </div>
-
-                        {otpSent && !otpVerified && (
-                          <p className="text-theatre-gold text-xs tracking-wide mt-2 font-sans font-bold flex items-center space-x-1.5 bg-theatre-gold/10 border border-theatre-gold/25 p-2.5 rounded-xl max-w-xs">
-                            <span className="w-1.5 h-1.5 rounded-full bg-theatre-gold animate-ping"></span>
-                            <span>Simulated OTP Code: <strong className="text-white bg-theatre-gold/25 px-1.5 py-0.5 rounded font-mono text-sm tracking-widest ml-1">{generatedOtp}</strong></span>
-                          </p>
-                        )}
-                        {otpError && (
-                          <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
-                            <AlertCircle className="w-3.5 h-3.5" />
-                            <span>{otpError}</span>
-                          </p>
-                        )}
-                        {otpVerified && (
-                          <p className="text-green-400 text-xs flex items-center space-x-1 mt-1">
-                            <Check className="w-4 h-4" />
-                            <span>Mobile verified successfully!</span>
-                          </p>
-                        )}
-                        {stepErrors.otp && !otpVerified && (
-                          <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
-                            <AlertCircle className="w-3.5 h-3.5" />
-                            <span>{stepErrors.otp}</span>
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )
-
-                {/* STEP 4: Number of People */}
-                {activeStep === 4 && (
-                  <div className="space-y-6">
-                    <div className="space-y-1">
-                      <h3 className="text-xl font-serif font-bold text-white">Step 4: Number of People</h3>
                       <p className="text-xs sm:text-sm text-gray-400">Specify guest counts. Base booking covers up to 4 adults; additional adults and kids are charged according to screen rules.</p>
                     </div>
 
                     <div className="max-w-md space-y-6 pt-2">
-                      {activeCategories.map((category) => {
+                      {[...activeCategories].sort((a, b) => b.from - a.from).map((category) => {
                         const count = guestCounts[category._id] || 0;
                         const isFree = category.price === 0;
 
@@ -1414,10 +1274,16 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             onClick={() => setEventCategory(cat.name)}
                             className="flex flex-col items-center cursor-pointer group select-none"
                           >
-                            <div className={`relative w-full h-36 rounded-2xl overflow-hidden transition-all duration-300 border bg-theatre-dark/40 ${isSelected
-                              ? 'border-white/40 shadow-lg shadow-white/5'
-                              : 'border-white/10 hover:border-white/20'
+                            <div className={`relative w-full h-36 rounded-2xl overflow-hidden transition-all duration-300 border ${isSelected
+                              ? 'border-theatre-gold bg-gradient-to-t from-theatre-gold/20 to-theatre-gold/5 shadow-md shadow-theatre-gold/15 scale-[1.02]'
+                              : 'border-white/10 bg-theatre-dark/40 hover:border-white/20'
                               }`}>
+                              {/* Selected Badge */}
+                              {isSelected && (
+                                <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-theatre-gold text-theatre-grey-deep flex items-center justify-center z-10 shadow-md">
+                                  <Check className="w-3 h-3" />
+                                </span>
+                              )}
                               <img
                                 src={cat.image}
                                 alt={cat.name}
@@ -1435,11 +1301,6 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                               }`}>
                               {cat.name}
                             </span>
-                            {isSelected && (
-                              <span className="mt-0.5 flex items-center justify-center">
-                                <span className="inline-block w-2 h-2 rounded-full bg-theatre-gold" />
-                              </span>
-                            )}
                           </div>
                         );
                       })}
@@ -1514,12 +1375,27 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                     return (
                                       <div
                                         key={cake.flavor}
-                                        onClick={() => setCakeFlavor(cake.flavor)}
-                                        className={`rounded-xl overflow-hidden border cursor-pointer bg-theatre-dark/40 transition-all duration-300 ${isSelected
-                                          ? 'border-theatre-gold shadow-md shadow-theatre-gold/10 scale-102'
+                                        onClick={() => {
+                                          setCakeFlavor(cake.flavor);
+                                          setSelectedCakes(prev => {
+                                            if (prev.some(sc => sc.flavor === cake.flavor)) {
+                                              return prev.filter(sc => sc.flavor !== cake.flavor);
+                                            } else {
+                                              return [...prev, { flavor: cake.flavor, message: '' }];
+                                            }
+                                          });
+                                        }}
+                                        className={`rounded-xl overflow-hidden border cursor-pointer bg-theatre-dark/40 transition-all duration-300 relative ${isSelected
+                                          ? 'border-theatre-gold shadow-md shadow-theatre-gold/10 scale-102 bg-theatre-gold/5'
                                           : 'border-white/10 hover:border-white/20'
                                           }`}
                                       >
+                                        {/* Selected Badge */}
+                                        {isSelected && (
+                                          <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-theatre-gold text-theatre-grey-deep flex items-center justify-center z-10 shadow-md">
+                                            <Check className="w-3 h-3" />
+                                          </span>
+                                        )}
                                         <div className="h-28 sm:h-32 bg-gray-900 overflow-hidden">
                                           <img src={cake.img} alt={cake.flavor} className="w-full h-full object-cover" />
                                         </div>
@@ -1532,6 +1408,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                           <input
                                             type="text"
                                             maxLength={30}
+                                            onClick={(e) => e.stopPropagation()}
                                             value={selectedEntry?.message || ''}
                                             onChange={(e) => {
                                               const val = e.target.value;
@@ -1608,10 +1485,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     <div className="space-y-1">
                       <h3 className="text-xl font-serif font-bold text-white">Step 6: Decoration Package (Optional)</h3>
                       <p className="text-xs sm:text-sm text-gray-400 font-sans">
-                        Would you like us to decorate the private screening room for your celebration? 
-                        <span className="block mt-1 font-bold text-theatre-gold">
-                          Screen A Decoration: ₹900 | Screen B Decoration: ₹800 (GST Inclusive)
-                        </span>
+                        Would you like us to decorate the private screening room for your celebration?
                       </p>
                     </div>
 
@@ -1645,26 +1519,53 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           exit={{ opacity: 0, height: 0 }}
                           className="pt-4"
                         >
-                          {(() => {
-                            const currentScreenObj = screens.find(s => {
-                              const code = s.name.toLowerCase().includes('b') ? 'B' : 'A';
-                              return code === selectedScreen;
-                            });
-                            const decor = currentScreenObj ? dbDecorations.find(d => 
-                              d.screen?._id === currentScreenObj._id || d.screen === currentScreenObj._id
-                            ) : null;
-
-                            if (decor) {
+                          <div className="max-w-sm">
+                            {/* Screen A Card */}
+                            {selectedScreen === 'A' && (() => {
                               return (
-                                <div className="text-theatre-gold text-sm font-semibold">
-                                  ✓ Decoration will be added (₹{decor.price})
+                                <div className="relative p-5 rounded-2xl border transition-all duration-300 border-theatre-gold bg-gradient-to-t from-theatre-gold/20 to-theatre-gold/5 shadow-md shadow-theatre-gold/15 scale-[1.02] text-white">
+                                  <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-theatre-gold text-theatre-grey-deep flex items-center justify-center z-10 shadow-md">
+                                    <Check className="w-3 h-3" />
+                                  </span>
+                                  <div className="flex items-center space-x-3 mb-2">
+                                    <Gift className="w-5 h-5 text-theatre-gold" />
+                                    <h4 className="text-sm font-bold text-white">Screen A Decoration</h4>
+                                  </div>
+                                  <br />
+                                  <div className="flex justify-between items-baseline">
+                                    <span className="text-lg font-bold text-theatre-gold">₹900</span>
+                                    <span className="text-[10px] text-gray-500 font-medium">(GST Inclusive)</span>
+                                  </div>
+                                  <div className="mt-3 text-[10px] bg-theatre-gold/10 text-theatre-gold font-sans font-bold px-2 py-1 rounded border border-theatre-gold/25 inline-block">
+                                    Selected Screen
+                                  </div>
                                 </div>
                               );
-                            }
-                            return (
-                              <p className="text-gray-400 text-xs">No decorations available for this screen.</p>
-                            );
-                          })()}
+                            })()}
+
+                            {/* Screen B Card */}
+                            {selectedScreen === 'B' && (() => {
+                              return (
+                                <div className="relative p-5 rounded-2xl border transition-all duration-300 border-theatre-gold bg-gradient-to-t from-theatre-gold/20 to-theatre-gold/5 shadow-md shadow-theatre-gold/15 scale-[1.02] text-white">
+                                  <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-theatre-gold text-theatre-grey-deep flex items-center justify-center z-10 shadow-md">
+                                    <Check className="w-3 h-3" />
+                                  </span>
+                                  <div className="flex items-center space-x-3 mb-2">
+                                    <Gift className="w-5 h-5 text-theatre-gold" />
+                                    <h4 className="text-sm font-bold text-white">Screen B Decoration</h4>
+                                  </div>
+                                  <br />
+                                  <div className="flex justify-between items-baseline">
+                                    <span className="text-lg font-bold text-theatre-gold">₹800</span>
+                                    <span className="text-[10px] text-gray-500 font-medium">(GST Inclusive)</span>
+                                  </div>
+                                  <div className="mt-3 text-[10px] bg-theatre-gold/10 text-theatre-gold font-sans font-bold px-2 py-1 rounded border border-theatre-gold/25 inline-block">
+                                    Selected Screen
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                          </div>
                         </motion.div>
                       )}
 
@@ -1853,7 +1754,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             type="text"
                             value={customerInfo.fullName}
                             onChange={(e) => {
-                              setCustomerInfo({ ...customerInfo, fullName: e.target.value });
+                              const cleanedVal = e.target.value.replace(/[0-9]/g, '');
+                              setCustomerInfo({ ...customerInfo, fullName: cleanedVal });
                               setStepErrors(prev => ({ ...prev, fullName: null }));
                             }}
                             placeholder="Enter Full Name"
@@ -2131,13 +2033,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     </div>
                   </div>
                 )}
-                </div>
-   )} </motion.div>
+              </motion.div>
             </AnimatePresence>
 
             {/* Stepper Bottom Controls */}
             {activeStep <= 9 && (
-              <div className="flex justify-between items-center pt-8 border-t border-white/5 mt-8 sm:relative max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:bg-[#17191d]/95 max-sm:backdrop-blur-md max-sm:border-t max-sm:border-white/10 max-sm:p-4 max-sm:z-50 max-sm:mt-0 max-sm:shadow-[0_-8px_30px_rgba(0,0,0,0.5)]">
+              <div className="flex justify-between items-center pt-8 border-t border-white/5 mt-8 sm:relative max-sm:sticky max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:bg-[#17191d]/95 max-sm:backdrop-blur-md max-sm:border-t max-sm:border-white/10 max-sm:p-4 max-sm:z-50 max-sm:mt-0 max-sm:shadow-[0_-8px_30px_rgba(0,0,0,0.5)]">
                 <button
                   type="button"
                   onClick={handlePrevStep}
@@ -2248,15 +2149,29 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                       </div>
                     ))}
                     {selectedTimeSlot && wantsCake && (
-                      <div className="flex flex-col space-y-1 pl-1 text-gray-400">
-                        <div className="flex justify-between items-center">
-                          <span>Cake ({cakeFlavor}):</span>
-                          <span className="text-white">₹{cakeCharges}</span>
-                        </div>
-                        {cakeMessage && (
-                          <div className="text-[10px] text-gray-500 italic pl-2 font-mono break-words leading-relaxed max-w-xs whitespace-pre-wrap">
-                            <span className="text-gray-600 not-italic uppercase tracking-wider text-[8px] font-bold block mb-0.5"></span>
-                            <span className="text-gray-400">"{cakeMessage}"</span>
+                      <div className="space-y-1 pt-1.5 pl-2 border-t border-white/5">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Cakes:</span>
+                        {selectedCakes.length > 0 ? (
+                          selectedCakes.map((sc, idx) => {
+                            const price = cakePrices[sc.flavor] || 800;
+                            return (
+                              <div key={idx} className="flex flex-col space-y-0.5 text-[11px] text-gray-400 pl-1 font-mono">
+                                <div className="flex justify-between">
+                                  <span>+ {sc.flavor}:</span>
+                                  <span className="text-white">₹{price}</span>
+                                </div>
+                                {sc.message && (
+                                  <div className="text-[9px] text-gray-500 italic pl-3 break-words max-w-xs">
+                                    "{sc.message}"
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <div className="flex justify-between text-[11px] text-gray-400 pl-1 font-mono">
+                            <span>+ {cakeFlavor}:</span>
+                            <span className="text-white">₹{cakePrices[cakeFlavor] || 800}</span>
                           </div>
                         )}
                       </div>

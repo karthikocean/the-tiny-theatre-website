@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { MapPin, Phone, Mail } from 'lucide-react';
 
 export default function ContactUs() {
+  const [activeCard, setActiveCard] = React.useState(null);
+
   return (
     <section id="contact-us" className="relative py-24 bg-theatre-dark/95 overflow-hidden">
       {/* Background spotlights */}
@@ -15,7 +17,7 @@ export default function ContactUs() {
           <span className="text-theatre-gold font-semibold tracking-widest uppercase text-xs mb-4 block">
             Contact Us
           </span>
-          <h2 className="font-serif text-4xl sm:text-5xl font-bold text-white mb-6 leading-tight">
+          <h2 className="font-serif text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-theatre-gold via-theatre-gold-light to-theatre-gold mb-6 leading-tight">
             Where to Find Us
           </h2>
           <div className="w-20 h-1 bg-gradient-to-r from-theatre-gold to-theatre-grey rounded-full mb-8" />
@@ -30,7 +32,12 @@ export default function ContactUs() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl p-8 border border-white/5 shadow-xl hover:border-theatre-gold/25 transition-all duration-300 flex flex-col justify-center items-center text-center"
+            onClick={() => setActiveCard(activeCard === 0 ? null : 0)}
+            className={`bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl p-8 border shadow-xl hover:border-theatre-gold/25 transition-all duration-300 flex flex-col justify-center items-center text-center cursor-pointer select-none min-h-[260px] ${
+              activeCard === 0
+                ? 'border-theatre-gold/60 shadow-md shadow-theatre-gold/10 scale-[1.01]'
+                : 'border-white/5'
+            }`}
           >
             <div className="w-12 h-12 rounded-full bg-theatre-gold/10 flex items-center justify-center mb-6">
               <MapPin className="w-6 h-6 text-theatre-gold" />
@@ -50,7 +57,12 @@ export default function ContactUs() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl p-8 border border-white/5 shadow-xl hover:border-theatre-gold/25 transition-all duration-300 flex flex-col justify-center items-center text-center"
+            onClick={() => setActiveCard(activeCard === 1 ? null : 1)}
+            className={`bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl p-8 border shadow-xl hover:border-theatre-gold/25 transition-all duration-300 flex flex-col justify-center items-center text-center cursor-pointer select-none min-h-[260px] ${
+              activeCard === 1
+                ? 'border-theatre-gold/60 shadow-md shadow-theatre-gold/10 scale-[1.01]'
+                : 'border-white/5'
+            }`}
           >
             <div className="w-12 h-12 rounded-full bg-theatre-gold/10 flex items-center justify-center mb-6">
               <Phone className="w-6 h-6 text-theatre-gold" />
@@ -68,7 +80,12 @@ export default function ContactUs() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl p-8 border border-white/5 shadow-xl hover:border-theatre-gold/25 transition-all duration-300 flex flex-col justify-center items-center text-center"
+            onClick={() => setActiveCard(activeCard === 2 ? null : 2)}
+            className={`bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl p-8 border shadow-xl hover:border-theatre-gold/25 transition-all duration-300 flex flex-col justify-center items-center text-center cursor-pointer select-none min-h-[260px] ${
+              activeCard === 2
+                ? 'border-theatre-gold/60 shadow-md shadow-theatre-gold/10 scale-[1.01]'
+                : 'border-white/5'
+            }`}
           >
             <div className="w-12 h-12 rounded-full bg-theatre-gold/10 flex items-center justify-center mb-6">
               <Mail className="w-6 h-6 text-theatre-gold" />
@@ -78,9 +95,6 @@ export default function ContactUs() {
             <p className="text-gray-400 font-sans font-light text-sm leading-relaxed space-y-1">
               <a href="mailto:bookings@tinytheatre.com" className="hover:text-theatre-gold transition-colors duration-300 block">
                 bookings@tinytheatre.com
-              </a>
-              <a href="mailto:info@tinytheatre.com" className="hover:text-theatre-gold transition-colors duration-300 block">
-                info@tinytheatre.com
               </a>
             </p>
           </motion.div>
