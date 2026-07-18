@@ -515,20 +515,16 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     if (customerInfo.otp === generatedOtp) {
       setOtpError('');
       setStepErrors({});
+      setOtpVerified(true);
+      ShowNotifications.showAlertNotification("Customer verified successfully", true);
       try {
-        const res = await verifyCustomer({
+        await verifyCustomer({
           name: customerInfo.fullName,
           email: customerInfo.email,
           mobileNumber: customerInfo.phone
         });
-        if (res.status) {
-          setOtpVerified(true);
-          ShowNotifications.showAlertNotification("Customer verified successfully", true);
-        } else {
-          setOtpError("Failed to verify customer details on server.");
-        }
       } catch (err) {
-        setOtpError("Error connecting to server.");
+        console.warn("Backend customer verification failed:", err);
       }
     } else {
       setOtpError('Invalid OTP code. Please enter the code sent to you.');
@@ -605,7 +601,13 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       } else if (!/^[6-9]\d{9}$/.test(cleanedPhone)) {
         errors.phone = 'Please enter a valid 10-digit mobile number.';
       }
-      if (!otpVerified) errors.otp = 'Please verify your phone number via OTP first.';
+      if (!otpVerified) {
+        if (customerInfo.otp === generatedOtp && generatedOtp !== '') {
+          setOtpVerified(true);
+        } else {
+          errors.otp = 'Please verify your phone number via OTP first.';
+        }
+      }
       if (Object.keys(errors).length > 0) {
         setStepErrors(errors);
         return;
@@ -825,13 +827,13 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start max-w-6xl mx-auto mb-4">
 
           {/* LEFT PANEL: Wizard Steps (Col Span 8 on large, Full on mobile) */}
-          <div className={`col-span-1 bg-theatre-grey-deep/20 backdrop-blur-md border border-white/5 rounded-3xl flex flex-col justify-between transition-all duration-300 ${activeStep === 1 || activeStep === 10
+          <div className={`col-span-1 bg-theatre-grey-deep/20 backdrop-blur-md border border-white/5 rounded-3xl flex flex-col justify-between transition-all duration-300 mx-2 sm:mx-0 ${activeStep === 1 || activeStep === 10
             ? 'lg:col-span-12'
             : 'lg:col-span-8'
             } ${activeStep === 10
             ? 'p-4 sm:p-6 pt-2 sm:pt-2 min-h-0'
             : activeStep === 1
-              ? 'p-0 sm:p-8 min-h-0'
+              ? 'p-5 sm:p-8 min-h-0'
               : `p-6 sm:px-8 sm:pt-8 ${pbClass} ${minHeightClass}`
             }`}>
             <AnimatePresence mode="wait">
@@ -1919,7 +1921,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
                         {otpSent && !otpVerified && (
                           <p className="text-theatre-gold text-[10px] tracking-wide mt-1 animate-pulse">
-                            Tip: For simulation, use the OTP shown in the notification.
+                            Tip: For simulation, use the OTP: {generatedOtp}
                           </p>
                         )}
                         {otpError && (
@@ -2125,7 +2127,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
           {/* RIGHT PANEL: Live Invoice/Selected Items Summary (Col Span 4 on large, Hidden in success view) */}
           {activeStep >= 2 && activeStep <= 9 && (
-            <div className="col-span-1 lg:col-span-4 bg-theatre-grey-deep/20 backdrop-blur-md border border-white/5 rounded-3xl p-6 space-y-6 sticky top-28">
+            <div className="col-span-1 lg:col-span-4 bg-theatre-grey-deep/20 backdrop-blur-md border border-white/5 rounded-3xl p-6 space-y-6 mx-2 sm:mx-0 sticky top-28">
               <h3 className="font-serif text-lg font-bold text-white border-b border-white/5 pb-2">Booking Summary</h3>
 
               {/* Selected Slot summary */}
