@@ -5,129 +5,14 @@ import { Maximize2, X, Star, Quote, ChevronLeft, ChevronRight, Play } from 'luci
 import { getGallery } from '../Api/galleryapi';
 import { getImageUrl } from '../Api/api';
 
-const staticGalleryItems = [
-  {
-    id: 1,
-    title: 'Romantic Proposal Setup',
-    category: 'Screen A',
-    type: 'photo',
-    image: 'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=800&q=80',
-    testimonial: 'I booked the Rose Screen for my proposal and the team did a flawless job with the balloon letters and candle pathway. She said YES! Best private theater service ever.',
-    reviewer: 'Sarah Jenkins',
-    role: 'Romantic Partner',
-    rating: 5,
-  },
-  {
-    id: 2,
-    title: 'Custom Birthday Decor',
-    category: 'Celebrations',
-    type: 'photo',
-    image: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=800&q=80',
-    testimonial: 'Awesome birthday surprise! The balloon styling was gorgeous, sound system was super loud, and the private theater made us feel like movie stars. Recliners are extremely soft.',
-    reviewer: 'Elena Rostova',
-    role: 'Birthday Celebrant',
-    rating: 5,
-  },
-  {
-    id: 3,
-    title: 'Dolby Atmos Sound Setup',
-    category: 'Screen B',
-    type: 'photo',
-    image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80',
-    testimonial: 'The 4K projection quality and the room acoustics were spectacular. Renting out the whole screen was the best movie experience we have had in years. Highly recommended.',
-    reviewer: 'Marcus G.',
-    role: 'Film Club Host',
-    rating: 5,
-  },
-  {
-    id: 4,
-    title: 'Private Get-Together',
-    category: 'Screen A',
-    type: 'photo',
-    image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80',
-    testimonial: 'Hosting our get-together at The Tiny Theatre was a spectacular experience! The luxury recliners, massive screen, and warm ambience made our family gathering absolutely unforgettable.',
-    reviewer: 'David K.',
-    role: 'Family Event Organizer',
-    rating: 5,
-  },
-  {
-    id: 5,
-    title: 'Corporate Presentation Slot',
-    category: 'Others',
-    type: 'photo',
-    image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=80',
-    testimonial: 'Very professional screening hall. We used it for our product launch video presentations, and the sound isolation and projection contrast were absolutely top-notch.',
-    reviewer: 'Clara S.',
-    role: 'Tech Startup Founder',
-    rating: 5,
-  },
-  {
-    id: 6,
-    title: 'Twilight Outdoor Screen',
-    category: 'Celebrations',
-    type: 'photo',
-    image: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=800&q=80',
-    testimonial: 'Booked the twilight outdoor cinema deck for my daughter\'s sweet sixteen. Popcorn machine, wireless headsets... it was absolute magic under the stars!',
-    reviewer: 'Liam & Sophia',
-    role: 'Happy Parents',
-    rating: 5,
-  },
-  {
-    id: 7,
-    title: 'Screen A Cinematic Experience',
-    category: 'Screen A',
-    type: 'video',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-audience-in-a-cinema-hall-44754-large.mp4',
-    image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80',
-    testimonial: 'The cinema visual setup in Screen A is breathtaking. We watched our favorite movie and the projection and sound was phenomenal.',
-    reviewer: 'Aniket S.',
-    role: 'Movie Lover',
-    rating: 5,
-  },
-  {
-    id: 8,
-    title: 'Screen B Premium Sound Test',
-    category: 'Screen B',
-    type: 'video',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-clapperboard-in-front-of-a-cinema-screen-41774-large.mp4',
-    image: 'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=800&q=80',
-    testimonial: 'Screen B acoustical testing felt better than major multiplex halls. Bass response is so punchy!',
-    reviewer: 'Rohan M.',
-    role: 'Audiophile',
-    rating: 5,
-  },
-  {
-    id: 9,
-    title: 'Screen A Cinematic Film Projector',
-    category: 'Screen A',
-    type: 'video',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cinema-projector-playing-a-film-41773-large.mp4',
-    image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80',
-    testimonial: 'Loved watch the old-style reels projector rolling inside Screen A. Magical!',
-    reviewer: 'Devendra P.',
-    role: 'Historian',
-    rating: 5,
-  },
-  {
-    id: 10,
-    title: 'Screen B Popcorn Moments',
-    category: 'Screen B',
-    type: 'video',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-popcorn-falling-on-a-table-41775-large.mp4',
-    image: 'https://images.unsplash.com/photo-1578849278619-e73505e9610f?auto=format&fit=crop&w=800&q=80',
-    testimonial: 'Screen B popcorn machine serves amazing fresh hot butter popcorn. Total vibe!',
-    reviewer: 'Shalini K.',
-    role: 'Snack Critic',
-    rating: 5,
-  }
-];
+
 
 export default function Gallery({ preview, onViewMore }) {
-  const [galleryItems, setGalleryItems] = useState(staticGalleryItems);
+  const [galleryItems, setGalleryItems] = useState([]);
   const [activeFilter, setActiveFilter] = useState('Screen A');
   const [activeSubFilter, setActiveSubFilter] = useState('photos'); // 'photos' or 'videos'
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
-  const [categories, setCategories] = useState(['Screen A', 'Screen B', 'Celebrations', 'Others']);
+  const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
@@ -176,7 +61,7 @@ export default function Gallery({ preview, onViewMore }) {
           if (items.length > 0) {
             setGalleryItems(items);
             const uniqueCategories = Array.from(catSet);
-            setCategories(uniqueCategories.length > 0 ? uniqueCategories : ['Screen A', 'Screen B', 'Celebrations', 'Others']);
+            setCategories(uniqueCategories);
             if (uniqueCategories.length > 0) {
               setActiveFilter(uniqueCategories[0]);
             }
@@ -303,7 +188,12 @@ export default function Gallery({ preview, onViewMore }) {
         )}
 
         {/* Gallery Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {itemsToDisplay.length === 0 ? (
+          <div className="py-20 text-center text-gray-400">
+            No gallery items available.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {itemsToDisplay.map((item, index) => (
             <motion.div
               layout
@@ -342,6 +232,7 @@ export default function Gallery({ preview, onViewMore }) {
             </motion.div>
           ))}
         </div>
+        )}
 
         {/* Gallery Pagination Control */}
         {!preview && totalGalleryPages > 1 && (
