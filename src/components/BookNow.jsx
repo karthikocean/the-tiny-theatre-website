@@ -119,8 +119,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   const cakesPerPage = 8;
 
 
-  // Decoration package toggle & optional details
   const [wantsDecor, setWantsDecor] = useState(false);
+  const [selectedDecorId, setSelectedDecorId] = useState(null);
 
   // Add-ons checklist & details
   const [selectedAddons, setSelectedAddons] = useState([]);
@@ -279,6 +279,28 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     };
     fetchDecorations();
   }, []);
+
+  // Auto-select the first decoration package when screen changes
+  useEffect(() => {
+    if (selectedScreen && dbDecorations.length > 0) {
+      const currentScreenObj = screens.find(s => {
+        const code = s.name.toLowerCase().includes('b') ? 'B' : 'A';
+        return code === selectedScreen;
+      });
+      if (currentScreenObj) {
+        const screenDecs = dbDecorations.filter(d => 
+          d.screen?._id === currentScreenObj._id || d.screen === currentScreenObj._id
+        );
+        if (screenDecs.length > 0) {
+          setSelectedDecorId(screenDecs[0]._id);
+        } else {
+          setSelectedDecorId(null);
+        }
+      }
+    } else {
+      setSelectedDecorId(null);
+    }
+  }, [selectedScreen, dbDecorations, screens]);
 
   // Dynamic cakes fetching
   const [dbCakes, setDbCakes] = useState([]);
@@ -447,20 +469,23 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
   const addonsCharges = selectedAddons.reduce((sum, key) => sum + (addonsPrices[key]?.price || 0), 0);
   
-  let decorCharges = 0;
-  let autoDecoration = null;
-  if (wantsDecor) {
-    const currentScreenObj = screens.find(s => {
-      const code = s.name.toLowerCase().includes('b') ? 'B' : 'A';
-      return code === selectedScreen;
-    });
-    if (currentScreenObj) {
-      autoDecoration = dbDecorations.find(d => 
-        d.screen?._id === currentScreenObj._id || d.screen === currentScreenObj._id
-      );
-      if (autoDecoration) decorCharges = autoDecoration.price || 0;
-    }
-  }
+  const currentScreenObj = screens.find(s => {
+    const code = s.name.toLowerCase().includes('b') ? 'B' : 'A';
+    return code === selectedScreen;
+  });
+
+  const screenDecorations = currentScreenObj
+    ? dbDecorations.filter(d => d.screen?._id === currentScreenObj._id || d.screen === currentScreenObj._id)
+    : [];
+
+  const activeDecoration = (selectedDecorId && screenDecorations.find(d => d._id === selectedDecorId)) || screenDecorations[0] || null;
+
+  const decorationPrice = activeDecoration 
+    ? activeDecoration.price 
+    : (selectedScreen === 'B' ? 800 : 900);
+
+  const decorCharges = wantsDecor ? decorationPrice : 0;
+  const autoDecoration = wantsDecor ? activeDecoration : null;
 
   const subtotal = basePrice + additionalGuestCharges + kids3to10Charges + cakeCharges + decorCharges + addonsCharges;
   const gstCharges = 0; // Inclusive of GST
@@ -490,20 +515,16 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     if (customerInfo.otp === generatedOtp) {
       setOtpError('');
       setStepErrors({});
+      setOtpVerified(true);
+      ShowNotifications.showAlertNotification("Customer verified successfully", true);
       try {
-        const res = await verifyCustomer({
+        await verifyCustomer({
           name: customerInfo.fullName,
           email: customerInfo.email,
           mobileNumber: customerInfo.phone
         });
-        if (res.status) {
-          setOtpVerified(true);
-          ShowNotifications.showAlertNotification("Customer verified successfully", true);
-        } else {
-          setOtpError("Failed to verify customer details on server.");
-        }
       } catch (err) {
-        setOtpError("Error connecting to server.");
+        console.warn("Backend customer verification failed:", err);
       }
     } else {
       setOtpError('Invalid OTP code. Please enter the code sent to you.');
@@ -522,6 +543,9 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     }
     if (activeStep === 3) {
       return false;
+    }
+    if (activeStep === 4) {
+      return !eventCategory;
     }
     return false;
   };
@@ -557,6 +581,13 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         return;
       }
     }
+    if (activeStep === 4) {
+      if (!eventCategory) {
+        errors.occasion = 'Please select an occasion to continue.';
+        setStepErrors(errors);
+        return;
+      }
+    }
     if (activeStep === 8) {
       if (!customerInfo.fullName.trim()) {
         errors.fullName = 'Full Name is required.';
@@ -570,7 +601,13 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       } else if (!/^[6-9]\d{9}$/.test(cleanedPhone)) {
         errors.phone = 'Please enter a valid 10-digit mobile number.';
       }
-      if (!otpVerified) errors.otp = 'Please verify your phone number via OTP first.';
+      if (!otpVerified) {
+        if (customerInfo.otp === generatedOtp && generatedOtp !== '') {
+          setOtpVerified(true);
+        } else {
+          errors.otp = 'Please verify your phone number via OTP first.';
+        }
+      }
       if (Object.keys(errors).length > 0) {
         setStepErrors(errors);
         return;
@@ -732,9 +769,14 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     'Cake', 'Decor', 'Add-ons', 'Details', 'Payment'
   ];
 
+  const isSkippedStep = (activeStep === 5 && !wantsCake) || (activeStep === 6 && !wantsDecor);
+  const pbClass = isSkippedStep ? 'max-sm:pb-6 pb-6' : 'max-sm:pb-24 pb-20';
+  const minHeightClass = isSkippedStep 
+    ? 'min-h-[220px]' 
+    : (activeStep === 7 ? 'min-h-[300px]' : 'min-h-[480px]');
 
   return (
-    <section id="book-now" className={`relative bg-theatre-dark/95 overflow-x-hidden min-h-screen transition-all duration-500 ${activeStep === 10 ? 'py-6 md:py-8' : 'pt-16 pb-32 sm:py-16'
+    <section id="book-now" className={`relative bg-theatre-dark/95 overflow-x-hidden min-h-screen transition-all duration-500 ${activeStep === 10 ? 'py-6 md:py-8' : 'pt-16 pb-20 sm:py-16'
       }`}>
       {/* Visual backgrounds */}
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-theatre-grey/10 rounded-full blur-[120px] pointer-events-none" />
@@ -782,18 +824,17 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start max-w-6xl mx-auto mb-4">
 
           {/* LEFT PANEL: Wizard Steps (Col Span 8 on large, Full on mobile) */}
-          <div className={`col-span-1 bg-theatre-grey-deep/20 backdrop-blur-md border border-white/5 rounded-3xl flex flex-col justify-between transition-all duration-300 ${activeStep === 1 || activeStep === 10
-              ? 'lg:col-span-12'
-              : 'lg:col-span-8'
+          <div className={`col-span-1 bg-theatre-grey-deep/20 backdrop-blur-md border border-white/5 rounded-3xl flex flex-col justify-between transition-all duration-300 mx-2 sm:mx-0 ${activeStep === 1 || activeStep === 10
+            ? 'lg:col-span-12'
+            : 'lg:col-span-8'
             } ${activeStep === 10
-              ? 'p-4 sm:p-6 pt-2 sm:pt-2 min-h-0'
-              : `p-6 sm:p-8 max-sm:pb-28 ${(activeStep === 6 && !wantsCake) || activeStep === 7
-                ? 'min-h-[300px]'
-                : 'min-h-[480px]'
-              }`
+            ? 'p-4 sm:p-6 pt-2 sm:pt-2 min-h-0'
+            : activeStep === 1
+              ? 'p-5 sm:p-8 min-h-0'
+              : `p-6 sm:px-8 sm:pt-8 ${pbClass} ${minHeightClass}`
             }`}>
             <AnimatePresence mode="wait">
               <motion.div
@@ -806,8 +847,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
               >
                 {/* STEP 1: Select Screen */}
                 {activeStep === 1 && (
-                  <div className="space-y-6 max-w-2xl mx-auto w-full">
-                    <div className="space-y-1 text-center">
+                  <div className="max-w-2xl mx-auto w-full">
+                    <div className="space-y-1 text-center py-5">
                       <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">Step 1: Select Screen</h3>
                       <p className="text-xs sm:text-sm text-gray-400">Choose between our premium private theatre halls based on seating capacity.</p>
                     </div>
@@ -1247,6 +1288,13 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                       <p className="text-xs sm:text-sm text-gray-400">Tell us what special occasion you are celebrating to customize your experience.</p>
                     </div>
 
+                    {stepErrors.occasion && (
+                      <div className="p-3.5 bg-red-950/30 border border-red-500/30 text-red-400 text-xs rounded-xl flex items-center space-x-2">
+                        <AlertCircle className="w-4.5 h-4.5 flex-shrink-0" />
+                        <span>{stepErrors.occasion}</span>
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 pt-2">
                       {((dbOccasions && dbOccasions.length > 0)
                         ? dbOccasions.map(cat => ({
@@ -1470,7 +1518,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           {/* Cake Message global (legacy field kept for multiselect) */}
                           {selectedCakes.length > 0 && (
                             <div className="mt-2 p-3 bg-theatre-gold/5 border border-theatre-gold/20 rounded-xl">
-                              <p className="text-[10px] text-theatre-gold font-semibold">✓ {selectedCakes.length} cake{selectedCakes.length > 1 ? 's' : ''} selected — enter a message below each cake card.</p>
+                              <p className="text-[10px] text-theatre-gold font-semibold">✓ {selectedCakes.length} Cake{selectedCakes.length > 1 ? 's' : ''} Selected — Enter a message below each cake card.</p>
                             </div>
                           )}
                         </motion.div>
@@ -1484,7 +1532,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                   <div className="space-y-6">
                     <div className="space-y-1">
                       <h3 className="text-xl font-serif font-bold text-white">Step 6: Decoration Package (Optional)</h3>
-                      <p className="text-xs sm:text-sm text-gray-400 font-sans">
+                      <p className="text-xs sm:text-md text-gray-400 font-sans">
                         Would you like us to decorate the private screening room for your celebration?
                       </p>
                     </div>
@@ -1499,7 +1547,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             : 'bg-white/5 border-white/10 text-gray-300'
                             }`}
                         >
-                          Yes, Include Decor (₹{selectedScreen === 'B' ? '800' : '900'})
+                          Yes, Include Decor (₹{decorationPrice})
                         </button>
                         <button
                           onClick={() => setWantsDecor(false)}
@@ -1519,52 +1567,63 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           exit={{ opacity: 0, height: 0 }}
                           className="pt-4"
                         >
-                          <div className="max-w-sm">
-                            {/* Screen A Card */}
-                            {selectedScreen === 'A' && (() => {
-                              return (
-                                <div className="relative p-5 rounded-2xl border transition-all duration-300 border-theatre-gold bg-gradient-to-t from-theatre-gold/20 to-theatre-gold/5 shadow-md shadow-theatre-gold/15 scale-[1.02] text-white">
-                                  <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-theatre-gold text-theatre-grey-deep flex items-center justify-center z-10 shadow-md">
-                                    <Check className="w-3 h-3" />
-                                  </span>
-                                  <div className="flex items-center space-x-3 mb-2">
-                                    <Gift className="w-5 h-5 text-theatre-gold" />
-                                    <h4 className="text-sm font-bold text-white">Screen A Decoration</h4>
-                                  </div>
-                                  <br />
-                                  <div className="flex justify-between items-baseline">
-                                    <span className="text-lg font-bold text-theatre-gold">₹900</span>
-                                    <span className="text-[10px] text-gray-500 font-medium">(GST Inclusive)</span>
-                                  </div>
-                                  <div className="mt-3 text-[10px] bg-theatre-gold/10 text-theatre-gold font-sans font-bold px-2 py-1 rounded border border-theatre-gold/25 inline-block">
-                                    Selected Screen
-                                  </div>
+                          <div className="max-w-2xl">
+                            {screenDecorations.length > 0 ? (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {screenDecorations.map((decor) => {
+                                  const isSelected = selectedDecorId === decor._id || (!selectedDecorId && screenDecorations[0]?._id === decor._id);
+                                  return (
+                                    <div
+                                      key={decor._id}
+                                      onClick={() => setSelectedDecorId(decor._id)}
+                                      className={`relative p-5 rounded-2xl border transition-all duration-300 cursor-pointer ${
+                                        isSelected
+                                          ? 'border-theatre-gold bg-gradient-to-t from-theatre-gold/20 to-theatre-gold/5 shadow-md shadow-theatre-gold/15 scale-[1.02]'
+                                          : 'border-white/10 bg-theatre-dark/40 hover:border-white/20'
+                                      } text-white`}
+                                    >
+                                      {isSelected && (
+                                        <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-theatre-gold text-theatre-grey-deep flex items-center justify-center z-10 shadow-md">
+                                          <Check className="w-3 h-3" />
+                                        </span>
+                                      )}
+                                      <div className="flex items-center space-x-3 mb-2">
+                                        <Gift className="w-5 h-5 text-theatre-gold" />
+                                        <h4 className="text-sm font-bold text-white">{decor.name}</h4>
+                                      </div>
+                                      <br />
+                                      <div className="flex justify-between items-baseline">
+                                        <span className="text-lg font-bold text-theatre-gold">₹{decor.price}</span>
+                                        <span className="text-[10px] text-gray-500 font-medium">(GST Inclusive)</span>
+                                      </div>
+                                      <div className="mt-3 text-[10px] bg-theatre-gold/10 text-theatre-gold font-sans font-bold px-2 py-1 rounded border border-theatre-gold/25 inline-block">
+                                        {isSelected ? 'Selected' : 'Click to Select'}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <div className="relative p-5 rounded-2xl border transition-all duration-300 border-theatre-gold bg-gradient-to-t from-theatre-gold/20 to-theatre-gold/5 shadow-md shadow-theatre-gold/15 scale-[1.02] text-white">
+                                <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-theatre-gold text-theatre-grey-deep flex items-center justify-center z-10 shadow-md">
+                                  <Check className="w-3 h-3" />
+                                </span>
+                                <div className="flex items-center space-x-3 mb-2">
+                                  <Gift className="w-5 h-5 text-theatre-gold" />
+                                  <h4 className="text-sm font-bold text-white">
+                                    Screen {selectedScreen} Decoration
+                                  </h4>
                                 </div>
-                              );
-                            })()}
-
-                            {/* Screen B Card */}
-                            {selectedScreen === 'B' && (() => {
-                              return (
-                                <div className="relative p-5 rounded-2xl border transition-all duration-300 border-theatre-gold bg-gradient-to-t from-theatre-gold/20 to-theatre-gold/5 shadow-md shadow-theatre-gold/15 scale-[1.02] text-white">
-                                  <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-theatre-gold text-theatre-grey-deep flex items-center justify-center z-10 shadow-md">
-                                    <Check className="w-3 h-3" />
-                                  </span>
-                                  <div className="flex items-center space-x-3 mb-2">
-                                    <Gift className="w-5 h-5 text-theatre-gold" />
-                                    <h4 className="text-sm font-bold text-white">Screen B Decoration</h4>
-                                  </div>
-                                  <br />
-                                  <div className="flex justify-between items-baseline">
-                                    <span className="text-lg font-bold text-theatre-gold">₹800</span>
-                                    <span className="text-[10px] text-gray-500 font-medium">(GST Inclusive)</span>
-                                  </div>
-                                  <div className="mt-3 text-[10px] bg-theatre-gold/10 text-theatre-gold font-sans font-bold px-2 py-1 rounded border border-theatre-gold/25 inline-block">
-                                    Selected Screen
-                                  </div>
+                                <br />
+                                <div className="flex justify-between items-baseline">
+                                  <span className="text-lg font-bold text-theatre-gold">₹{decorationPrice}</span>
+                                  <span className="text-[10px] text-gray-500 font-medium">(GST Inclusive)</span>
                                 </div>
-                              );
-                            })()}
+                                <div className="mt-3 text-[10px] bg-theatre-gold/10 text-theatre-gold font-sans font-bold px-2 py-1 rounded border border-theatre-gold/25 inline-block">
+                                  Selected Screen
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </motion.div>
                       )}
@@ -1862,7 +1921,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
                         {otpSent && !otpVerified && (
                           <p className="text-theatre-gold text-[10px] tracking-wide mt-1 animate-pulse">
-                            Tip: For simulation, use the OTP shown in the notification.
+                            Tip: For simulation, use the OTP: {generatedOtp}
                           </p>
                         )}
                         {otpError && (
@@ -2038,7 +2097,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
             {/* Stepper Bottom Controls */}
             {activeStep <= 9 && (
-              <div className="flex justify-between items-center pt-8 border-t border-white/5 mt-8 sm:relative max-sm:sticky max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:bg-[#17191d]/95 max-sm:backdrop-blur-md max-sm:border-t max-sm:border-white/10 max-sm:p-4 max-sm:z-50 max-sm:mt-0 max-sm:shadow-[0_-8px_30px_rgba(0,0,0,0.5)]">
+              <div className="hidden sm:flex justify-between items-center pt-8 border-t border-white/5 mt-8 relative">
                 <button
                   type="button"
                   onClick={handlePrevStep}
@@ -2054,15 +2113,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     type="button"
                     onClick={handleNextStep}
                     disabled={isNextDisabled()}
-                    className="inline-flex items-center space-x-1.5 bg-theatre-gold hover:bg-theatre-gold-light text-theatre-grey-deep font-sans text-xs font-bold px-6 py-3 rounded-xl shadow-md hover:shadow-theatre-gold/15 transition-all duration-300 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="inline-flex items-center space-x-1.5 space-y-1 bg-theatre-gold hover:bg-theatre-gold-light text-theatre-grey-deep font-sans text-xs font-bold px-6 py-3 rounded-xl shadow-md hover:shadow-theatre-gold/15 transition-all duration-300 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <span>Proceed Next</span>
                     <ChevronRight className="w-4 h-4 text-theatre-grey-deep" />
                   </button>
                 ) : (
-                  // <span className="text-xs text-theatre-gold font-sans font-semibold animate-pulse">
-                  //   Please authorize payment on right summary panel
-                  // </span>
                   <></>
                 )}
               </div>
@@ -2071,7 +2127,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
           {/* RIGHT PANEL: Live Invoice/Selected Items Summary (Col Span 4 on large, Hidden in success view) */}
           {activeStep >= 2 && activeStep <= 9 && (
-            <div className="col-span-1 lg:col-span-4 bg-theatre-grey-deep/20 backdrop-blur-md border border-white/5 rounded-3xl p-6 space-y-6 sticky top-28">
+            <div className="col-span-1 lg:col-span-4 bg-theatre-grey-deep/20 backdrop-blur-md border border-white/5 rounded-3xl p-6 space-y-6 mx-2 sm:mx-0 sticky top-28">
               <h3 className="font-serif text-lg font-bold text-white border-b border-white/5 pb-2">Booking Summary</h3>
 
               {/* Selected Slot summary */}
@@ -2234,6 +2290,35 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         </div>
 
       </div>
+
+      {/* Mobile-Only Fixed Bottom Controls */}
+      {activeStep <= 9 && (
+        <div className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#17191d]/95 backdrop-blur-md border-t border-white/10 p-4 shadow-[0_-8px_30px_rgba(0,0,0,0.5)] flex justify-between items-center">
+          <button
+            type="button"
+            onClick={handlePrevStep}
+            disabled={activeStep === 1}
+            className="inline-flex items-center space-x-1.5 text-xs font-bold text-gray-400 hover:text-white transition-colors duration-300 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Previous</span>
+          </button>
+
+          {activeStep < 9 ? (
+            <button
+              type="button"
+              onClick={handleNextStep}
+              disabled={isNextDisabled()}
+              className="inline-flex items-center space-x-1.5 bg-theatre-gold hover:bg-theatre-gold-light text-theatre-grey-deep font-sans text-xs font-bold px-6 py-3 rounded-xl shadow-md hover:shadow-theatre-gold/15 transition-all duration-300 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <span>Proceed Next</span>
+              <ChevronRight className="w-4 h-4 text-theatre-grey-deep" />
+            </button>
+          ) : (
+            <></>
+          )}
+        </div>
+      )}
     </section>
   );
 }
