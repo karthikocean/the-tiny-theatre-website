@@ -35,10 +35,10 @@ export default function Screens({ preview, onViewMore }) {
     fetchScreens();
   }, []);
 
-  const handleBookScreen = (screenName) => {
+  const handleBookScreen = (screenObj) => {
     // Map screen name to 'A' or 'B' for the BookNow wizard
-    const screenCode = screenName.toLowerCase().includes('b') ? 'B' : 'A';
-    navigate('/book-now', { state: { selectedScreen: screenCode } });
+    const screenCode = screenObj.name.toLowerCase().includes('b') ? 'B' : 'A';
+    navigate('/book-now', { state: { selectedScreen: screenCode, selectedScreenId: screenObj._id } });
   };
 
   // Hardcoded sub-features to keep visual aesthetics premium
@@ -204,7 +204,7 @@ export default function Screens({ preview, onViewMore }) {
                     {/* Action buttons */}
                     <div className="pt-4 flex flex-col sm:flex-row gap-3">
                       <button
-                        onClick={() => handleBookScreen(screen.name)}
+                        onClick={() => handleBookScreen(screen)}
                         className="flex-1 bg-gradient-to-r from-theatre-gold to-theatre-gold-dark hover:from-theatre-gold-light hover:to-theatre-gold text-theatre-grey-deep py-3.5 px-6 rounded-2xl font-bold text-sm shadow-md hover:shadow-lg hover:shadow-theatre-gold/25 transition-all duration-300 flex items-center justify-center space-x-2 cursor-pointer scale-100 hover:scale-[1.02]"
                       >
                         <span>Book {screen.name}</span>

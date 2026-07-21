@@ -87,6 +87,9 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   const [selectedScreen, setSelectedScreen] = useState(() => {
     return location.state?.selectedScreen || null;
   }); // 'A' or 'B'
+  const [selectedScreenId, setSelectedScreenId] = useState(() => {
+    return location.state?.selectedScreenId || null;
+  });
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
   const [selectedSlotId, setSelectedSlotId] = useState(null);
@@ -189,10 +192,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     const fetchTimeSlots = async () => {
       if (!selectedScreen || !selectedDate || screens.length === 0) return;
 
-      const screenObj = screens.find(s => {
-        const code = s.name.toLowerCase().includes('b') ? 'B' : 'A';
-        return code === selectedScreen;
-      });
+      const screenObj = screens.find(s => s._id === selectedScreenId);
 
       if (!screenObj || !screenObj._id) return;
 
@@ -283,10 +283,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   // Auto-select the first decoration package when screen changes
   useEffect(() => {
     if (selectedScreen && dbDecorations.length > 0) {
-      const currentScreenObj = screens.find(s => {
-        const code = s.name.toLowerCase().includes('b') ? 'B' : 'A';
-        return code === selectedScreen;
-      });
+      const currentScreenObj = screens.find(s => s._id === selectedScreenId);
       if (currentScreenObj) {
         const screenDecs = dbDecorations.filter(d => 
           d.screen?._id === currentScreenObj._id || d.screen === currentScreenObj._id
@@ -346,13 +343,16 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     ? availableSlots.find(slot => slot._id === selectedSlotId)
     : null;
 
-  const basePrice = selectedSlotObj ? selectedSlotObj.price : (selectedScreen === 'A' ? 2399 : selectedScreen === 'B' ? 1799 : 0);
-  const maxCapacity = selectedScreen === 'A' ? 15 : selectedScreen === 'B' ? 6 : 0;
+  const _topLevelScreenObj = screens.find(s => s._id === selectedScreenId);
+  const isScreenB = _topLevelScreenObj ? _topLevelScreenObj.name.toLowerCase().includes('b') : false;
+
+  const basePrice = selectedSlotObj ? selectedSlotObj.price : (isScreenB ? 1799 : 2399);
+  const maxCapacity = _topLevelScreenObj ? _topLevelScreenObj.capacity : (isScreenB ? 6 : 15);
   const activeCategories = selectedSlotObj?.ageCategories && selectedSlotObj.ageCategories.length > 0
     ? selectedSlotObj.ageCategories
     : [
-      { _id: 'default_adults', name: 'Adults', from: 11, to: 100, price: selectedScreen === 'A' ? 450 : 400 },
-      { _id: 'default_kids_3_10', name: 'Kids (3 to 10 Years)', from: 4, to: 10, price: selectedScreen === 'A' ? 250 : 200 },
+      { _id: 'default_adults', name: 'Adults', from: 11, to: 100, price: isScreenB ? 400 : 450 },
+      { _id: 'default_kids_3_10', name: 'Kids (3 to 10 Years)', from: 4, to: 10, price: isScreenB ? 200 : 250 },
       { _id: 'default_kids_below_3', name: 'Kids (Below 3 Years)', from: 0, to: 3, price: 0 }
     ];
 
@@ -388,9 +388,9 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
   // Setup fallback variables for backward compatibility in display tags
   const adultCategory = activeCategories.find(cat => cat.to >= 100 || cat.from >= 10);
-  const guestRate = adultCategory ? adultCategory.price : (selectedScreen === 'A' ? 450 : selectedScreen === 'B' ? 400 : 0);
+  const guestRate = adultCategory ? adultCategory.price : (isScreenB ? 400 : 450);
   const kidsCategory = activeCategories.find(cat => cat.from === 4 && cat.to === 10);
-  const kids3to10Rate = kidsCategory ? kidsCategory.price : (selectedScreen === 'A' ? 250 : selectedScreen === 'B' ? 200 : 0);
+  const kids3to10Rate = kidsCategory ? kidsCategory.price : (isScreenB ? 200 : 250);
 
   // Cake prices map
   const cakePrices = {
@@ -469,10 +469,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
   const addonsCharges = selectedAddons.reduce((sum, key) => sum + (addonsPrices[key]?.price || 0), 0);
   
-  const currentScreenObj = screens.find(s => {
-    const code = s.name.toLowerCase().includes('b') ? 'B' : 'A';
-    return code === selectedScreen;
-  });
+  const currentScreenObj = screens.find(s => s._id === selectedScreenId);
 
   const screenDecorations = currentScreenObj
     ? dbDecorations.filter(d => d.screen?._id === currentScreenObj._id || d.screen === currentScreenObj._id)
@@ -642,10 +639,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
     try {
       // Find the screen ID and slot ID based on selected strings
-      const screenObj = screens.find(s => {
-        const code = s.name.toLowerCase().includes('b') ? 'B' : 'A';
-        return code === selectedScreen;
-      });
+      const screenObj = screens.find(s => s._id === selectedScreenId);
 
       const occasionObj = dbOccasions.find(o => o.name === eventCategory);
       // Construct add-on IDs
@@ -861,24 +855,9 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     )}
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
-                      {((screens && screens.length > 0) ? screens : [
-                        {
-                          _id: 'default-a',
-                          name: 'Screen A',
-                          description: 'Ideal for large group movie nights, reunions, and grand parties.',
-                          capacity: 15,
-                          image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=400&q=80'
-                        },
-                        {
-                          _id: 'default-b',
-                          name: 'Screen B',
-                          description: 'Perfect for intimate date nights, couples, and small family gatherings.',
-                          capacity: 6,
-                          image: 'https://images.unsplash.com/photo-1595769816263-9b910be24d5f?auto=format&fit=crop&w=400&q=80'
-                        }
-                      ]).map((screen) => {
+                      {screens && screens.length > 0 ? screens.map((screen) => {
                         const screenCode = screen.name.toLowerCase().includes('b') ? 'B' : 'A';
-                        const isSelected = selectedScreen === screenCode;
+                        const isSelected = selectedScreenId === screen._id;
 
                         const pricingInfo = screenCode === 'A' ? {
 
@@ -897,7 +876,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         return (
                           <div
                             key={screen._id || screenCode}
-                            onClick={() => { setSelectedScreen(screenCode); setStepErrors({}); }}
+                            onClick={() => { setSelectedScreen(screen.name); setSelectedScreenId(screen._id); setStepErrors({}); }}
                             className={`rounded-2xl overflow-hidden bg-theatre-dark/40 border cursor-pointer group transition-all duration-300 flex flex-col ${isSelected
                               ? 'border-theatre-gold shadow-lg shadow-theatre-gold/15 scale-[1.01]'
                               : 'border-white/10 hover:border-white/20'
@@ -942,7 +921,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             </div>
                           </div>
                         );
-                      })}
+                      }) : <div className="col-span-full py-8 text-center text-gray-400">No screens currently available.</div>}
                     </div>
                   </div>
                 )}
@@ -1046,13 +1025,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {loadingSlots ? (
                             <div className="col-span-full py-4 text-center text-sm text-gray-400">Loading slots...</div>
-                          ) : (availableSlots.length > 0 ? availableSlots : [
-                            { slotName: 'Morning Show', startTime: '9:00 AM', endTime: '12 PM' },
-                            { slotName: 'Afternoon Show', startTime: '12:30 PM', endTime: '3:30 PM' },
-                            { slotName: 'Evening Show', startTime: '4:00 PM', endTime: '7:00 PM' },
-                            { slotName: 'Night Show', startTime: '7:30 PM', endTime: '10:30 PM' },
-                            { slotName: 'Late Night Show', startTime: '11:00 PM', endTime: '2:00 AM' }
-                          ]).map(slotItem => {
+                          ) : availableSlots.length > 0 ? availableSlots.map(slotItem => {
                             const isApiSlot = !!slotItem._id;
                             const formatTime = (t) => {
                               if (!t) return '';
@@ -1073,7 +1046,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
                             const isSelected = selectedTimeSlot === slotLabel;
                             const isBooked = (isApiSlot && slotItem.isBooked) || bookedSlots.some(b =>
-                              b.screen === selectedScreen &&
+                              b.screen === selectedScreenId &&
                               b.date === selectedDate &&
                               b.slot === slotLabel
                             );
@@ -1111,7 +1084,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                 </div>
                               </button>
                             );
-                          })}
+                          }) : <div className="col-span-full py-4 text-center text-sm text-gray-400">No slots available for the selected date.</div>}
                         </div>
                         {stepErrors.time && (
                           <p className="text-red-400 text-xs flex items-center space-x-1">
@@ -1296,24 +1269,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     )}
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 pt-2">
-                      {((dbOccasions && dbOccasions.length > 0)
-                        ? dbOccasions.map(cat => ({
+                      {dbOccasions && dbOccasions.length > 0 ? (
+                        dbOccasions.map(cat => ({
                           name: cat.name,
                           image: cat.image ? getImageUrl(cat.image) : '/movie.png',
                           fallback: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=400&q=80'
                         }))
-                        : [
-                          { name: 'Movie Watching', image: '/movie.png', fallback: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=400&q=80' },
-                          { name: 'Birthday', image: '/birthday.png', fallback: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=400&q=80' },
-                          { name: 'Anniversary', image: '/anniversary.png', fallback: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=400&q=80' },
-                          { name: 'Romantic Date', image: '/romantic date.png', fallback: 'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=400&q=80' },
-                          { name: 'Proposal', image: '/proposal.png', fallback: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=400&q=80' },
-                          { name: 'Bride/Groom to be', image: '/team.png', fallback: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80' },
-                          { name: 'Farewell', image: '/team.png', fallback: 'https://images.unsplash.com/photo-1517263904008-797480d25147?auto=format&fit=crop&w=400&q=80' },
-                          { name: 'Baby shower', image: '/family.png', fallback: 'https://images.unsplash.com/photo-1515488042361-404e9250afef?auto=format&fit=crop&w=400&q=80' },
-                          { name: 'Kitty party', image: '/team.png', fallback: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=400&q=80' },
-                          { name: 'Get together', image: '/family.png', fallback: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=400&q=80' }
-                        ]
                       ).map(cat => {
                         const isSelected = eventCategory === cat.name;
                         return (
@@ -1351,7 +1312,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             </span>
                           </div>
                         );
-                      })}
+                      }) : <div className="col-span-full py-4 text-center text-sm text-gray-400">No occasions currently available.</div>}
                     </div>
                   </div>
                 )}
@@ -1402,19 +1363,13 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             <div className="space-y-6">
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 {(() => {
-                                  const cakeList = (dbCakes && dbCakes.length > 0)
-                                    ? dbCakes.map(cake => ({
+                                  if (!dbCakes || dbCakes.length === 0) return <div className="col-span-full py-4 text-center text-sm text-gray-400">No cakes available.</div>;
+                                  const cakeList = dbCakes.map(cake => ({
                                       flavor: cake.name,
                                       price: `₹${cake.price.toLocaleString('en-IN')}`,
                                       rawPrice: cake.price,
                                       img: getImageUrl(cake.image?.path || cake.image)
-                                    }))
-                                    : [
-                                      { flavor: 'Chocolate Truffle', price: '₹800', rawPrice: 800, img: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=300&q=80' },
-                                      { flavor: 'Red Velvet', price: '₹900', rawPrice: 900, img: 'https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?auto=format&fit=crop&w=300&q=80' },
-                                      { flavor: 'Butterscotch', price: '₹800', rawPrice: 800, img: 'https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?auto=format&fit=crop&w=300&q=80' },
-                                      { flavor: 'Black Forest', price: '₹750', rawPrice: 750, img: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=300&q=80' }
-                                    ];
+                                    }));
                                   const totalCakePages = Math.ceil(cakeList.length / cakesPerPage);
                                   const paginatedCakes = cakeList.slice((cakePage - 1) * cakesPerPage, cakePage * cakesPerPage);
                                   return paginatedCakes.map(cake => {
@@ -1476,7 +1431,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
                               {/* Cake Pagination Control */}
                               {(() => {
-                                const totalItems = (dbCakes && dbCakes.length > 0) ? dbCakes.length : 4;
+                                const totalItems = dbCakes ? dbCakes.length : 0;
                                 const totalCakePages = Math.ceil(totalItems / cakesPerPage);
                                 return totalCakePages > 1 ? (
                                   <div className="flex items-center justify-end space-x-2 pt-2">
@@ -1611,7 +1566,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                 <div className="flex items-center space-x-3 mb-2">
                                   <Gift className="w-5 h-5 text-theatre-gold" />
                                   <h4 className="text-sm font-bold text-white">
-                                    Screen {selectedScreen} Decoration
+                                    {selectedScreen} Decoration
                                   </h4>
                                 </div>
                                 <br />
@@ -1643,27 +1598,14 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     <div className="space-y-6 w-full">
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 pt-2">
                         {(() => {
-                          const addonList = (dbAddons && dbAddons.length > 0)
-                            ? dbAddons.map(addon => ({
+                          if (!dbAddons || dbAddons.length === 0) return <div className="col-span-full py-4 text-center text-sm text-gray-400">No add-ons available.</div>;
+                          const addonList = dbAddons.map(addon => ({
                               key: getAddonKey(addon.name),
                               name: addon.name,
                               price: `₹${addon.price.toLocaleString('en-IN')}`,
                               icon: getAddonIcon(addon.name),
                               image: addon.image
-                            }))
-                            : [
-                              { key: 'photography', name: 'Professional Photography', price: '₹1,500', icon: Camera },
-                              { key: 'videography', name: 'Cinematic Videography', price: '₹2,500', icon: Camera },
-                              { key: 'speaker', name: 'Bluetooth Speaker', price: '₹300', icon: Volume2 },
-                              { key: 'lighting', name: 'Special Lighting', price: '₹500', icon: Lightbulb },
-                              { key: 'message', name: 'Personalized Screen Msg', price: '₹400', icon: MessageSquare },
-                              { key: 'fog_entry', name: 'Fog Entry', price: '₹1,000', icon: Wind },
-                              { key: 'led_numbers', name: 'LED Numbers', price: '₹300', icon: Lightbulb },
-                              { key: 'candle_path', name: 'Candle Path', price: '₹400', icon: Sparkles },
-                              { key: 'event_sash', name: 'Event Sash', price: '₹150', icon: Star },
-                              { key: 'crown', name: 'Crown', price: '₹150', icon: Star },
-                              { key: 'karaoke', name: 'Karaoke Setup', price: '₹800', icon: Mic }
-                            ];
+                            }));
                           const totalAddonPages = Math.ceil(addonList.length / addonsPerPage);
                           const paginatedAddons = addonList.slice((addonPage - 1) * addonsPerPage, addonPage * addonsPerPage);
                           return paginatedAddons.map(addon => {
@@ -1713,7 +1655,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
                       {/* Addon Pagination Control */}
                       {(() => {
-                        const totalItems = (dbAddons && dbAddons.length > 0) ? dbAddons.length : 11;
+                        const totalItems = dbAddons ? dbAddons.length : 0;
                         const totalAddonPages = Math.ceil(totalItems / addonsPerPage);
                         return totalAddonPages > 1 ? (
                           <div className="flex items-center justify-end space-x-2 pt-2">
@@ -2054,7 +1996,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         </div>
                         <div>
                           <span className="text-[10px] text-gray-500 block uppercase font-bold mb-1">THEATRE SCREEN</span>
-                          <span className="text-sm text-white font-sans font-semibold">Screen {selectedScreen}</span>
+                          <span className="text-sm text-white font-sans font-semibold">{selectedScreen}</span>
                         </div>
                       </div>
 
@@ -2134,7 +2076,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
               <div className="space-y-3.5 text-xs font-light text-gray-400">
                 <div className="flex justify-between items-center text-sm font-semibold text-white">
                   <span>Selected Screen:</span>
-                  <span>{selectedScreen ? `Screen ${selectedScreen}` : 'None'}</span>
+                  <span>{selectedScreen ? selectedScreen : 'None'}</span>
                 </div>
 
                 <div className="space-y-1.5 pt-1">
