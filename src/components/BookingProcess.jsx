@@ -22,7 +22,7 @@ export default function BookingProcess({ preview, onViewMore }) {
       step: '01',
       title: 'Choose Your Screen',
       emoji: '🎬',
-      desc: 'Select the perfect private theatre experience. Choose between Screen A or Screen B based on your preferred seating capacity.',
+      desc: 'Select the perfect private theatre experience. Choose Screens based on your preferred seating capacity.',
       icon: Tv,
       details: []
     },
