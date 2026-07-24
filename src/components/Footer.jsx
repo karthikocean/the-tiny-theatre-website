@@ -113,10 +113,10 @@ export default function Footer() {
             <ul className="space-y-3.5 text-sm font-light">
               {[
                 { name: 'Home', href: '#home', path: '/', icon: Home },
-                { name: 'Offers', href: '#offers', path: '/offers', icon: Sparkles },
                 { name: 'Why Choose Us', href: '#why-choose-us', path: '/why-choose-us', icon: Award },
                 { name: 'Booking Process', href: '#booking-process', path: '/booking-process', icon: Calendar },
                 { name: 'Gallery', href: '#gallery', path: '/gallery', icon: Image },
+                { name: 'Offers', href: '#offers', path: '/offers', icon: Sparkles },
                 { name: 'Contact Us', href: '#contact-us', path: '/contact', icon: Mail },
               ].map((link) => {
                 const LinkIcon = link.icon;

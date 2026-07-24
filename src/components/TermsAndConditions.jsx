@@ -5,6 +5,7 @@ import { getTerms } from '../Api/Termsapi';
 
 export default function TermsAndConditions() {
   const [termsData, setTermsData] = useState(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const fetchTerms = async () => {
@@ -12,9 +13,14 @@ export default function TermsAndConditions() {
         const res = await getTerms({ title: 'Terms' });
         if (res.status && res.response?.data?.length > 0) {
           setTermsData(res.response.data[0]);
+        } else {
+          setTermsData(null);
         }
       } catch (err) {
         console.error("Error fetching terms:", err);
+        setTermsData(null);
+      } finally {
+        setIsLoaded(true);
       }
     };
     fetchTerms();
@@ -133,15 +139,15 @@ export default function TermsAndConditions() {
     }
   ];
 
-  const displayIntro = termsData?.introText || "Welcome to The Tiny Theatre. By making a booking or using our services, you agree to the following Terms & Conditions.";
+  const displayIntro = termsData?.introText || (!isLoaded ? "Welcome to The Tiny Theatre. By making a booking or using our services, you agree to the following Terms & Conditions." : null);
 
-  const displaySections = termsData?.sections
+  const displaySections = (termsData?.sections && termsData.sections.length > 0)
     ? termsData.sections.map((section, idx) => ({
         id: idx + 1,
         title: section.title,
         content: section.points || []
       }))
-    : fallbackSections;
+    : (!isLoaded && !termsData?.content ? fallbackSections : []);
 
   const displayLastUpdated = termsData?.createdAt
     ? `Last Updated: ${new Date(termsData.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`
@@ -173,61 +179,78 @@ export default function TermsAndConditions() {
           {displayLastUpdated}
         </p>
 
-        {/* Introduction */}
-        <div className="bg-theatre-grey-deep/30 border border-theatre-gold/25 rounded-2xl p-6 sm:p-8 mb-12 text-gray-300 font-sans font-light leading-relaxed text-center sm:text-left">
-          {displayIntro}
-        </div>
-
-        {/* Clause List */}
-        <div className="space-y-12">
-          {displaySections.map((section, idx) => (
-            <motion.div
-              key={section.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.5, delay: idx * 0.05 }}
-              className="border-b border-white/5 pb-8"
-            >
-              <div className="flex items-start space-x-4">
-                {/* Section Number Bubble */}
-                <div className="w-10 h-10 rounded-xl bg-theatre-grey/10 border border-theatre-gold/40 flex items-center justify-center text-theatre-gold font-serif font-bold text-base flex-shrink-0 mt-0.5 shadow-md">
-                  {section.id}
-                </div>
-                
-                <div className="space-y-4 flex-grow">
-                  <h3 className="font-serif text-xl sm:text-2xl font-bold text-white tracking-wide">
-                    {section.title}
-                  </h3>
-                  
-                  {section.content.length === 1 ? (
-                    <p className="text-gray-300 font-sans font-light leading-relaxed text-base sm:text-lg">
-                      {section.content[0]}
-                    </p>
-                  ) : (
-                    <ul className="space-y-3.5 pl-1">
-                      {section.content.map((point, pIdx) => {
-                        const isSubHeader = point.endsWith(':');
-                        return (
-                          <li 
-                            key={pIdx} 
-                            className={`font-sans font-light leading-relaxed text-base sm:text-lg ${
-                              isSubHeader 
-                                ? 'text-white font-normal mt-2 list-none' 
-                                : 'text-gray-300 pl-4 list-disc marker:text-theatre-gold'
-                            }`}
-                          >
-                            {point}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
-                </div>
+        {isLoaded && !termsData ? (
+          <div className="bg-theatre-grey-deep/30 border border-theatre-gold/25 rounded-2xl p-12 text-center text-gray-400 font-sans text-base">
+            Terms & Conditions are currently unavailable.
+          </div>
+        ) : (
+          <>
+            {/* Introduction */}
+            {displayIntro && (
+              <div className="bg-theatre-grey-deep/30 border border-theatre-gold/25 rounded-2xl p-6 sm:p-8 mb-12 text-gray-300 font-sans font-light leading-relaxed text-center sm:text-left">
+                {displayIntro}
               </div>
-            </motion.div>
-          ))}
-        </div>
+            )}
+
+            {/* Plain Text Body (When isStructured is false or no sections provided) */}
+            {termsData?.content && (!termsData?.sections || termsData.sections.length === 0) ? (
+              <div className="bg-theatre-grey-deep/30 border border-theatre-gold/25 rounded-2xl p-6 sm:p-10 text-gray-300 font-sans font-light leading-relaxed text-base sm:text-lg whitespace-pre-line">
+                {termsData.content}
+              </div>
+            ) : (
+              /* Clause List */
+              <div className="space-y-12">
+                {displaySections.map((section, idx) => (
+                  <motion.div
+                    key={section.id || idx}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-100px" }}
+                    transition={{ duration: 0.5, delay: idx * 0.05 }}
+                    className="border-b border-white/5 pb-8"
+                  >
+                    <div className="flex items-start space-x-4">
+                      {/* Section Number Bubble */}
+                      <div className="w-10 h-10 rounded-xl bg-theatre-grey/10 border border-theatre-gold/40 flex items-center justify-center text-theatre-gold font-serif font-bold text-base flex-shrink-0 mt-0.5 shadow-md">
+                        {section.id || idx + 1}
+                      </div>
+                      
+                      <div className="space-y-4 flex-grow">
+                        <h3 className="font-serif text-xl sm:text-2xl font-bold text-white tracking-wide">
+                          {section.title}
+                        </h3>
+                        
+                        {section.content.length === 1 ? (
+                          <p className="text-gray-300 font-sans font-light leading-relaxed text-base sm:text-lg">
+                            {section.content[0]}
+                          </p>
+                        ) : (
+                          <ul className="space-y-3.5 pl-1">
+                            {section.content.map((point, pIdx) => {
+                              const isSubHeader = point.endsWith(':');
+                              return (
+                                <li 
+                                  key={pIdx} 
+                                  className={`font-sans font-light leading-relaxed text-base sm:text-lg ${
+                                    isSubHeader 
+                                      ? 'text-white font-normal mt-2 list-none' 
+                                      : 'text-gray-300 pl-4 list-disc marker:text-theatre-gold'
+                                  }`}
+                                >
+                                  {point}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
 
         {/* End Note */}
         <div className="mt-20 text-center flex flex-col items-center">

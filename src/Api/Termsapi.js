@@ -2,9 +2,10 @@ import { api } from "./api";
 import ShowNotifications from "../helper/showNotification";
 
 class TermsApi {
-    getTerms = async (params) => {
+    getTerms = async (params = {}) => {
         try {
-            const response = await api.get("/contents", { params });
+            const queryParams = { page: 0, limit: 1000, isActive: true, ...params };
+            const response = await api.get("/contents", { params: queryParams });
             if (response.status === 200 || response.status === 201) {
                 return { status: true, response: response.data };
             }

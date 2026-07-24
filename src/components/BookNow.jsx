@@ -112,6 +112,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   const [guestCounts, setGuestCounts] = useState({});
 
   const [eventCategory, setEventCategory] = useState(selectedEventName || '');
+  const [occasionPage, setOccasionPage] = useState(1);
+  const occasionsPerPage = 10;
 
   // Cake customization - MULTISELECT
   const [wantsCake, setWantsCake] = useState(false);
@@ -225,7 +227,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         const res = await getAddons({ type: 'others' });
         if (res && res.status && res.response && res.response.data) {
           const activeAddons = res.response.data.filter(
-            (addon) => addon.isActive === 1 && addon.isDelete === 0 && addon.type !== 'cake'
+            (addon) => addon.isActive === 1 && addon.isDelete === 0 && addon.type !== 'cake' && (addon.stock === undefined || addon.stock > 0)
           );
           setDbAddons(activeAddons);
         }
@@ -664,13 +666,20 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
               selectedCakeIds.push(cakeObj._id);
             }
           });
-          consolidatedCakeComment = selectedCakes.map(sc => `${sc.flavor}: ${sc.message || 'No message'}`).join(' | ');
+          consolidatedCakeComment = selectedCakes
+            .map(sc => {
+              const msg = sc.message ? sc.message.trim() : '';
+              return msg ? `${sc.flavor}: ${msg}` : '';
+            })
+            .filter(Boolean)
+            .join(' | ');
         } else if (cakeFlavor) {
           const cakeObj = dbCakes.find(c => c.name === cakeFlavor);
           if (cakeObj) {
             selectedCakeIds.push(cakeObj._id);
           }
-          consolidatedCakeComment = cakeMessage;
+          const msg = cakeMessage ? cakeMessage.trim() : '';
+          consolidatedCakeComment = msg ? `${cakeFlavor}: ${msg}` : '';
         }
       }
 
@@ -693,9 +702,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         addons: addonIds,
         totalAmount: totalAmount
       };
-
       const res = await createBooking(bookingData);
-
       if (res.status) {
         if (advancePaymentRequired > 0) {
           await addPaymentToBooking(res.response.data._id, {
@@ -725,7 +732,6 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     }
   };
 
-  // Reset Booking Form
   const handleReset = () => {
     setActiveStep(1);
     setSelectedScreen(null);
@@ -1268,52 +1274,98 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                       </div>
                     )}
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 pt-2">
-                      {dbOccasions && dbOccasions.length > 0 ? (
-                        dbOccasions.map(cat => ({
-                          name: cat.name,
-                          image: cat.image ? getImageUrl(cat.image) : '/movie.png',
-                          fallback: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=400&q=80'
-                        }))
-                      ).map(cat => {
-                        const isSelected = eventCategory === cat.name;
-                        return (
-                          <div
-                            key={cat.name}
-                            onClick={() => setEventCategory(cat.name)}
-                            className="flex flex-col items-center cursor-pointer group select-none"
-                          >
-                            <div className={`relative w-full h-36 rounded-2xl overflow-hidden transition-all duration-300 border ${isSelected
-                              ? 'border-theatre-gold bg-gradient-to-t from-theatre-gold/20 to-theatre-gold/5 shadow-md shadow-theatre-gold/15 scale-[1.02]'
-                              : 'border-white/10 bg-theatre-dark/40 hover:border-white/20'
-                              }`}>
-                              {/* Selected Badge */}
-                              {isSelected && (
-                                <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-theatre-gold text-theatre-grey-deep flex items-center justify-center z-10 shadow-md">
-                                  <Check className="w-3 h-3" />
-                                </span>
-                              )}
-                              <img
-                                src={cat.image}
-                                alt={cat.name}
-                                className={`w-full h-full object-cover transition-transform duration-500 ${isSelected ? 'scale-105 brightness-90' : 'group-hover:scale-105'
-                                  }`}
-                                onError={(e) => {
-                                  e.target.onerror = null;
-                                  e.target.src = cat.fallback;
-                                }}
-                              />
-                            </div>
+                    {(() => {
+                      if (!dbOccasions || dbOccasions.length === 0) {
+                        return <div className="py-4 text-center text-sm text-gray-400">No occasions currently available.</div>;
+                      }
+                      const occasionList = dbOccasions.map(cat => ({
+                        name: cat.name,
+                        image: cat.image ? getImageUrl(cat.image) : '/movie.png',
+                        fallback: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=400&q=80'
+                      }));
+                      const totalOccasionPages = Math.ceil(occasionList.length / occasionsPerPage);
+                      const paginatedOccasions = occasionList.slice((occasionPage - 1) * occasionsPerPage, occasionPage * occasionsPerPage);
 
-                            {/* Occasion text underneath - fixed height to prevent layout shifts */}
-                            <span className={`mt-2.5 text-[10px] font-sans font-bold uppercase tracking-wider text-center h-8 flex items-center justify-center transition-colors duration-300 ${isSelected ? 'text-theatre-gold font-extrabold' : 'text-gray-400 group-hover:text-white'
-                              }`}>
-                              {cat.name}
-                            </span>
+                      return (
+                        <div className="space-y-6">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 pt-2">
+                            {paginatedOccasions.map(cat => {
+                              const isSelected = eventCategory === cat.name;
+                              return (
+                                <div
+                                  key={cat.name}
+                                  onClick={() => setEventCategory(cat.name)}
+                                  className="flex flex-col items-center cursor-pointer group select-none"
+                                >
+                                  <div className={`relative w-full h-36 rounded-2xl overflow-hidden transition-all duration-300 border ${isSelected
+                                    ? 'border-theatre-gold bg-gradient-to-t from-theatre-gold/20 to-theatre-gold/5 shadow-md shadow-theatre-gold/15 scale-[1.02]'
+                                    : 'border-white/10 bg-theatre-dark/40 hover:border-white/20'
+                                    }`}>
+                                    {/* Selected Badge */}
+                                    {isSelected && (
+                                      <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-theatre-gold text-theatre-grey-deep flex items-center justify-center z-10 shadow-md">
+                                        <Check className="w-3 h-3" />
+                                      </span>
+                                    )}
+                                    <img
+                                      src={cat.image}
+                                      alt={cat.name}
+                                      className={`w-full h-full object-cover transition-transform duration-500 ${isSelected ? 'scale-105 brightness-90' : 'group-hover:scale-105'
+                                        }`}
+                                      onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.src = cat.fallback;
+                                      }}
+                                    />
+                                  </div>
+
+                                  {/* Occasion text underneath - fixed height to prevent layout shifts */}
+                                  <span className={`mt-2.5 text-[10px] font-sans font-bold uppercase tracking-wider text-center h-8 flex items-center justify-center transition-colors duration-300 ${isSelected ? 'text-theatre-gold font-extrabold' : 'text-gray-400 group-hover:text-white'
+                                    }`}>
+                                    {cat.name}
+                                  </span>
+                                </div>
+                              );
+                            })}
                           </div>
-                        );
-                      }) : <div className="col-span-full py-4 text-center text-sm text-gray-400">No occasions currently available.</div>}
-                    </div>
+
+                          {/* Occasion Pagination Control */}
+                          {totalOccasionPages > 1 && (
+                            <div className="flex items-center justify-end space-x-2 pt-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOccasionPage(prev => Math.max(1, prev - 1));
+                                  setTimeout(() => {
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                  }, 50);
+                                }}
+                                disabled={occasionPage === 1}
+                                className="p-2 rounded-lg border border-white/10 bg-theatre-dark/40 text-gray-400 hover:text-white hover:border-white/20 disabled:opacity-30 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
+                              >
+                                <ChevronLeft className="w-4 h-4" />
+                              </button>
+                              <span className="text-xs text-gray-400 font-sans px-2">
+                                Page {occasionPage} of {totalOccasionPages}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOccasionPage(prev => Math.min(totalOccasionPages, prev + 1));
+                                  setTimeout(() => {
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                  }, 50);
+                                }}
+                                disabled={occasionPage === totalOccasionPages}
+                                className="p-2 rounded-lg border border-white/10 bg-theatre-dark/40 text-gray-400 hover:text-white hover:border-white/20 disabled:opacity-30 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
+                              >
+                                <ChevronRight className="w-4 h-4" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
 
@@ -1470,10 +1522,35 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             </div>
                           )}
 
-                          {/* Cake Message global (legacy field kept for multiselect) */}
+                          {/* Separate Comments for Each Selected Cake */}
                           {selectedCakes.length > 0 && (
-                            <div className="mt-2 p-3 bg-theatre-gold/5 border border-theatre-gold/20 rounded-xl">
-                              <p className="text-[10px] text-theatre-gold font-semibold">✓ {selectedCakes.length} Cake{selectedCakes.length > 1 ? 's' : ''} Selected — Enter a message below each cake card.</p>
+                            <div className="mt-4 p-4 bg-theatre-dark/60 border border-theatre-gold/30 rounded-2xl space-y-3">
+                              <h4 className="text-xs font-bold text-theatre-gold uppercase tracking-wider flex items-center gap-2">
+                                <span>🎂 Cake Messages / Custom Comments ({selectedCakes.length})</span>
+                              </h4>
+                              <div className="space-y-3">
+                                {selectedCakes.map((sc, idx) => (
+                                  <div key={sc.flavor || idx} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-theatre-dark/80 border border-white/10 rounded-xl">
+                                    <div className="flex items-center space-x-2 min-w-[150px]">
+                                      <span className="text-sm">🎂</span>
+                                      <span className="text-xs font-bold text-white">{sc.flavor}</span>
+                                    </div>
+                                    <input
+                                      type="text"
+                                      maxLength={50}
+                                      value={sc.message || ''}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        setSelectedCakes(prev => prev.map(item =>
+                                          item.flavor === sc.flavor ? { ...item, message: val } : item
+                                        ));
+                                      }}
+                                      placeholder={`Enter custom comment/message for ${sc.flavor}...`}
+                                      className="w-full sm:flex-1 bg-theatre-dark/90 text-white px-3 py-2 rounded-lg border border-white/20 focus:border-theatre-gold outline-none text-xs transition-all duration-300 placeholder:text-gray-500"
+                                    />
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           )}
                         </motion.div>

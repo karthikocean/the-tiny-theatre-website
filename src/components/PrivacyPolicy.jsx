@@ -5,6 +5,7 @@ import { getTerms } from '../Api/Termsapi';
 
 export default function PrivacyPolicy() {
   const [privacyData, setPrivacyData] = useState(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const fetchPrivacy = async () => {
@@ -12,9 +13,14 @@ export default function PrivacyPolicy() {
         const res = await getTerms({ title: 'privacy' });
         if (res.status && res.response?.data?.length > 0) {
           setPrivacyData(res.response.data[0]);
+        } else {
+          setPrivacyData(null);
         }
       } catch (err) {
         console.error("Error fetching privacy policy:", err);
+        setPrivacyData(null);
+      } finally {
+        setIsLoaded(true);
       }
     };
     fetchPrivacy();
@@ -78,8 +84,10 @@ export default function PrivacyPolicy() {
     }
   ];
 
-  const displayIntro = privacyData?.introText || "At The Tiny Theatre, we value your privacy and are committed to protecting your personal information.";
-  const displaySections = privacyData?.sections || fallbackSections;
+  const displayIntro = privacyData?.introText || (!isLoaded ? "At The Tiny Theatre, we value your privacy and are committed to protecting your personal information." : null);
+  const displaySections = (privacyData?.sections && privacyData.sections.length > 0)
+    ? privacyData.sections
+    : (!isLoaded && !privacyData?.content ? fallbackSections : []);
 
   const displayLastUpdated = privacyData?.createdAt
     ? `Last Updated: ${new Date(privacyData.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`
@@ -113,52 +121,69 @@ export default function PrivacyPolicy() {
           {displayLastUpdated}
         </p>
 
-        {/* Introduction */}
-        <div className="bg-theatre-grey-deep/30 border border-theatre-gold/25 rounded-2xl p-6 sm:p-8 mb-16 text-gray-300 font-sans font-light leading-relaxed text-center sm:text-left">
-          {displayIntro}
-        </div>
+        {isLoaded && !privacyData ? (
+          <div className="bg-theatre-grey-deep/30 border border-theatre-gold/25 rounded-2xl p-12 text-center text-gray-400 font-sans text-base">
+            Privacy Policy is currently unavailable.
+          </div>
+        ) : (
+          <>
+            {/* Introduction */}
+            {displayIntro && (
+              <div className="bg-theatre-grey-deep/30 border border-theatre-gold/25 rounded-2xl p-6 sm:p-8 mb-16 text-gray-300 font-sans font-light leading-relaxed text-center sm:text-left">
+                {displayIntro}
+              </div>
+            )}
 
-        {/* Policy Sections */}
-        <div className="space-y-16">
-          {displaySections.map((section, idx) => (
-            <motion.div
-              key={section.id || idx}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.5 }}
-              className="space-y-4"
-            >
-              <h3 className="font-serif text-2xl font-bold text-white tracking-wide border-b border-white/5 pb-2">
-                {section.title}
-              </h3>
-              
-              {/* If points has a colon in the first item, show it as introductory text, else list/para */}
-              {section.points && section.points.length > 0 && section.points[0].includes(":") ? (
-                <>
-                  <p className="text-gray-300 font-sans font-light text-base sm:text-lg leading-relaxed mb-4">
-                    {section.points[0]}
-                  </p>
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {section.points.slice(1).map((point, pIdx) => (
-                      <li key={pIdx} className="flex items-start space-x-3 text-gray-300 font-sans font-light text-base leading-relaxed bg-theatre-grey-deep/20 p-3.5 rounded-xl border border-white/5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-theatre-gold mt-2 flex-shrink-0" />
-                        <span>{point}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              ) : (
-                // Render as simple paragraphs
-                section.points && section.points.map((point, pIdx) => (
-                  <p key={pIdx} className="text-gray-300 font-sans font-light text-base sm:text-lg leading-relaxed">
-                    {point}
-                  </p>
-                ))
-              )}
-            </motion.div>
-          ))}
-        </div>
+            {/* Plain Text Body (When isStructured is false or no sections provided) */}
+            {privacyData?.content && (!privacyData?.sections || privacyData.sections.length === 0) ? (
+              <div className="bg-theatre-grey-deep/30 border border-theatre-gold/25 rounded-2xl p-6 sm:p-10 text-gray-300 font-sans font-light leading-relaxed text-base sm:text-lg whitespace-pre-line">
+                {privacyData.content}
+              </div>
+            ) : (
+              /* Policy Sections */
+              <div className="space-y-16">
+                {displaySections.map((section, idx) => (
+                  <motion.div
+                    key={section.id || idx}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-100px" }}
+                    transition={{ duration: 0.5 }}
+                    className="space-y-4"
+                  >
+                    <h3 className="font-serif text-2xl font-bold text-white tracking-wide border-b border-white/5 pb-2">
+                      {section.title}
+                    </h3>
+                    
+                    {/* If points has a colon in the first item, show it as introductory text, else list/para */}
+                    {section.points && section.points.length > 0 && section.points[0].includes(":") ? (
+                      <>
+                        <p className="text-gray-300 font-sans font-light text-base sm:text-lg leading-relaxed mb-4">
+                          {section.points[0]}
+                        </p>
+                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {section.points.slice(1).map((point, pIdx) => (
+                            <li key={pIdx} className="flex items-start space-x-3 text-gray-300 font-sans font-light text-base leading-relaxed bg-theatre-grey-deep/20 p-3.5 rounded-xl border border-white/5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-theatre-gold mt-2 flex-shrink-0" />
+                              <span>{point}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : (
+                      // Render as simple paragraphs
+                      section.points && section.points.map((point, pIdx) => (
+                        <p key={pIdx} className="text-gray-300 font-sans font-light text-base sm:text-lg leading-relaxed">
+                          {point}
+                        </p>
+                      ))
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
 
         {/* End Note */}
         <div className="mt-20 text-center flex flex-col items-center">
