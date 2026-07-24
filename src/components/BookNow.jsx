@@ -461,13 +461,17 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   const addonsPrices = { ...defaultAddonsPrices };
   if (dbAddons && dbAddons.length > 0) {
     dbAddons.forEach((addon) => {
-      const key = getAddonKey(addon.name);
-      addonsPrices[key] = {
-        name: addon.name,
-        price: addon.price
-      };
+      const name = addon.title || addon.name || '';
+      if (name) {
+        const key = getAddonKey(name);
+        addonsPrices[key] = {
+          name: name,
+          price: addon.price || 0
+        };
+      }
     });
   }
+
 
   const addonsCharges = selectedAddons.reduce((sum, key) => sum + (addonsPrices[key]?.price || 0), 0);
   
