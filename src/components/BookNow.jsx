@@ -496,7 +496,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   const handleSendOtp = () => {
     const cleanedPhone = (customerInfo.phone || '').replace(/\D/g, '');
     if (!cleanedPhone || !/^[6-9]\d{9}$/.test(cleanedPhone)) {
-      setStepErrors({ phone: 'Please enter a valid 10-digit mobile number.' });
+      setStepErrors({ phone: 'Please enter a valid 10-digit mobile number starting with 6-9.' });
       return;
     }
     setStepErrors({});
@@ -598,7 +598,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       if (!customerInfo.phone.trim()) {
         errors.phone = 'Mobile number is required.';
       } else if (!/^[6-9]\d{9}$/.test(cleanedPhone)) {
-        errors.phone = 'Please enter a valid 10-digit mobile number.';
+        errors.phone = 'Please enter a valid 10-digit mobile number starting with 6-9.';
       }
       if (!otpVerified) {
         if (customerInfo.otp === generatedOtp && generatedOtp !== '') {
