@@ -496,7 +496,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   const handleSendOtp = () => {
     const cleanedPhone = (customerInfo.phone || '').replace(/\D/g, '');
     if (!cleanedPhone || !/^[6-9]\d{9}$/.test(cleanedPhone)) {
-      setStepErrors({ phone: 'Please enter a valid 10-digit mobile number.' });
+      setStepErrors({ phone: 'Please enter a valid 10-digit mobile number starting with 6-9.' });
       return;
     }
     setStepErrors({});
@@ -598,7 +598,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       if (!customerInfo.phone.trim()) {
         errors.phone = 'Mobile number is required.';
       } else if (!/^[6-9]\d{9}$/.test(cleanedPhone)) {
-        errors.phone = 'Please enter a valid 10-digit mobile number.';
+        errors.phone = 'Please enter a valid 10-digit mobile number starting with 6-9.';
       }
       if (!otpVerified) {
         if (customerInfo.otp === generatedOtp && generatedOtp !== '') {
@@ -1519,38 +1519,6 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                   </div>
                                 ) : null;
                               })()}
-                            </div>
-                          )}
-
-                          {/* Separate Comments for Each Selected Cake */}
-                          {selectedCakes.length > 0 && (
-                            <div className="mt-4 p-4 bg-theatre-dark/60 border border-theatre-gold/30 rounded-2xl space-y-3">
-                              <h4 className="text-xs font-bold text-theatre-gold uppercase tracking-wider flex items-center gap-2">
-                                <span>🎂 Cake Messages / Custom Comments ({selectedCakes.length})</span>
-                              </h4>
-                              <div className="space-y-3">
-                                {selectedCakes.map((sc, idx) => (
-                                  <div key={sc.flavor || idx} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-theatre-dark/80 border border-white/10 rounded-xl">
-                                    <div className="flex items-center space-x-2 min-w-[150px]">
-                                      <span className="text-sm">🎂</span>
-                                      <span className="text-xs font-bold text-white">{sc.flavor}</span>
-                                    </div>
-                                    <input
-                                      type="text"
-                                      maxLength={50}
-                                      value={sc.message || ''}
-                                      onChange={(e) => {
-                                        const val = e.target.value;
-                                        setSelectedCakes(prev => prev.map(item =>
-                                          item.flavor === sc.flavor ? { ...item, message: val } : item
-                                        ));
-                                      }}
-                                      placeholder={`Enter custom comment/message for ${sc.flavor}...`}
-                                      className="w-full sm:flex-1 bg-theatre-dark/90 text-white px-3 py-2 rounded-lg border border-white/20 focus:border-theatre-gold outline-none text-xs transition-all duration-300 placeholder:text-gray-500"
-                                    />
-                                  </div>
-                                ))}
-                              </div>
                             </div>
                           )}
                         </motion.div>
