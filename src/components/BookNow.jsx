@@ -265,8 +265,11 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
   // Dynamic decorations fetching
   const [dbDecorations, setDbDecorations] = useState([]);
+  const [loadingDecorations, setLoadingDecorations] = useState(false);
+
   useEffect(() => {
     const fetchDecorations = async () => {
+      setLoadingDecorations(true);
       try {
         const res = await getDecorations();
         if (res && res.status && res.response && res.response.data) {
@@ -274,9 +277,14 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
             (dec) => (dec.isActive === 1 || dec.isActive === true)
           );
           setDbDecorations(activeDecorations);
+        } else {
+          setDbDecorations([]);
         }
       } catch (err) {
         console.error('Error fetching decorations in BookNow:', err);
+        setDbDecorations([]);
+      } finally {
+        setLoadingDecorations(false);
       }
     };
     fetchDecorations();
@@ -485,7 +493,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
   const decorationPrice = activeDecoration 
     ? activeDecoration.price 
-    : (selectedScreen === 'B' ? 800 : 900);
+    : 0;
 
   const decorCharges = wantsDecor ? decorationPrice : 0;
   const autoDecoration = wantsDecor ? activeDecoration : null;
@@ -1551,7 +1559,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             : 'bg-white/5 border-white/10 text-gray-300'
                             }`}
                         >
-                          Yes, Include Decor (₹{decorationPrice})
+                          Yes, Include Decor {decorationPrice > 0 ? `(₹${decorationPrice})` : ''}
                         </button>
                         <button
                           onClick={() => setWantsDecor(false)}
@@ -1572,7 +1580,11 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           className="pt-4"
                         >
                           <div className="max-w-2xl">
-                            {screenDecorations.length > 0 ? (
+                            {loadingDecorations ? (
+                              <div className="p-4 rounded-xl border border-white/10 bg-white/5 text-gray-400 text-sm text-center">
+                                Loading decorations...
+                              </div>
+                            ) : screenDecorations.length > 0 ? (
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {screenDecorations.map((decor) => {
                                   const isSelected = selectedDecorId === decor._id || (!selectedDecorId && screenDecorations[0]?._id === decor._id);
@@ -1608,24 +1620,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                 })}
                               </div>
                             ) : (
-                              <div className="relative p-5 rounded-2xl border transition-all duration-300 border-theatre-gold bg-gradient-to-t from-theatre-gold/20 to-theatre-gold/5 shadow-md shadow-theatre-gold/15 scale-[1.02] text-white">
-                                <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-theatre-gold text-theatre-grey-deep flex items-center justify-center z-10 shadow-md">
-                                  <Check className="w-3 h-3" />
-                                </span>
-                                <div className="flex items-center space-x-3 mb-2">
-                                  <Gift className="w-5 h-5 text-theatre-gold" />
-                                  <h4 className="text-sm font-bold text-white">
-                                    {selectedScreen} Decoration
-                                  </h4>
-                                </div>
-                                <br />
-                                <div className="flex justify-between items-baseline">
-                                  <span className="text-lg font-bold text-theatre-gold">₹{decorationPrice}</span>
-                                  <span className="text-[10px] text-gray-500 font-medium">(GST Inclusive)</span>
-                                </div>
-                                <div className="mt-3 text-[10px] bg-theatre-gold/10 text-theatre-gold font-sans font-bold px-2 py-1 rounded border border-theatre-gold/25 inline-block">
-                                  Selected Screen
-                                </div>
+                              <div className="p-4 rounded-xl border border-white/10 bg-white/5 text-gray-400 text-sm text-center">
+                                No decorations available
                               </div>
                             )}
                           </div>
@@ -2225,7 +2221,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     )}
                     {selectedTimeSlot && wantsDecor && (
                       <div className="flex justify-between text-gray-400 pl-2">
-                        <span>Decoration :</span>
+                        <span>Decoration {autoDecoration?.name ? `(${autoDecoration.name})` : ''}:</span>
                         <span className="text-white">₹{decorCharges}</span>
                       </div>
                     )}
