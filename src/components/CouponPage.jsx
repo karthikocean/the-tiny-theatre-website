@@ -1,61 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Copy, Check, Ticket, Gift, Sparkles, Flame, Clock, Calendar } from 'lucide-react';
+import { getActiveCoupons } from '../Api/CouponApi';
 
 export default function CouponPage() {
   const navigate = useNavigate();
-  const [copiedCode, setCopiedCode] = useState(null);
+  const [coupons, setCoupons] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const coupons = [
-    {
-      code: "FIRSTSHOW10",
-      discount: "10% OFF",
-      title: "First Screening Discount",
-      desc: "Get flat 10% off on your very first private theatre screening booking.",
-      expiry: "Valid till 31 Dec 2026",
-      terms: "Valid on all experience packages for first-time customers.",
-      badge: "Welcome Deal",
-      icon: Ticket
-    },
-    {
-      code: "CELEBRATEFREE",
-      discount: "FREE CAKE",
-      title: "Milestone Birthday Special",
-      desc: "Get a complimentary custom theme cake and basic balloons decoration setup.",
-      expiry: "Valid till 31 Dec 2026",
-      terms: "Minimum booking duration of 3 hours. Proof of birthday required.",
-      badge: "Celebration",
-      icon: Gift
-    },
-    {
-      code: "MIDWEEK15",
-      discount: "15% OFF",
-      title: "Mid-Week Cinema Madness",
-      desc: "Save 15% on any private theater rentals scheduled from Monday to Thursday.",
-      expiry: "Valid till 30 Nov 2026",
-      terms: "Applicable on slots between 10:00 AM and 5:00 PM.",
-      badge: "Weekday Saver",
-      icon: Flame
-    },
-    {
-      code: "ROMANCEDATE",
-      discount: "FREE SNACKS",
-      title: "Couple Date Night Combo",
-      desc: "Enjoy complimentary premium salted popcorn and two soft beverages on us.",
-      expiry: "Valid till 31 Dec 2026",
-      terms: "Applicable exclusively on Couple's Date Night package bookings.",
-      badge: "Romance Special",
-      icon: Sparkles
-    }
-  ];
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      setIsLoading(true);
+      const res = await getActiveCoupons();
+      if (res.status) {
+        setCoupons(res.response?.data || []);
+      }
+      setIsLoading(false);
+    };
+    fetchCoupons();
+  }, []);
 
-  const handleCopy = (code) => {
-    navigator.clipboard.writeText(code);
-    setCopiedCode(code);
-    setTimeout(() => {
-      setCopiedCode(null);
-    }, 2000);
+  const getIcon = (idx) => {
+    const icons = [Ticket, Gift, Flame, Sparkles];
+    return icons[idx % icons.length];
   };
 
   return (
@@ -82,98 +50,74 @@ export default function CouponPage() {
 
         {/* Coupons Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-          {coupons.map((coupon, idx) => {
-            const Icon = coupon.icon;
-            return (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="bg-theatre-grey-deep/20 backdrop-blur-md rounded-3xl border border-theatre-gold/45 overflow-hidden flex flex-col sm:flex-row relative group hover:border-theatre-gold transition-all duration-300"
-              >
-                {/* Perforated ticket divider for screen sizes > sm */}
-                <div className="hidden sm:block absolute left-[30%] top-0 bottom-0 border-l-2 border-dashed border-theatre-gold/30 z-10" />
-                <div className="hidden sm:block absolute left-[30%] -top-4 w-8 h-8 rounded-full bg-theatre-dark border border-theatre-gold/45 z-20" />
-                <div className="hidden sm:block absolute left-[30%] -bottom-4 w-8 h-8 rounded-full bg-theatre-dark border border-theatre-gold/45 z-20" />
+          {isLoading ? (
+            <div className="col-span-full text-center text-white py-10">Loading available offers...</div>
+          ) : coupons.length === 0 ? (
+            <div className="col-span-full text-center text-white py-10">No active offers available at the moment. Please check back later!</div>
+          ) : (
+            coupons.map((coupon, idx) => {
+              const Icon = getIcon(idx);
+              const discountText = coupon.type === 'Percentage' ? `${coupon.value}% OFF` : `₹${coupon.value} OFF`;
+              const expiryText = coupon.validTo 
+                ? `Valid till ${new Date(coupon.validTo).toLocaleDateString('en-GB')}` 
+                : 'Limited Time Offer';
 
-                {/* Left Side: Discount Banner */}
-                <div className="sm:w-[30%] bg-gradient-to-br from-theatre-grey-deep/80 to-theatre-grey-deep/45 p-6 flex flex-col justify-center items-center text-center border-b sm:border-b-0 sm:border-r border-theatre-gold/30 relative">
-                  <div className="w-12 h-12 rounded-2xl bg-theatre-gold/10 border border-theatre-gold/20 flex items-center justify-center text-theatre-gold mb-3 shadow-md">
-                    <Icon className="w-6 h-6" />
+              return (
+                <motion.div
+                  key={coupon._id || idx}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: idx * 0.1 }}
+                  className="bg-theatre-grey-deep/20 backdrop-blur-md rounded-3xl border border-theatre-gold/45 overflow-hidden flex flex-col sm:flex-row relative group hover:border-theatre-gold transition-all duration-300"
+                >
+                  {/* Perforated ticket divider for screen sizes > sm */}
+                  <div className="hidden sm:block absolute left-[30%] top-0 bottom-0 border-l-2 border-dashed border-theatre-gold/30 z-10 -translate-x-1/2" />
+                  <div className="hidden sm:block absolute left-[30%] -top-4 w-8 h-8 rounded-full bg-theatre-dark border border-theatre-gold/45 z-20 -translate-x-1/2" />
+                  <div className="hidden sm:block absolute left-[30%] -bottom-4 w-8 h-8 rounded-full bg-theatre-dark border border-theatre-gold/45 z-20 -translate-x-1/2" />
+
+                  {/* Left Side: Discount Banner */}
+                  <div className="sm:w-[30%] shrink-0 bg-gradient-to-br from-theatre-grey-deep/80 to-theatre-grey-deep/45 p-6 flex flex-col justify-center items-center text-center border-b sm:border-b-0 border-theatre-gold/30 relative">
+                    <div className="w-12 h-12 rounded-2xl bg-theatre-gold/10 border border-theatre-gold/20 flex items-center justify-center text-theatre-gold mb-3 shadow-md">
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    {coupon.introText && (
+                      <span className="text-xs uppercase tracking-widest text-theatre-gold font-bold mb-1 block text-center break-words max-w-full">
+                        {coupon.introText}
+                      </span>
+                    )}
+                    <h3 className="text-2xl sm:text-3xl font-serif font-black text-white tracking-tight break-words max-w-full">
+                      {discountText}
+                    </h3>
                   </div>
-                  <span className="text-xs uppercase tracking-widest text-theatre-gold font-bold mb-1 block">
-                    {coupon.badge}
-                  </span>
-                  <h3 className="text-2xl sm:text-3xl font-serif font-black text-white tracking-tight">
-                    {coupon.discount}
-                  </h3>
-                </div>
 
-                {/* Right Side: Details & Copy Code */}
-                <div className="flex-grow p-6 sm:p-8 flex flex-col justify-between space-y-6">
-                  <div className="space-y-2">
-                    <h4 className="text-lg font-serif font-bold text-white tracking-wide group-hover:text-theatre-gold transition-colors duration-300">
-                      {coupon.title}
-                    </h4>
-                    <p className="text-gray-400 font-sans font-light text-sm leading-relaxed">
-                      {coupon.desc}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t border-white/5">
-                    {/* Expiry info */}
-                    <div className="space-y-1">
-                      <div className="flex items-center space-x-1.5 text-xs text-gray-500">
-                        <Clock className="w-3.5 h-3.5 text-theatre-gold/80" />
-                        <span>{coupon.expiry}</span>
-                      </div>
-                      <p className="text-[10px] text-gray-600 leading-tight">
-                        * {coupon.terms}
+                  {/* Right Side: Details & Copy Code */}
+                  <div className="flex-grow p-6 sm:p-8 flex flex-col justify-between space-y-6">
+                    <div className="space-y-2">
+                      <h4 className="text-lg font-serif font-bold text-white tracking-wide group-hover:text-theatre-gold transition-colors duration-300">
+                        {coupon.title}
+                      </h4>
+                      <p className="text-gray-400 font-sans font-light text-sm leading-relaxed whitespace-pre-line">
+                        {coupon.description}
                       </p>
                     </div>
 
-                    {/* Interactive Copy Code Area */}
-                    <button
-                      onClick={() => handleCopy(coupon.code)}
-                      className={`flex items-center space-x-2 px-5 py-3 rounded-2xl border transition-all duration-300 font-sans text-xs font-semibold tracking-wider cursor-pointer ${
-                        copiedCode === coupon.code
-                          ? "bg-theatre-gold border-theatre-gold text-theatre-grey-deep"
-                          : "bg-theatre-dark/60 border-theatre-gold/40 text-theatre-gold hover:border-theatre-gold hover:bg-theatre-dark"
-                      }`}
-                    >
-                      {copiedCode === coupon.code ? (
-                        <>
-                          <Check className="w-4 h-4" />
-                          <span>COPIED!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-4 h-4" />
-                          <span>{coupon.code}</span>
-                        </>
-                      )}
-                    </button>
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t border-white/5">
+                      {/* Expiry info */}
+                      <div className="space-y-1 w-full sm:w-auto">
+                        <div className="flex items-center space-x-1.5 text-xs text-gray-500">
+                          <Clock className="w-3.5 h-3.5 text-theatre-gold/80" />
+                          <span>{expiryText}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-              </motion.div>
-            );
-          })}
+                </motion.div>
+              );
+            })
+          )}
         </div>
-
-        {/* Call to action */}
-        <div className="text-center mt-20">
-          <button
-            onClick={() => navigate('/book-now')}
-            className="inline-flex items-center space-x-2 bg-gradient-to-r from-theatre-gold to-theatre-gold-dark hover:from-theatre-gold-light hover:to-theatre-gold text-theatre-grey-deep font-bold px-8 py-4 rounded-full shadow-lg shadow-theatre-gold/15 hover:shadow-theatre-gold/25 hover:scale-105 transition-all duration-300 text-sm cursor-pointer"
-          >
-            <Calendar className="w-4 h-4" />
-            <span>Apply Coupon & Book Now</span>
-          </button>
-        </div>
-
       </div>
     </section>
   );
