@@ -193,13 +193,19 @@ export default function Gallery({ preview, onViewMore }) {
             No gallery items available.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className={
+            preview 
+              ? "flex lg:grid flex-nowrap lg:grid-cols-3 overflow-x-auto lg:overflow-visible gap-4 lg:gap-8 pb-8 lg:pb-0 snap-x snap-mandatory no-scrollbar -mx-4 px-4 sm:-mx-6 sm:px-6 scroll-pl-4 sm:scroll-pl-6 lg:mx-0 lg:px-0 lg:scroll-pl-0"
+              : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          }>
           {itemsToDisplay.map((item, index) => (
             <motion.div
               layout
               key={item.id}
               onClick={() => setSelectedImageIndex(index)}
-              className="group relative rounded-3xl overflow-hidden cursor-pointer border border-theatre-gold/45 hover:border-theatre-gold/80 shadow-md hover:shadow-theatre-grey-deep/20 transition-all duration-500 h-96"
+              className={`group relative rounded-3xl overflow-hidden cursor-pointer border border-theatre-gold/45 hover:border-theatre-gold/80 shadow-md hover:shadow-theatre-grey-deep/20 transition-all duration-500 h-80 sm:h-96 ${
+                preview ? "flex-none w-[80vw] sm:w-[300px] md:w-[340px] lg:w-auto snap-start" : "w-full"
+              }`}
             >
               {/* Video Indicator Badge */}
               {item.type === 'video' && (

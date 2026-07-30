@@ -112,26 +112,26 @@ export default function WhyChooseUs({ preview, onViewMore }) {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-100px' }}
-          className={`grid gap-8 ${
+          className={
             preview 
-              ? 'grid-cols-1 md:grid-cols-3 max-w-6xl mx-auto' 
-              : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-w-7xl mx-auto'
-          }`}
+              ? "flex lg:grid flex-nowrap lg:grid-cols-3 overflow-x-auto lg:overflow-visible gap-4 lg:gap-8 max-w-6xl mx-auto pb-8 lg:pb-0 snap-x snap-mandatory no-scrollbar -mx-4 px-4 sm:-mx-6 sm:px-6 scroll-pl-4 sm:scroll-pl-6 lg:mx-auto lg:px-0 lg:scroll-pl-0"
+              : "flex lg:grid flex-nowrap lg:grid-cols-3 xl:grid-cols-4 overflow-x-auto lg:overflow-visible gap-4 lg:gap-8 max-w-7xl mx-auto pb-8 lg:pb-0 snap-x snap-mandatory no-scrollbar -mx-4 px-4 sm:-mx-6 sm:px-6 scroll-pl-4 sm:scroll-pl-6 lg:mx-auto lg:px-0 lg:scroll-pl-0"
+          }
         >
           {(preview ? previewFeatures : features).map((feat, idx) => {
             return (
               <motion.div
                 key={idx}
                 variants={cardVariants}
-                className="bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl border border-theatre-gold/45 hover:border-theatre-gold/80 flex flex-col transition-all duration-300 group cursor-default hover:shadow-xl hover:shadow-theatre-gold/5 relative overflow-hidden"
+                className="bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl border border-theatre-gold/45 hover:border-theatre-gold/80 flex flex-col transition-all duration-300 group cursor-default hover:shadow-xl hover:shadow-theatre-gold/5 relative overflow-hidden flex-none w-[80vw] sm:w-[300px] md:w-[320px] lg:w-auto h-80 lg:h-auto snap-start"
               >
-                {/* Feature Header Image */}
-                <div className="h-48 w-full overflow-hidden relative">
-                  <div className="absolute inset-0 bg-gradient-to-t from-theatre-dark/60 via-transparent to-transparent z-10" />
+                {/* Background/Header Image */}
+                <div className="absolute inset-0 lg:relative lg:h-48 w-full overflow-hidden z-0">
+                  <div className="absolute inset-0 bg-gradient-to-t from-theatre-dark/95 via-theatre-dark/60 lg:via-transparent to-transparent z-10" />
                   <img
                     src={feat.image}
                     alt={feat.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-60 lg:opacity-100"
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = "https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=600&q=80";
@@ -140,12 +140,12 @@ export default function WhyChooseUs({ preview, onViewMore }) {
                 </div>
 
               {/* Content Area */}
-              <div className="p-6 flex-grow flex flex-col justify-between">
+              <div className="relative z-20 p-6 flex-grow flex flex-col justify-end lg:justify-between h-full lg:h-auto">
                 <div>
                   <h3 className="font-serif text-base sm:text-lg font-bold text-white mb-2.5 group-hover:text-theatre-gold transition-colors duration-300 text-center">
                     {feat.title}
                   </h3>
-                  <p className="text-sm text-gray-400 leading-relaxed font-sans font-light text-left">
+                  <p className="text-sm text-gray-200 lg:text-gray-400 leading-relaxed font-sans font-light text-center lg:text-left line-clamp-4 lg:line-clamp-none">
                     {feat.desc}
                   </p>
                 </div>

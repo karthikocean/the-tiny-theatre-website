@@ -17,13 +17,13 @@ class RefundPolicyApi {
     };
     bookingInfo = async (params = {}) => {
         try {
-            const response = await api.get("/contents", { title: "Booking" });
+            const response = await api.get("/contents/title/Booking%20Info");
             if (response.status === 200 || response.status === 201) {
                 return { status: true, response: response.data };
             }
         } catch (error) {
             const errorMessage = error?.response?.data?.message || error?.message || "Failed to check refund eligibility.";
-            ShowNotifications.showAlertNotification(errorMessage, false);
+            // ShowNotifications.showAlertNotification(errorMessage, false);
             return { status: false, response: error?.response?.data || error };
         }
     };
