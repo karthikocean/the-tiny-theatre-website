@@ -119,11 +119,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
     );
   };
-  const [ledNumberText, setLedNumberText] = useState('');
-  const [sashOccasion, setSashOccasion] = useState('Bride to be');
   const [addonPage, setAddonPage] = useState(1);
   const addonsPerPage = 8;
-
   const [bookedSlots, setBookedSlots] = useState(() => {
     try {
       const saved = localStorage.getItem('tiny_theatre_booked_slots');
@@ -132,29 +129,17 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       return [];
     }
   });
-
-  // Payment method
   const [paymentMethod, setPaymentMethod] = useState('upi');
-
   const [isPaying, setIsPaying] = useState(false);
-
-  // Random Booking ID for success page
   const [bookingId, setBookingId] = useState('');
-
-  // Auto-sync event category from parent component
   useEffect(() => {
     if (selectedEventName) {
       setEventCategory(selectedEventName);
     }
   }, [selectedEventName]);
-
-  // Validation errors for each step
   const [stepErrors, setStepErrors] = useState({});
-
-  // Dynamic screens fetching
   const [screens, setScreens] = useState([]);
   const [loadingScreens, setLoadingScreens] = useState(true);
-
   useEffect(() => {
     const fetchScreens = async () => {
       try {
@@ -681,10 +666,6 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       selectedAddons.forEach(key => {
         const addon = dbAddons.find(a => getAddonKey(a.name) === key);
         let comment = addonComments[key] || '';
-        if (!comment) {
-          if (key === 'led_numbers' && ledNumberText) comment = ledNumberText;
-          else if (key === 'event_sash' && sashOccasion) comment = sashOccasion;
-        }
 
         if (addon) {
           addonQuantitiesToSend[addon._id] = "1";
@@ -791,8 +772,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     setSelectedCakes([]);
     setWantsDecor(false);
     setSelectedAddons([]);
-    setLedNumberText('');
-    setSashOccasion('Bride to be');
+    setAddonComments({});
     setStepErrors({});
     if (clearSelectedEvent) {
       clearSelectedEvent();
@@ -1055,6 +1035,68 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                               <AlertCircle className="w-3.5 h-3.5" />
                               <span>{stepErrors.time}</span>
                             </p>
+                          )}
+                          
+                          {selectedTimeSlot && (
+                            <div className="mt-5 p-5 bg-[#17191D] border border-white/10 rounded-2xl relative overflow-hidden font-sans">
+                              {/* BASE PRICE SECTION */}
+                              <div className="flex justify-between items-start mb-6">
+                                <div>
+                                  <h5 className="text-white font-bold text-sm sm:text-base uppercase tracking-wider mb-1">Base Price</h5>
+                                  <p className="text-gray-400 text-[11px] sm:text-xs">Covers up to 4 members</p>
+                                </div>
+                                <div className="text-right">
+                                  <h5 className="text-theatre-gold font-bold text-xl leading-none mb-1.5">₹{basePrice}</h5>
+                                  <p className="text-gray-500 text-[10px]">(Inc. GST)</p>
+                                </div>
+                              </div>
+                              
+                              <div className="w-full h-[1px] bg-white/10 mb-6" />
+
+                              {/* ADDITIONAL GUEST CHARGES */}
+                              <div className="mb-6">
+                                <h6 className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-3">Additional Guest Charges (Above 4 Members)</h6>
+                                <div className="border border-white/10 rounded-xl overflow-hidden bg-black/20">
+                                  {activeCategories.map((cat, idx) => {
+                                    const ageLabel = cat.to >= 100
+                                      ? `${cat.from}+ Years`
+                                      : `${cat.from} - ${cat.to} Years`;
+                                      
+                                    const isFree = cat.price === 0;
+                                    return (
+                                      <div key={cat._id} className={`flex justify-between items-center px-4 py-4 ${idx !== activeCategories.length - 1 ? 'border-b border-white/5' : ''}`}>
+                                        <span className="text-white text-[13px] sm:text-sm font-bold">{ageLabel}</span>
+                                        <div className="flex items-center gap-1.5">
+                                          {isFree ? (
+                                            <span className="text-[#10B981] font-bold text-[13px] sm:text-sm">FREE</span>
+                                          ) : (
+                                            <span className="text-white font-bold text-[13px] sm:text-sm">₹{cat.price} <span className="text-gray-400 font-medium text-xs">/ each</span></span>
+                                          )}
+                                          <span className="text-gray-500 text-[10px] ml-1 hidden sm:inline">(Inc. GST)</span>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+
+                              {/* Dynamic Added Members summary (if any) */}
+                              {guestChargeBreakdown && guestChargeBreakdown.length > 0 && (
+                                <div className="mb-6 space-y-2">
+                                  {guestChargeBreakdown.map((charge, idx) => (
+                                    <div key={idx} className="flex justify-between items-center px-2">
+                                      <span className="text-gray-400 text-xs font-medium">Added: {charge.description}</span>
+                                      <span className="text-white text-xs font-bold">+ ₹{charge.amount}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Footer Warning */}
+                              <div className="border border-theatre-gold/30 bg-theatre-gold/[0.04] rounded-xl py-3.5 px-4 text-center border-dashed">
+                                <p className="text-theatre-gold text-xs font-bold">All prices shown are final and inclusive of GST.</p>
+                              </div>
+                            </div>
                           )}
                         </div>
                       </div>
@@ -1817,7 +1859,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
                 {/* STEP 5: Booking Confirmation SUCCESS */}
                 {activeStep === 5 && (
-                  <div className="max-w-2xl mx-auto pt-1 pb-4 text-center space-y-4">
+                  <div className="max-w-2xl mx-auto pt-1 pb-4  text-center space-y-4">
                     <div className="inline-flex p-4 bg-green-500/10 text-green-400 rounded-full border border-green-500/20">
                       <ShieldCheck className="w-10 h-10" />
                     </div>
@@ -1828,7 +1870,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                       </p>
                     </div>
 
-                    <div className="bg-theatre-dark/95 border border-white/10 rounded-2xl p-6 relative max-w-md mx-auto shadow-inner text-left">
+                    <div className="bg-theatre-dark/95 border border-white/10 rounded-2xl p-6 relative max-w-md mx-auto shadow-inner text-center">
                       <div className="absolute top-1/2 -left-3.5 w-7 h-7 bg-theatre-grey-deep rounded-full -translate-y-1/2 z-10" />
                       <div className="absolute top-1/2 -right-3.5 w-7 h-7 bg-theatre-grey-deep rounded-full -translate-y-1/2 z-10" />
 
@@ -1907,6 +1949,23 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                 )}
               </div>
             )}
+            
+            {/* Booking Info Notes (wrapped to left column) */}
+            {refundPolicyData && refundPolicyData.content && activeStep <= 4 && (
+              <div className="mt-8 mb-4">
+                <div className="bg-yellow-500/15 backdrop-blur-md border border-yellow-500/50 rounded-2xl p-5 sm:p-6 shadow-[0_0_20px_rgba(234,179,8,0.15)] relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-1.5 h-full bg-yellow-500" />
+                  <div className="flex items-center gap-2 mb-3 border-b border-yellow-500/20 pb-2">
+                     <AlertCircle className="w-5 h-5 text-yellow-500" />
+                     <h4 className="text-yellow-500 font-bold uppercase tracking-wider text-sm">Important Booking Notes</h4>
+                  </div>
+                  <div className="text-xs sm:text-[13px] text-white/90 font-sans leading-relaxed whitespace-pre-line pl-1">
+                    {refundPolicyData.content}
+                  </div>
+                </div>
+              </div>
+            )}
+            
           </div>
 
           {/* RIGHT PANEL: Live Invoice/Selected Items Summary */}
@@ -2027,11 +2086,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           const addon = addonsPrices[key];
                           if (!addon) return null;
                           let name = addon.name;
-                          if (key === 'led_numbers' && ledNumberText) {
-                            name = `LED Numbers (${ledNumberText})`;
-                          } else if (key === 'event_sash' && sashOccasion) {
-                            name = `Event Sash (${sashOccasion})`;
-                          }
+
                           const qtyStr = addonQuantities[key];
                           const qty = qtyStr ? (parseInt(qtyStr, 10) || 1) : 1;
                           const itemTotal = addon.price * qty;
@@ -2080,17 +2135,6 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
         </div>
 
-        {refundPolicyData && refundPolicyData.content && (
-          <div className="max-w-6xl mx-auto mt-12 pt-8 border-t border-white/10">
-            <div className="bg-theatre-grey-deep/20 backdrop-blur-md border border-white/5 rounded-3xl p-6 sm:p-8 space-y-6">
-              <div className="space-y-4 text-xs sm:text-sm text-gray-300 font-sans leading-relaxed">
-                <div className="whitespace-pre-line leading-relaxed text-theatre-gold font-medium">
-                  {refundPolicyData.content}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
       </div>
 
