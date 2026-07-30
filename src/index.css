@@ -127,6 +127,15 @@ body {
   background: #F4C430;
 }
 
+/* Hide scrollbar for carousel */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
 /* Custom UI Utilities */
 .glass {
   background: rgba(123, 132, 145, 0.05);

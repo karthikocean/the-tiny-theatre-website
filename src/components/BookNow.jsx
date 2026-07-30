@@ -623,7 +623,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       }
     }
     if (!termsAccepted) {
-      errors.terms = 'You must accept the Terms & Conditions and Cancellation Policy to proceed with payment.';
+      errors.terms = 'You must accept the Terms & Conditions to proceed with payment.';
     }
 
     if (Object.keys(errors).length > 0) {
@@ -958,7 +958,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         <h4>2. Select Date & Time Slot</h4>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="flex flex-col gap-6">
                         {/* Date Picker */}
                         <div className="space-y-2">
                           <label className="text-xs font-semibold text-gray-300 block">Select Date</label>
@@ -994,8 +994,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                 if (!t) return '';
                                 const d = new Date(t);
                                 if (isNaN(d.getTime())) return t;
-                                let h = d.getUTCHours();
-                                const m = String(d.getUTCMinutes()).padStart(2, '0');
+                                let h = d.getHours();
+                                const m = String(d.getMinutes()).padStart(2, '0');
                                 const ampm = h >= 12 ? 'PM' : 'AM';
                                 h = h % 12 || 12;
                                 return `${h}:${m} ${ampm}`;
@@ -1033,7 +1033,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                       : 'border-white/10 bg-theatre-dark/40 text-gray-300 hover:border-white/20'
                                     }`}
                                 >
-                                  <div className="font-bold mb-0.5 truncate">{slotLabel}</div>
+                                  <div className="font-bold mb-0.5 text-[11px] leading-snug whitespace-normal break-words">{slotLabel}</div>
                                   <div className="text-[9px] uppercase tracking-widest flex items-center justify-between">
                                     {isApiSlot && slotItem.price != null ? (
                                       <span className="text-theatre-gold font-bold normal-case text-xs">₹{slotItem.price}</span>
@@ -1563,46 +1563,6 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                       ) : null;
                     })()}
 
-                    {(selectedAddons.includes('led_numbers') || selectedAddons.includes('event_sash')) && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="p-5 rounded-2xl bg-white/[0.02] border border-white/10 space-y-4 mt-6 max-w-md"
-                      >
-                        <h4 className="text-xs font-bold text-white border-b border-white/5 pb-2">Add-on Customizations</h4>
-
-                        {selectedAddons.includes('led_numbers') && (
-                          <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-gray-300 block">LED Number(s) Required</label>
-                            <input
-                              type="text"
-                              value={ledNumberText}
-                              onChange={(e) => setLedNumberText(e.target.value)}
-                              placeholder="E.g., 25 or 18"
-                              className="w-full bg-theatre-dark/60 text-white px-3.5 py-2 rounded-xl border border-white/10 focus:border-theatre-gold outline-none text-xs transition-all duration-300 placeholder:text-gray-600"
-                            />
-                          </div>
-                        )}
-
-                        {selectedAddons.includes('event_sash') && (
-                          <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-gray-300 block">Sash Occasion</label>
-                            <select
-                              value={sashOccasion}
-                              onChange={(e) => setSashOccasion(e.target.value)}
-                              className="w-full bg-theatre-dark text-white px-3.5 py-2 rounded-xl border border-white/10 focus:border-theatre-gold outline-none text-xs transition-all duration-300 cursor-pointer"
-                            >
-                              <option value="Bride to be">Bride to be</option>
-                              <option value="Groom to be">Groom to be</option>
-                              <option value="Happy Birthday">Happy Birthday</option>
-                              <option value="Congratulations">Congratulations</option>
-                              <option value="Mom to be">Mom to be</option>
-                              <option value="Father to be">Father to be</option>
-                            </select>
-                          </div>
-                        )}
-                      </motion.div>
-                    )}
                   </div>
                 )}
 
@@ -1771,12 +1731,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         />
                         <span className="text-xs text-gray-300 group-hover:text-white transition-colors leading-relaxed">
                           I agree to the{' '}
-                          <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-theatre-gold underline hover:text-theatre-gold-light font-semibold">
+                          <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="text-theatre-gold underline hover:text-theatre-gold-light font-semibold">
                             Terms & Conditions
-                          </a>{' '}
-                          and{' '}
-                          <a href="/cancellation-policy" target="_blank" rel="noopener noreferrer" className="text-theatre-gold underline hover:text-theatre-gold-light font-semibold">
-                            Cancellation & Refund Policy
                           </a>.
                         </span>
                       </label>
@@ -1839,7 +1795,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         <button
                           type="button"
                           onClick={handlePayment}
-                          disabled={isPaying}
+                          disabled={isPaying || !otpVerified}
                           className="w-full bg-gradient-to-r from-theatre-gold to-theatre-gold-dark hover:from-theatre-gold-light hover:to-theatre-gold text-theatre-grey-deep font-sans font-bold py-3.5 rounded-xl shadow-lg hover:shadow-theatre-gold/20 flex items-center justify-center space-x-2 text-xs transition-all duration-300 cursor-pointer disabled:opacity-50"
                         >
                           {isPaying ? (
@@ -2083,9 +2039,16 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             name = `${name} (Qty: ${qty})`;
                           }
                           return (
-                            <div key={key} className="flex justify-between text-[11px] text-gray-400 pl-1 font-mono">
-                              <span>+ {name}:</span>
-                              <span className="text-white">₹{itemTotal}</span>
+                            <div key={key} className="flex flex-col text-[11px] text-gray-400 pl-1 font-mono">
+                              <div className="flex justify-between">
+                                <span>+ {name}:</span>
+                                <span className="text-white">₹{itemTotal}</span>
+                              </div>
+                              {addonComments[key] && (
+                                <div className="text-[9px] text-gray-500 italic pl-3 break-words max-w-xs mt-0.5">
+                                  "{addonComments[key]}"
+                                </div>
+                              )}
                             </div>
                           );
                         })}
@@ -2117,39 +2080,17 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
         </div>
 
-        <div className="max-w-6xl mx-auto mt-12 pt-8 border-t border-white/10">
-          <div className="bg-theatre-grey-deep/20 backdrop-blur-md border border-white/5 rounded-3xl p-6 sm:p-8 space-y-6">
-            {loadingRefundPolicy ? (
-              <div className="flex items-center justify-center space-x-2 py-6 text-xs text-gray-400">
-                <RefreshCw className="w-4 h-4 animate-spin text-theatre-gold" />
-                <span>Loading refund policy details...</span>
-              </div>
-            ) : refundPolicyData ? (
+        {refundPolicyData && refundPolicyData.content && (
+          <div className="max-w-6xl mx-auto mt-12 pt-8 border-t border-white/10">
+            <div className="bg-theatre-grey-deep/20 backdrop-blur-md border border-white/5 rounded-3xl p-6 sm:p-8 space-y-6">
               <div className="space-y-4 text-xs sm:text-sm text-gray-300 font-sans leading-relaxed">
-                {refundPolicyData.content && (
-                  <div className="whitespace-pre-line leading-relaxed text-theatre-gold font-medium">
-                    {refundPolicyData.content}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-gray-300">
-                <div className="p-4 bg-theatre-dark/40 border border-white/5 rounded-2xl space-y-1">
-                  <span className="font-bold text-white block">Cancellation Notice</span>
-                  <p className="text-gray-400 leading-relaxed">Cancellations made prior to booking slot receive full refund or free rescheduling as per terms.</p>
-                </div>
-                <div className="p-4 bg-theatre-dark/40 border border-white/5 rounded-2xl space-y-1">
-                  <span className="font-bold text-white block">Advance Deposit</span>
-                  <p className="text-gray-400 leading-relaxed">₹1,000 advance is locked for your date and slot confirmation.</p>
-                </div>
-                <div className="p-4 bg-theatre-dark/40 border border-white/5 rounded-2xl space-y-1">
-                  <span className="font-bold text-white block">Refund Method</span>
-                  <p className="text-gray-400 leading-relaxed">Approved refunds are processed back to your original payment method within 5-7 business days.</p>
+                <div className="whitespace-pre-line leading-relaxed text-theatre-gold font-medium">
+                  {refundPolicyData.content}
                 </div>
               </div>
-            )}
+            </div>
           </div>
-        </div>
+        )}
 
       </div>
 

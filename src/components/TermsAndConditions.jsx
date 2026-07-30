@@ -179,7 +179,7 @@ export default function TermsAndConditions() {
           {displayLastUpdated}
         </p>
 
-        {isLoaded && !termsData ? (
+        {isLoaded && !termsData && displaySections.length === 0 ? (
           <div className="bg-theatre-grey-deep/30 border border-theatre-gold/25 rounded-2xl p-12 text-center text-gray-400 font-sans text-base">
             Terms & Conditions are currently unavailable.
           </div>

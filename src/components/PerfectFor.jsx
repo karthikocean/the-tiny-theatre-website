@@ -51,8 +51,8 @@ export default function PerfectFor() {
           <div className="w-14 h-0.5 bg-theatre-gold rounded-full" />
         </div>
 
-        {/* Perfect For Image Cards Grid - Centered Flexbox */}
-        <div className="flex flex-wrap justify-center gap-8 max-w-7xl mx-auto">
+        {/* Perfect For Image Cards Grid - Carousel on mobile, Grid on desktop */}
+        <div className="flex flex-nowrap lg:flex-wrap overflow-x-auto lg:overflow-visible gap-4 sm:gap-8 pb-8 lg:pb-0 snap-x snap-mandatory no-scrollbar lg:justify-center -mx-4 px-4 sm:-mx-6 sm:px-6 scroll-pl-4 sm:scroll-pl-6 lg:mx-0 lg:px-0 lg:scroll-pl-0">
           {perfectFor.map((item, idx) => {
             return (
               <motion.div
@@ -61,7 +61,7 @@ export default function PerfectFor() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.05 }}
-                className="relative w-full sm:w-[270px] h-80 rounded-3xl overflow-hidden border border-theatre-gold/40 hover:border-theatre-gold transition-all duration-300 hover:scale-105 shadow-lg group cursor-pointer"
+                className="relative w-[75vw] sm:w-[270px] flex-none h-80 rounded-3xl overflow-hidden border border-theatre-gold/40 hover:border-theatre-gold transition-all duration-300 hover:scale-105 shadow-lg group cursor-pointer snap-start"
               >
                 {/* Card Background Image */}
                 <img
