@@ -275,10 +275,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
           setSelectedDecorId(screenDecs[0]._id);
         } else {
           setSelectedDecorId(null);
+          setWantsDecor(false);
         }
       }
     } else {
       setSelectedDecorId(null);
+      setWantsDecor(false);
     }
   }, [selectedScreen, dbDecorations, screens, selectedScreenId]);
 
@@ -747,36 +749,25 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
           colors: ['#F4C430', '#14C299', '#ffffff']
         });
       } else {
-        ShowNotifications.showAlertNotification("Failed to create booking. Please try again.", false);
+        ShowNotifications.showAlertNotification(res.message || "An error occurred during booking.", false);
+        setTimeout(() => {
+          window.location.reload();
+        }, 5000);
       }
     } catch (err) {
       console.error(err);
       ShowNotifications.showAlertNotification("An error occurred during booking.", false);
+      setTimeout(() => {
+        window.location.reload();
+      }, 5000);
     } finally {
       setIsPaying(false);
     }
   };
 
   const handleReset = () => {
-    setActiveStep(1);
-    setSelectedScreen(null);
-    setSelectedDate(getTodayDateString());
-    setSelectedTimeSlot('');
-    setSelectedSlotId(null);
-    setCustomerInfo({ fullName: '', email: '', phone: '', otp: '' });
-    setOtpSent(false);
-    setOtpVerified(false);
-    setTermsAccepted(false);
-    setGuestCounts({});
-    setWantsCake(false);
-    setSelectedCakes([]);
-    setWantsDecor(false);
-    setSelectedAddons([]);
-    setAddonComments({});
-    setStepErrors({});
-    if (clearSelectedEvent) {
-      clearSelectedEvent();
-    }
+    window.location.href = window.location.pathname + '#book-now';
+    window.location.reload();
   };
 
   const stepNames = [
@@ -1413,83 +1404,85 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     </div>
 
                     {/* 2.3: Decoration Package */}
-                    <div className="space-y-4 pt-4 border-t border-white/5">
-                      <div className="flex items-center space-x-2 text-theatre-gold font-serif font-bold text-base">
-                        <Gift className="w-5 h-5" />
-                        <h4>3. Decoration Package (Optional)</h4>
-                      </div>
+                    {screenDecorations.length > 0 && (
+                      <div className="space-y-4 pt-4 border-t border-white/5">
+                        <div className="flex items-center space-x-2 text-theatre-gold font-serif font-bold text-base">
+                          <Gift className="w-5 h-5" />
+                          <h4>3. Decoration Package (Optional)</h4>
+                        </div>
 
-                      <div className="flex items-center space-x-3">
-                        <button
-                          type="button"
-                          onClick={() => setWantsDecor(true)}
-                          className={`px-5 py-2.5 rounded-xl border text-xs font-sans font-bold tracking-wider transition-all duration-300 cursor-pointer ${wantsDecor
-                            ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
-                            : 'bg-white/5 border-white/10 text-gray-300'
-                            }`}
-                        >
-                          Yes, Include Decor {decorationPrice > 0 ? `(₹${decorationPrice})` : ''}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setWantsDecor(false)}
-                          className={`px-5 py-2.5 rounded-xl border text-xs font-sans font-bold tracking-wider transition-all duration-300 cursor-pointer ${!wantsDecor
-                            ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
-                            : 'bg-white/5 border-white/10 text-gray-300'
-                            }`}
-                        >
-                          No, Skip Decor
-                        </button>
-                      </div>
+                        <div className="flex items-center space-x-3">
+                          <button
+                            type="button"
+                            onClick={() => setWantsDecor(true)}
+                            className={`px-5 py-2.5 rounded-xl border text-xs font-sans font-bold tracking-wider transition-all duration-300 cursor-pointer ${wantsDecor
+                              ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
+                              : 'bg-white/5 border-white/10 text-gray-300'
+                              }`}
+                          >
+                            Yes, Include Decor {decorationPrice > 0 ? `(₹${decorationPrice})` : ''}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setWantsDecor(false)}
+                            className={`px-5 py-2.5 rounded-xl border text-xs font-sans font-bold tracking-wider transition-all duration-300 cursor-pointer ${!wantsDecor
+                              ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
+                              : 'bg-white/5 border-white/10 text-gray-300'
+                              }`}
+                          >
+                            No, Skip Decor
+                          </button>
+                        </div>
 
-                      {wantsDecor && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          className="pt-2"
-                        >
-                          {loadingDecorations ? (
-                            <div className="p-4 rounded-xl border border-white/10 bg-white/5 text-gray-400 text-xs text-center">
-                              Loading decorations...
-                            </div>
-                          ) : screenDecorations.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                              {screenDecorations.map((decor) => {
-                                const isSelected = selectedDecorId === decor._id || (!selectedDecorId && screenDecorations[0]?._id === decor._id);
-                                return (
-                                  <div
-                                    key={decor._id}
-                                    onClick={() => setSelectedDecorId(decor._id)}
-                                    className={`relative p-4 rounded-2xl border transition-all duration-300 cursor-pointer ${isSelected
-                                      ? 'border-theatre-gold bg-gradient-to-t from-theatre-gold/20 to-theatre-gold/5 shadow-md shadow-theatre-gold/15 scale-[1.01]'
-                                      : 'border-white/10 bg-theatre-dark/40 hover:border-white/20'
-                                      } text-white`}
-                                  >
-                                    {isSelected && (
-                                      <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-theatre-gold text-theatre-grey-deep flex items-center justify-center z-10 shadow-md">
-                                        <Check className="w-3 h-3" />
-                                      </span>
-                                    )}
-                                    <div className="flex items-center space-x-3 mb-1.5">
-                                      <Gift className="w-4 h-4 text-theatre-gold" />
-                                      <h5 className="text-xs font-bold text-white">{decor.name}</h5>
+                        {wantsDecor && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            className="pt-2"
+                          >
+                            {loadingDecorations ? (
+                              <div className="p-4 rounded-xl border border-white/10 bg-white/5 text-gray-400 text-xs text-center">
+                                Loading decorations...
+                              </div>
+                            ) : screenDecorations.length > 0 ? (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {screenDecorations.map((decor) => {
+                                  const isSelected = selectedDecorId === decor._id || (!selectedDecorId && screenDecorations[0]?._id === decor._id);
+                                  return (
+                                    <div
+                                      key={decor._id}
+                                      onClick={() => setSelectedDecorId(decor._id)}
+                                      className={`relative p-4 rounded-2xl border transition-all duration-300 cursor-pointer ${isSelected
+                                        ? 'border-theatre-gold bg-gradient-to-t from-theatre-gold/20 to-theatre-gold/5 shadow-md shadow-theatre-gold/15 scale-[1.01]'
+                                        : 'border-white/10 bg-theatre-dark/40 hover:border-white/20'
+                                        } text-white`}
+                                    >
+                                      {isSelected && (
+                                        <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-theatre-gold text-theatre-grey-deep flex items-center justify-center z-10 shadow-md">
+                                          <Check className="w-3 h-3" />
+                                        </span>
+                                      )}
+                                      <div className="flex items-center space-x-3 mb-1.5">
+                                        <Gift className="w-4 h-4 text-theatre-gold" />
+                                        <h5 className="text-xs font-bold text-white">{decor.name}</h5>
+                                      </div>
+                                      <div className="flex justify-between items-baseline pt-1">
+                                        <span className="text-base font-bold text-theatre-gold">₹{decor.price}</span>
+                                        <span className="text-[10px] text-gray-500 font-medium">(GST Inclusive)</span>
+                                      </div>
                                     </div>
-                                    <div className="flex justify-between items-baseline pt-1">
-                                      <span className="text-base font-bold text-theatre-gold">₹{decor.price}</span>
-                                      <span className="text-[10px] text-gray-500 font-medium">(GST Inclusive)</span>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          ) : (
-                            <div className="p-4 rounded-xl border border-white/10 bg-white/5 text-gray-400 text-xs text-center">
-                              No decorations available for this screen.
-                            </div>
-                          )}
-                        </motion.div>
-                      )}
-                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <div className="p-4 rounded-xl border border-white/10 bg-white/5 text-gray-400 text-xs text-center">
+                                No decorations available for this screen.
+                              </div>
+                            )}
+                          </motion.div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 
