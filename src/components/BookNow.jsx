@@ -749,14 +749,14 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
           colors: ['#F4C430', '#14C299', '#ffffff']
         });
       } else {
-        ShowNotifications.showAlertNotification(res.message || "An error occurred during booking.", false);
+        // ShowNotifications.showAlertNotification(res.message || "An error occurred during booking.", false);
         setTimeout(() => {
           window.location.reload();
         }, 5000);
       }
     } catch (err) {
       console.error(err);
-      ShowNotifications.showAlertNotification("An error occurred during booking.", false);
+      // ShowNotifications.showAlertNotification("An error occurred during booking.", false);
       setTimeout(() => {
         window.location.reload();
       }, 5000);
