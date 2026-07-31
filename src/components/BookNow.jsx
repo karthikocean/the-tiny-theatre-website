@@ -749,14 +749,14 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
           colors: ['#F4C430', '#14C299', '#ffffff']
         });
       } else {
-        ShowNotifications.showAlertNotification(res.message || "An error occurred during booking.", false);
+        // ShowNotifications.showAlertNotification(res.message || "An error occurred during booking.", false);
         setTimeout(() => {
           window.location.reload();
         }, 5000);
       }
     } catch (err) {
       console.error(err);
-      ShowNotifications.showAlertNotification("An error occurred during booking.", false);
+      // ShowNotifications.showAlertNotification("An error occurred during booking.", false);
       setTimeout(() => {
         window.location.reload();
       }, 5000);
@@ -1000,7 +1000,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                   className={`py-2.5 px-3 rounded-xl text-left border transition-all duration-300 text-xs font-sans ${isSelected
                                     ? 'border-theatre-gold bg-theatre-gold/10 text-theatre-gold shadow-md'
                                     : isBooked
-                                      ? 'border-red-500/25 bg-red-950/15 text-gray-500 cursor-not-allowed opacity-50'
+                                      ? 'border-red-500/40 bg-red-500/20 text-gray-400 cursor-not-allowed'
                                       : 'border-white/10 bg-theatre-dark/40 text-gray-300 hover:border-white/20'
                                     }`}
                                 >

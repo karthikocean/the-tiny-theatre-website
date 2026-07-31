@@ -51,7 +51,11 @@ export default function Navbar() {
   const handleBookNowClick = (e) => {
     e.preventDefault();
     setIsOpen(false);
-    navigate('/book-now');
+    if (location.pathname === '/book-now') {
+      window.location.reload();
+    } else {
+      navigate('/book-now');
+    }
   };
 
   return (
