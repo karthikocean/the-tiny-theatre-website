@@ -1773,7 +1773,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             setTermsAccepted(e.target.checked);
                             if (e.target.checked) setStepErrors(prev => ({ ...prev, terms: null }));
                           }}
-                          className="w-5 h-5 rounded border-white/20 text-theatre-gold focus:ring-theatre-gold bg-theatre-dark/60 mt-0.5 cursor-pointer accent-amber-500"
+                          className="w-5 h-5 rounded border-white/20 text-theatre-gold focus:ring-theatre-gold bg-theatre-dark/60 mt-0.5 cursor-pointer accent-[#f4c430]"
                         />
                         <span className="text-xs text-gray-300 group-hover:text-white transition-colors leading-relaxed">
                           I agree to the{' '}
