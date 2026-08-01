@@ -108,7 +108,7 @@ export default function Events({ onBookEvent, preview, onViewMore }) {
           </h2>
           <div className="w-20 h-1 bg-gradient-to-r from-theatre-gold to-theatre-grey rounded-full mb-8" />
           <p className="text-gray-400 text-base sm:text-lg font-sans font-light">
-            Select your preferred rental type and book your private movie theatre hall slot today.
+            Select your preferred rental type and book your private theatre hall slot today.
           </p>
         </div>
 
