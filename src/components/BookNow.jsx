@@ -174,6 +174,9 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       try {
         setLoadingSlots(true);
         const res = await getSlots(screenObj._id, selectedDate);
+        
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
         if (res && res.data) {
           setAvailableSlots(res.data);
         } else {
@@ -187,7 +190,11 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       }
     };
 
-    fetchTimeSlots();
+    const timeoutId = setTimeout(() => {
+      fetchTimeSlots();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
   }, [selectedScreen, selectedDate, screens, selectedScreenId]);
 
   // Dynamic addons fetching
@@ -574,17 +581,11 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
     setStepErrors({});
     setActiveStep(prev => prev + 1);
-    setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 50);
   };
 
   const handlePrevStep = () => {
     setStepErrors({});
     setActiveStep(prev => Math.max(1, prev - 1));
-    setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 50);
   };
 
   // Payment Action with T&C verification & DB state saving
@@ -877,7 +878,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           return (
                             <div
                               key={screen._id || screenCode}
-                              onClick={() => { setSelectedScreen(screen.name); setSelectedScreenId(screen._id); setStepErrors({}); }}
+                              onClick={() => { setSelectedScreen(screen.name); setSelectedScreenId(screen._id); setSelectedTimeSlot(''); setSelectedSlotId(null); setStepErrors({}); }}
                               className={`rounded-2xl overflow-hidden bg-theatre-dark/40 border cursor-pointer group transition-all duration-300 flex flex-col ${isSelected
                                 ? 'border-theatre-gold shadow-lg shadow-theatre-gold/15 scale-[1.01]'
                                 : 'border-white/10 hover:border-white/20'
@@ -940,7 +941,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                               type="date"
                               min={new Date().toISOString().split('T')[0]}
                               value={selectedDate}
-                              onChange={(e) => { setSelectedDate(e.target.value); setStepErrors({}); }}
+                              onChange={(e) => { setSelectedDate(e.target.value); setSelectedTimeSlot(''); setSelectedSlotId(null); setStepErrors({}); }}
                               onClick={(e) => { try { e.target.showPicker(); } catch (err) { } }}
                               onFocus={(e) => { try { e.target.showPicker(); } catch (err) { } }}
                               className="w-full bg-theatre-dark/60 text-white pl-4 pr-10 py-3 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-sm font-sans scheme-dark cursor-pointer"
@@ -960,7 +961,15 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           <label className="text-xs font-semibold text-gray-300 block">Available Time Slots</label>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-56 overflow-y-auto pr-1">
                             {loadingSlots ? (
-                              <div className="col-span-full py-4 text-center text-xs text-gray-400">Loading slots...</div>
+                              Array.from({ length: 4 }).map((_, i) => (
+                                <div key={i} className="py-2.5 px-3 rounded-xl border border-white/5 bg-white/5 animate-pulse flex flex-col gap-2">
+                                  <div className="h-3.5 bg-white/10 rounded w-3/4 mb-0.5"></div>
+                                  <div className="flex justify-between items-center mt-1">
+                                    <div className="h-2.5 bg-white/10 rounded w-10"></div>
+                                    <div className="h-2.5 bg-white/10 rounded w-12"></div>
+                                  </div>
+                                </div>
+                              ))
                             ) : availableSlots.length > 0 ? availableSlots.map(slotItem => {
                               const isApiSlot = !!slotItem._id;
                               const formatTime = (t) => {
@@ -1074,7 +1083,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                               </div>
 
                               {/* Dynamic Added Members summary (if any) */}
-                              {guestChargeBreakdown && guestChargeBreakdown.length > 0 && (
+                              {/* {guestChargeBreakdown && guestChargeBreakdown.length > 0 && (
                                 <div className="mb-6 space-y-2">
                                   {guestChargeBreakdown.map((charge, idx) => (
                                     <div key={idx} className="flex justify-between items-center px-2">
@@ -1083,7 +1092,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                     </div>
                                   ))}
                                 </div>
-                              )}
+                              )} */}
 
                               {/* Footer Warning */}
                               <div className="border border-theatre-gold/30 bg-theatre-gold/[0.04] rounded-xl py-3.5 px-4 text-center border-dashed">
