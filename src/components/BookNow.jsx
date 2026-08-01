@@ -581,11 +581,17 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
     setStepErrors({});
     setActiveStep(prev => prev + 1);
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
   };
 
   const handlePrevStep = () => {
     setStepErrors({});
     setActiveStep(prev => Math.max(1, prev - 1));
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
   };
 
   // Payment Action with T&C verification & DB state saving
