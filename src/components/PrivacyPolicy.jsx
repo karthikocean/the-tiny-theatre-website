@@ -89,11 +89,19 @@ export default function PrivacyPolicy() {
     ? privacyData.sections
     : (!isLoaded && !privacyData?.content ? fallbackSections : []);
 
-  const displayLastUpdated = privacyData?.createdAt
-    ? `Last Updated: ${new Date(privacyData.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`
-    : privacyData?.updatedAt
-    ? `Last Updated: ${new Date(privacyData.updatedAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`
-    : "Last Updated: July 11, 2026";
+  const displayLastUpdated = privacyData?.updatedAt
+    ? `Last Updated: ${new Date(privacyData.updatedAt).toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })}`
+    : privacyData?.createdAt
+      ? `Last Updated: ${new Date(privacyData.createdAt).toLocaleDateString("en-US", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })}`
+      : "Last Updated: July 11, 2026";
 
   return (
     <section className="relative py-24 bg-theatre-dark min-h-screen overflow-hidden">

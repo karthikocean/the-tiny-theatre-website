@@ -86,17 +86,25 @@ export default function CancellationPolicy() {
 
   const displaySections = (refundData?.sections && refundData.sections.length > 0)
     ? refundData.sections.map((section, idx) => ({
-        id: idx + 1,
-        title: section.title,
-        content: section.points || []
-      }))
+      id: idx + 1,
+      title: section.title,
+      content: section.points || []
+    }))
     : (!isLoaded && !refundData?.content ? sections : []);
 
-  const displayLastUpdated = refundData?.createdAt
-    ? `Last Updated: ${new Date(refundData.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`
-    : refundData?.updatedAt
-    ? `Last Updated: ${new Date(refundData.updatedAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}`
-    : "Last Updated: July 11, 2026";
+  const displayLastUpdated = refundData?.updatedAt
+    ? `Last Updated: ${new Date(refundData.updatedAt).toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })}`
+    : refundData?.createdAt
+      ? `Last Updated: ${new Date(refundData.createdAt).toLocaleDateString("en-US", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })}`
+      : "Last Updated: July 11, 2026";
 
   return (
     <section className="relative py-24 bg-theatre-dark min-h-screen overflow-hidden">
@@ -105,8 +113,8 @@ export default function CancellationPolicy() {
       <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-theatre-gold/5 rounded-full blur-[120px] translate-x-1/3 translate-y-1/3 pointer-events-none" />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
-       
+
+
 
         {/* Title */}
         <h1 className="text-center font-serif text-4xl sm:text-5xl font-bold text-white mb-4 leading-tight">
@@ -160,12 +168,12 @@ export default function CancellationPolicy() {
                       <div className="w-10 h-10 rounded-xl bg-theatre-grey/10 border border-theatre-gold/40 flex items-center justify-center text-theatre-gold font-serif font-bold text-base flex-shrink-0 mt-0.5 shadow-md">
                         {section.id || idx + 1}
                       </div>
-                      
+
                       <div className="space-y-4 flex-grow">
                         <h3 className="font-serif text-xl sm:text-2xl font-bold text-white tracking-wide">
                           {section.title}
                         </h3>
-                        
+
                         {section.content.length === 1 ? (
                           <p className="text-gray-300 font-sans font-light leading-relaxed text-base sm:text-lg">
                             {section.content[0]}
@@ -175,13 +183,12 @@ export default function CancellationPolicy() {
                             {section.content.map((point, pIdx) => {
                               const isSubHeader = point.endsWith(':');
                               return (
-                                <li 
-                                  key={pIdx} 
-                                  className={`font-sans font-light leading-relaxed text-base sm:text-lg ${
-                                    isSubHeader 
-                                      ? 'text-white font-normal mt-2 list-none' 
+                                <li
+                                  key={pIdx}
+                                  className={`font-sans font-light leading-relaxed text-base sm:text-lg ${isSubHeader
+                                      ? 'text-white font-normal mt-2 list-none'
                                       : 'text-gray-300 pl-4 list-disc marker:text-theatre-gold'
-                                  }`}
+                                    }`}
                                 >
                                   {point}
                                 </li>

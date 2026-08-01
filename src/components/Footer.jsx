@@ -88,7 +88,7 @@ export default function Footer() {
               />
             </a>
             <p className="text-sm text-gray-400 leading-relaxed font-light">
-              Providing premium, luxurious private movie theatre screening halls and bespoke milestone celebration services.
+              Providing premium, luxurious private theatre screening halls and bespoke milestone celebration services.
             </p>
             {/* Social Icons */}
             <div className="flex space-x-3">
