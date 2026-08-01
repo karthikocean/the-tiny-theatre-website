@@ -512,7 +512,9 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   };
 
   const handleVerifyOtp = async () => {
-    if (customerInfo.otp === generatedOtp) {
+    if (!customerInfo.otp) {
+      setOtpError('Please enter OTP');
+    } else if (customerInfo.otp === generatedOtp) {
       setOtpError('');
       setStepErrors({});
       setOtpVerified(true);
@@ -527,7 +529,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         console.warn("Backend customer verification failed:", err);
       }
     } else {
-      setOtpError('Invalid OTP code. Please enter the code sent to you.');
+      setOtpError('Invalid OTP');
     }
   };
 
