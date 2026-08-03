@@ -44,7 +44,7 @@ export default function CouponPage() {
           </h2>
           <div className="w-20 h-1 bg-gradient-to-r from-theatre-gold to-theatre-grey rounded-full mb-8" />
           <p className="text-gray-400 text-base sm:text-lg font-sans font-light leading-relaxed">
-            Claim these special discount codes and celebration add-ons to make your private cinema experience even more memorable.
+            Explore our available coupons below. During the final payment, you can apply any valid coupon to receive an instant discount on your total booking amount.
           </p>
         </div>
 

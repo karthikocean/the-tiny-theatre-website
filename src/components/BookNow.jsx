@@ -501,12 +501,13 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   const advancePaymentRequired = 1000;
   const remainingBalance = totalAmount - advancePaymentRequired;
 
-  // Dynamic Refund Policy fetching using API with params
+  // Dynamic Refund Policy fetching using API with activeStep
   useEffect(() => {
-    const fetchRefundPolicyContent = async () => {
+    const fetchStepContent = async () => {
+      if (activeStep > 5) return;
       try {
         setLoadingRefundPolicy(true);
-        const res = await bookingInfo({});
+        const res = await bookingInfo(`step${activeStep}`);
         if (res && res.status && res.response) {
           if (Array.isArray(res.response.data) && res.response.data.length > 0) {
             setRefundPolicyData(res.response.data[0]);
@@ -515,16 +516,19 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
           } else {
             setRefundPolicyData(res.response);
           }
+        } else {
+          setRefundPolicyData(null);
         }
       } catch (err) {
-        console.error("Error loading refund policy:", err);
+        console.error(`Error loading content for step${activeStep}:`, err);
+        setRefundPolicyData(null);
       } finally {
         setLoadingRefundPolicy(false);
       }
     };
 
-    fetchRefundPolicyContent();
-  }, [selectedScreenId, selectedDate, selectedSlotId, totalGuests, eventCategory, totalAmount]);
+    fetchStepContent();
+  }, [activeStep]);
 
   // Mock OTP handlers
   const handleSendOtp = () => {
@@ -885,7 +889,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         onClick={() => setActiveAccordion1(activeAccordion1 === 'screen' ? '' : 'screen')}
                         className="bg-white/5 px-4 sm:px-6 py-4 cursor-pointer flex justify-between items-center hover:bg-white/10 transition-colors"
                       >
-                        <h4 className="font-serif font-bold text-white text-base sm:text-lg">1. Screen Selection</h4>
+                        <h4 className={`font-serif font-bold text-base sm:text-lg transition-colors ${activeAccordion1 === 'screen' ? 'text-theatre-gold' : 'text-white'}`}>1. Screen Selection</h4>
                         <ChevronDown className={`w-5 h-5 transition-transform text-theatre-gold ${activeAccordion1 === 'screen' ? 'rotate-180' : ''}`} />
                       </div>
                       <AnimatePresence initial={false}>
@@ -898,10 +902,6 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             className="overflow-hidden"
                           >
                             <div className="p-4 sm:p-6 border-t border-white/5 space-y-4">
-                              <div className="flex items-center space-x-2 text-theatre-gold font-serif font-bold text-base">
-                                <Tv className="w-5 h-5" />
-                                <h4>1. Select Screening Hall</h4>
-                              </div>
 
                               {stepErrors.screen && (
                                 <div className="p-3.5 bg-red-950/30 border border-red-500/30 text-red-400 text-xs rounded-xl flex items-center space-x-2">
@@ -981,7 +981,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         onClick={() => setActiveAccordion1(activeAccordion1 === 'slot' ? '' : 'slot')}
                         className="bg-white/5 px-4 sm:px-6 py-4 cursor-pointer flex justify-between items-center hover:bg-white/10 transition-colors"
                       >
-                        <h4 className="font-serif font-bold text-white text-base sm:text-lg">2. Date & Time Slot</h4>
+                        <h4 className={`font-serif font-bold text-base sm:text-lg transition-colors ${activeAccordion1 === 'slot' ? 'text-theatre-gold' : 'text-white'}`}>2. Date & Time Slot</h4>
                         <ChevronDown className={`w-5 h-5 transition-transform text-theatre-gold ${activeAccordion1 === 'slot' ? 'rotate-180' : ''}`} />
                       </div>
                       <AnimatePresence initial={false}>
@@ -994,10 +994,6 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             className="overflow-hidden"
                           >
                             <div className="p-4 sm:p-6 border-t border-white/5 space-y-4">
-                              <div className="flex items-center space-x-2 text-theatre-gold font-serif font-bold text-base">
-                                <CalendarIcon className="w-5 h-5" />
-                                <h4>2. Select Date & Time Slot</h4>
-                              </div>
 
                               <div className="flex flex-col gap-6">
                                 {/* Date Picker */}
@@ -1182,7 +1178,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         onClick={() => setActiveAccordion1(activeAccordion1 === 'guest' ? '' : 'guest')}
                         className="bg-white/5 px-4 sm:px-6 py-4 cursor-pointer flex justify-between items-center hover:bg-white/10 transition-colors"
                       >
-                        <h4 className="font-serif font-bold text-white text-base sm:text-lg">3. Guest Count Details</h4>
+                        <h4 className={`font-serif font-bold text-base sm:text-lg transition-colors ${activeAccordion1 === 'guest' ? 'text-theatre-gold' : 'text-white'}`}>3. Guest Count Details</h4>
                         <ChevronDown className={`w-5 h-5 transition-transform text-theatre-gold ${activeAccordion1 === 'guest' ? 'rotate-180' : ''}`} />
                       </div>
                       <AnimatePresence initial={false}>
@@ -1195,10 +1191,6 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             className="overflow-hidden"
                           >
                             <div className="p-4 sm:p-6 border-t border-white/5 space-y-4">
-                              <div className="flex items-center space-x-2 text-theatre-gold font-serif font-bold text-base">
-                                <User className="w-5 h-5" />
-                                <h4>3. Guest Count Details</h4>
-                              </div>
 
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {[...activeCategories].sort((a, b) => b.from - a.from).map((category) => {
@@ -1275,7 +1267,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         onClick={() => setActiveAccordion2(activeAccordion2 === 'occasion' ? '' : 'occasion')}
                         className="bg-white/5 px-4 sm:px-6 py-4 cursor-pointer flex justify-between items-center hover:bg-white/10 transition-colors"
                       >
-                        <h4 className="font-serif font-bold text-white text-base sm:text-lg">1. Choose Occasion</h4>
+                        <h4 className={`font-serif font-bold text-base sm:text-lg transition-colors ${activeAccordion2 === 'occasion' ? 'text-theatre-gold' : 'text-white'}`}>1. Choose Occasion</h4>
                         <ChevronDown className={`w-5 h-5 transition-transform text-theatre-gold ${activeAccordion2 === 'occasion' ? 'rotate-180' : ''}`} />
                       </div>
                       <AnimatePresence initial={false}>
@@ -1287,13 +1279,9 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             transition={{ duration: 0.3 }}
                             className="overflow-hidden"
                           >
-                            <div className="p-4 sm:p-6 border-t border-white/5 space-y-4">
+                            <div className="p-6 sm:p-8 pt-8 border-t border-white/5 space-y-6">
                               {/* 2.1: Occasions Grid */}
-                              <div className="space-y-4">
-                                <div className="flex items-center space-x-2 text-theatre-gold font-serif font-bold text-base">
-                                  <Sparkles className="w-5 h-5" />
-                                  <h4>1. Choose Occasion</h4>
-                                </div>
+                              <div className="space-y-6">
 
                                 {stepErrors.occasion && (
                                   <div className="p-3.5 bg-red-950/30 border border-red-500/30 text-red-400 text-xs rounded-xl flex items-center space-x-2">
@@ -1318,7 +1306,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
                                   return (
                                     <div className="space-y-4 w-full">
-                                      <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-4 scrollbar-thin w-full">
+                                      <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pt-2 pb-4 px-1 no-scrollbar w-full">
                                         {chunks.map((chunk, chunkIdx) => (
                                           <div key={chunkIdx} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 min-w-full snap-start">
                                             {chunk.map(cat => {
@@ -1377,7 +1365,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         onClick={() => setActiveAccordion2(activeAccordion2 === 'cake' ? '' : 'cake')}
                         className="bg-white/5 px-4 sm:px-6 py-4 cursor-pointer flex justify-between items-center hover:bg-white/10 transition-colors"
                       >
-                        <h4 className="font-serif font-bold text-white text-base sm:text-lg">2. Cake Selection</h4>
+                        <h4 className={`font-serif font-bold text-base sm:text-lg transition-colors ${activeAccordion2 === 'cake' ? 'text-theatre-gold' : 'text-white'}`}>2. Cake Selection</h4>
                         <ChevronDown className={`w-5 h-5 transition-transform text-theatre-gold ${activeAccordion2 === 'cake' ? 'rotate-180' : ''}`} />
                       </div>
                       <AnimatePresence initial={false}>
@@ -1389,13 +1377,9 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             transition={{ duration: 0.3 }}
                             className="overflow-hidden"
                           >
-                            <div className="p-4 sm:p-6 border-t border-white/5 space-y-4">
+                            <div className="p-6 sm:p-8 pt-8 border-t border-white/5 space-y-6">
                               {/* 2.2: Cake Selection */}
-                              <div className="space-y-4 pt-4 border-t border-white/5">
-                                <div className="flex items-center space-x-2 text-theatre-gold font-serif font-bold text-base">
-                                  <CakeIcon className="w-5 h-5" />
-                                  <h4>2. Cake Selection (Optional)</h4>
-                                </div>
+                              <div className="space-y-6">
 
                                 <div className="flex items-center space-x-3">
                                   <button
@@ -1447,7 +1431,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                               chunks.push(cakeList.slice(i, i + 15));
                                             }
                                             return (
-                                              <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-4 scrollbar-thin w-full col-span-full">
+                                              <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pt-2 pb-4 px-1 no-scrollbar w-full col-span-full">
                                                 {chunks.map((chunk, chunkIdx) => (
                                                   <div key={chunkIdx} className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 min-w-full snap-start">
                                                     {chunk.map(cake => {
@@ -1536,7 +1520,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         onClick={() => setActiveAccordion2(activeAccordion2 === 'decor' ? '' : 'decor')}
                         className="bg-white/5 px-4 sm:px-6 py-4 cursor-pointer flex justify-between items-center hover:bg-white/10 transition-colors"
                       >
-                        <h4 className="font-serif font-bold text-white text-base sm:text-lg">3. Decoration Package</h4>
+                        <h4 className={`font-serif font-bold text-base sm:text-lg transition-colors ${activeAccordion2 === 'decor' ? 'text-theatre-gold' : 'text-white'}`}>3. Decoration Package</h4>
                         <ChevronDown className={`w-5 h-5 transition-transform text-theatre-gold ${activeAccordion2 === 'decor' ? 'rotate-180' : ''}`} />
                       </div>
                       <AnimatePresence initial={false}>
@@ -1548,14 +1532,10 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             transition={{ duration: 0.3 }}
                             className="overflow-hidden"
                           >
-                            <div className="p-4 sm:p-6 border-t border-white/5 space-y-4">
+                            <div className="p-6 sm:p-8 pt-8 border-t border-white/5 space-y-6">
                               {/* 2.3: Decoration Package */}
                               {screenDecorations.length > 0 && (
-                                <div className="space-y-4 pt-4 border-t border-white/5">
-                                  <div className="flex items-center space-x-2 text-theatre-gold font-serif font-bold text-base">
-                                    <Gift className="w-5 h-5" />
-                                    <h4>3. Decoration Package (Optional)</h4>
-                                  </div>
+                                <div className="space-y-6">
 
                                   <div className="flex items-center space-x-3">
                                     <button
@@ -1653,7 +1633,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         onClick={() => setActiveAccordion3(activeAccordion3 === 'addons' ? '' : 'addons')}
                         className="bg-white/5 px-4 sm:px-6 py-4 cursor-pointer flex justify-between items-center hover:bg-white/10 transition-colors"
                       >
-                        <h4 className="font-serif font-bold text-white text-base sm:text-lg">1. Celebration Add-ons</h4>
+                        <h4 className={`font-serif font-bold text-base sm:text-lg transition-colors ${activeAccordion3 === 'addons' ? 'text-theatre-gold' : 'text-white'}`}>1. Celebration Add-ons</h4>
                         <ChevronDown className={`w-5 h-5 transition-transform text-theatre-gold ${activeAccordion3 === 'addons' ? 'rotate-180' : ''}`} />
                       </div>
                       <AnimatePresence initial={false}>
@@ -1665,8 +1645,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             transition={{ duration: 0.3 }}
                             className="overflow-hidden"
                           >
-                            <div className="p-4 sm:p-6 border-t border-white/5 space-y-4">
-                              <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-4 scrollbar-thin w-full pt-2">
+                            <div className="p-6 sm:p-8 pt-8 border-t border-white/5 space-y-6">
+                              <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pt-2 pb-4 px-1 no-scrollbar w-full">
                                 {(() => {
                                   if (!dbAddons || dbAddons.length === 0) return <div className="col-span-full py-4 text-center text-xs text-gray-400">No add-ons available.</div>;
                                   const addonList = dbAddons.map(addon => ({
@@ -1766,9 +1746,9 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                       <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">Step 4: Booking Summary</h3>
                       <p className="text-xs sm:text-sm text-gray-400">Review your selected items and pricing before proceeding to payment.</p>
                     </div>
-                    <div className="bg-theatre-grey-deep/20 border border-white/5 rounded-3xl p-6 space-y-6">
-                      <div className="space-y-3.5 text-xs font-light text-gray-400">
-                        <div className="flex justify-between items-center text-sm font-semibold text-white">
+                    <div className="bg-theatre-grey-deep/20 border border-white/20 rounded-3xl p-6 space-y-6 shadow-md shadow-white/5">
+                      <div className="space-y-3.5 text-sm font-light text-gray-300">
+                        <div className="flex justify-between items-center text-base font-semibold text-white">
                           <span>Selected Screen:</span>
                           <span>{selectedScreen ? selectedScreen : 'None'}</span>
                         </div>
@@ -1798,10 +1778,10 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                 const rateDesc = isFree ? "(Free)" : `(₹${cat.price} / each)`;
                                 return (
                                   <div key={cat._id} className="py-1">
-                                    <div className="flex justify-between items-center text-xs">
+                                    <div className="flex justify-between items-center text-sm">
                                       <div>
                                         <span className="font-semibold text-white block">{categoryName}</span>
-                                        <span className={`text-[10px] block ${isFree ? 'text-emerald-400 font-semibold' : 'text-gray-500'}`}>
+                                        <span className={`text-xs block ${isFree ? 'text-emerald-400 font-semibold' : 'text-gray-400'}`}>
                                           {ageRange} {rateDesc}
                                         </span>
                                       </div>
@@ -1834,19 +1814,19 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                               </div>
                             ))}
                             {selectedTimeSlot && wantsCake && (
-                              <div className="space-y-1 pt-1.5 pl-2 border-t border-white/5">
-                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Cakes:</span>
+                              <div className="space-y-1 pt-1.5 pl-2 border-t border-white/10">
+                                <span className="text-xs font-bold text-gray-300 uppercase tracking-wider block mb-1">Cakes:</span>
                                 {selectedCakes.length > 0 ? (
                                   selectedCakes.map((sc, idx) => {
                                     const price = cakePrices[sc.flavor] || 800;
                                     return (
-                                      <div key={idx} className="flex flex-col space-y-0.5 text-[11px] text-gray-400 pl-1 font-mono">
+                                      <div key={idx} className="flex flex-col space-y-0.5 text-xs text-gray-300 pl-1 font-mono">
                                         <div className="flex justify-between">
                                           <span>+ {sc.flavor}:</span>
                                           <span className="text-white">₹{price}</span>
                                         </div>
                                         {sc.message && (
-                                          <div className="text-[9px] text-gray-500 italic pl-3 break-words max-w-xs">
+                                          <div className="text-[10px] text-gray-400 italic pl-3 break-words max-w-xs">
                                             "{sc.message}"
                                           </div>
                                         )}
@@ -1854,7 +1834,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                     );
                                   })
                                 ) : (
-                                  <div className="flex justify-between text-[11px] text-gray-400 pl-1 font-mono">
+                                  <div className="flex justify-between text-xs text-gray-300 pl-1 font-mono">
                                     <span>+ {cakeFlavor}:</span>
                                     <span className="text-white">₹{cakePrices[cakeFlavor] || 800}</span>
                                   </div>
@@ -1868,8 +1848,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                               </div>
                             )}
                             {selectedTimeSlot && selectedAddons.length > 0 && (
-                              <div className="space-y-1 pt-1.5 pl-2 border-t border-white/5">
-                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Add-ons:</span>
+                              <div className="space-y-1 pt-1.5 pl-2 border-t border-white/10">
+                                <span className="text-xs font-bold text-gray-300 uppercase tracking-wider block mb-1">Add-ons:</span>
                                 {selectedAddons.map(key => {
                                   const addon = addonsPrices[key];
                                   if (!addon) return null;
@@ -1881,13 +1861,13 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                     name = `${name} (Qty: ${qty})`;
                                   }
                                   return (
-                                    <div key={key} className="flex flex-col text-[11px] text-gray-400 pl-1 font-mono">
+                                    <div key={key} className="flex flex-col text-xs text-gray-300 pl-1 font-mono">
                                       <div className="flex justify-between">
                                         <span>+ {name}:</span>
                                         <span className="text-white">₹{itemTotal}</span>
                                       </div>
                                       {addonComments[key] && (
-                                        <div className="text-[9px] text-gray-500 italic pl-3 break-words max-w-xs mt-0.5">
+                                        <div className="text-[10px] text-gray-400 italic pl-3 break-words max-w-xs mt-0.5">
                                           "{addonComments[key]}"
                                         </div>
                                       )}
@@ -2180,7 +2160,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                       </p>
                     </div>
 
-                    <div className="bg-theatre-dark/95 border border-white/10 rounded-2xl p-6 relative max-w-md mx-auto shadow-inner text-center">
+                    {/* <div className="bg-theatre-dark/95 border border-white/10 rounded-2xl p-6 relative max-w-md mx-auto shadow-inner text-center">
                       <div className="absolute top-1/2 -left-3.5 w-7 h-7 bg-theatre-grey-deep rounded-full -translate-y-1/2 z-10" />
                       <div className="absolute top-1/2 -right-3.5 w-7 h-7 bg-theatre-grey-deep rounded-full -translate-y-1/2 z-10" />
 
@@ -2217,7 +2197,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           <span className="text-sm text-green-400 font-sans font-bold">₹{advancePaymentRequired}</span>
                         </div>
                       </div>
-                    </div>
+                    </div> */}
 
                     <div className="flex justify-center pt-4">
                       <button
