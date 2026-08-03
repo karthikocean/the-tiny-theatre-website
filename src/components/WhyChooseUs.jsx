@@ -113,29 +113,27 @@ export default function WhyChooseUs({ preview, onViewMore }) {
           whileInView="visible"
           viewport={{ once: true, margin: '-100px' }}
           className={
-            preview 
-              ? "flex lg:grid flex-nowrap lg:grid-cols-3 overflow-x-auto lg:overflow-visible gap-4 lg:gap-8 max-w-6xl mx-auto pb-8 lg:pb-0 snap-x snap-mandatory no-scrollbar -mx-4 px-4 sm:-mx-6 sm:px-6 scroll-pl-4 sm:scroll-pl-6 lg:mx-auto lg:px-0 lg:scroll-pl-0"
+            preview
+              ? "flex overflow-x-auto gap-6 lg:gap-8 max-w-7xl mx-auto pb-8 snap-x snap-mandatory no-scrollbar px-4 sm:px-6 scroll-pl-4 sm:scroll-pl-6"
               : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8 max-w-7xl mx-auto pb-8"
           }
         >
-          {(preview ? previewFeatures : features).map((feat, idx) => {
+          {features.map((feat, idx) => {
             return (
               <motion.div
                 key={idx}
                 variants={cardVariants}
-                className={`bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl border border-theatre-gold/45 hover:border-theatre-gold/80 flex flex-col transition-all duration-300 group cursor-default hover:shadow-xl hover:shadow-theatre-gold/5 relative overflow-hidden ${
-                  preview
-                    ? "flex-none w-[80vw] sm:w-[300px] md:w-[320px] lg:w-auto h-80 lg:h-auto snap-start"
-                    : "w-full h-auto"
+                className={`bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl border border-theatre-gold/45 hover:border-theatre-gold/80 flex flex-col transition-all duration-300 group cursor-default hover:shadow-xl hover:shadow-theatre-gold/5 relative overflow-hidden h-auto ${
+                  preview ? "flex-none w-[85vw] sm:w-[350px] lg:w-[380px] snap-start" : "w-full"
                 }`}
               >
                 {/* Background/Header Image */}
-                <div className={`w-full overflow-hidden z-0 ${preview ? 'absolute inset-0 lg:relative lg:h-48' : 'relative h-48'}`}>
-                  <div className={`absolute inset-0 bg-gradient-to-t from-theatre-dark/95 ${preview ? 'via-theatre-dark/60 lg:via-transparent' : 'via-transparent'} to-transparent z-10`} />
+                <div className="relative h-56 w-full overflow-hidden z-0">
+                  <div className="absolute inset-0 bg-gradient-to-t from-theatre-dark/95 via-transparent to-transparent z-10" />
                   <img
                     src={feat.image}
                     alt={feat.title}
-                    className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ${preview ? 'opacity-60 lg:opacity-100' : 'opacity-100'}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-100"
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = "https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=600&q=80";
@@ -144,12 +142,12 @@ export default function WhyChooseUs({ preview, onViewMore }) {
                 </div>
 
               {/* Content Area */}
-              <div className={`relative z-20 p-6 flex-grow flex flex-col ${preview ? 'justify-end lg:justify-between h-full lg:h-auto' : 'justify-between h-auto'}`}>
+              <div className="relative z-20 p-6 flex-grow flex flex-col justify-between h-auto">
                 <div>
-                  <h3 className={`font-serif text-base sm:text-lg font-bold text-white mb-2.5 group-hover:text-theatre-gold transition-colors duration-300 ${preview ? 'text-center lg:text-left' : 'text-left'}`}>
+                  <h3 className="font-serif text-lg sm:text-xl font-bold text-white mb-2.5 group-hover:text-theatre-gold transition-colors duration-300 text-left">
                     {feat.title}
                   </h3>
-                  <p className={`text-sm leading-relaxed font-sans font-light ${preview ? 'text-gray-200 lg:text-gray-400 text-center lg:text-left line-clamp-4 lg:line-clamp-none' : 'text-gray-400 text-left'}`}>
+                  <p className="text-sm leading-relaxed font-sans font-light text-gray-300 text-left">
                     {feat.desc}
                   </p>
                 </div>
@@ -160,20 +158,10 @@ export default function WhyChooseUs({ preview, onViewMore }) {
       </motion.div>
 
         {/* Action Button & Slogan */}
-        <div className="text-center mt-20 flex flex-col items-center space-y-8">
+        <div className="text-center mt-12 flex flex-col items-center space-y-8">
           <p className="font-serif italic text-lg sm:text-xl md:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-theatre-gold-light via-theatre-gold to-theatre-gold-dark font-semibold tracking-wide">
             "Because Every Celebration Deserves Its Own Spotlight."
           </p>
-          
-          {preview && (
-            <button
-              onClick={onViewMore}
-              className="inline-flex items-center space-x-2 bg-gradient-to-r from-theatre-gold to-theatre-gold-dark hover:from-theatre-gold-light hover:to-theatre-gold text-theatre-grey-deep font-bold px-8 py-4 rounded-full shadow-lg shadow-theatre-gold/15 hover:shadow-theatre-gold/25 hover:scale-105 transition-all duration-300 text-sm cursor-pointer"
-            >
-              <span>View All Features</span>
-              <span className="text-xs">→</span>
-            </button>
-          )}
         </div>
 
       </div>
