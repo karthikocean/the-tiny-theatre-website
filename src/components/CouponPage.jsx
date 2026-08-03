@@ -37,7 +37,7 @@ export default function CouponPage() {
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 flex flex-col items-center">
           <span className="text-theatre-gold font-semibold tracking-widest uppercase text-xs sm:text-sm mb-4 block">
-            Exclusive Offers & Promo Codes
+            Exclusive Offers
           </span>
           <h2 className="font-serif text-4xl sm:text-5xl font-bold text-white mb-6 leading-tight">
             Tiny Theatre <span className="text-theatre-gold">Coupons</span>
