@@ -124,7 +124,7 @@ export default function WhyChooseUs({ preview, onViewMore }) {
                 key={idx}
                 variants={cardVariants}
                 className={`bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl border border-theatre-gold/45 hover:border-theatre-gold/80 flex flex-col transition-all duration-300 group cursor-default hover:shadow-xl hover:shadow-theatre-gold/5 relative overflow-hidden h-auto ${
-                  preview ? "flex-none w-[85vw] sm:w-[350px] lg:w-[380px] snap-start" : "w-full"
+                  preview ? "flex-none w-[85vw] sm:w-[320px] lg:w-[29%] xl:w-[29%] snap-start" : "w-full"
                 }`}
               >
                 {/* Background/Header Image */}

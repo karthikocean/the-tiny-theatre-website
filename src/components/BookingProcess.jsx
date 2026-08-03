@@ -120,10 +120,7 @@ export default function BookingProcess({ preview, onViewMore }) {
       desc: "You're all set! Once payment is successful, you'll receive:",
       icon: CheckCircle2,
       details: [
-        'Booking Confirmation',
-        'Booking ID',
-        'Payment Receipt',
-        'Confirmation via SMS & Email'
+        'Booking Confirmation via SMS & Email',
       ]
     }
   ];

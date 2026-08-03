@@ -15,9 +15,9 @@ class RefundPolicyApi {
             return { status: false, response: error?.response?.data || error };
         }
     };
-    bookingInfo = async (params = {}) => {
+    bookingInfo = async (title = 'Booking Info') => {
         try {
-            const response = await api.get("/contents/title/Booking%20Info");
+            const response = await api.get(`/contents/title/${encodeURIComponent(title)}`);
             if (response.status === 200 || response.status === 201) {
                 return { status: true, response: response.data };
             }
