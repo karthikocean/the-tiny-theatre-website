@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Copy, Check, Ticket, Gift, Sparkles, Flame, Clock, Calendar } from 'lucide-react';
 import { getActiveCoupons } from '../Api/CouponApi';
+import { formatCurrency } from '../utils/formatCurrency';
 
 export default function CouponPage() {
   const navigate = useNavigate();
@@ -57,7 +58,7 @@ export default function CouponPage() {
           ) : (
             coupons.map((coupon, idx) => {
               const Icon = getIcon(idx);
-              const discountText = coupon.type === 'Percentage' ? `${coupon.value}% OFF` : `₹${coupon.value} OFF`;
+              const discountText = coupon.type === 'Percentage' ? `${coupon.value}% OFF` : `₹${formatCurrency(coupon.value)} OFF`;
               const expiryText = coupon.validTo 
                 ? `Valid till ${new Date(coupon.validTo).toLocaleDateString('en-GB')}` 
                 : 'Limited Time Offer';
