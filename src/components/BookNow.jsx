@@ -1089,7 +1089,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                           <div className="font-bold mb-0.5 text-[11px] leading-snug whitespace-normal break-words">{slotLabel}</div>
                                           <div className="text-[9px] uppercase tracking-widest flex items-center justify-between">
                                             {isApiSlot && slotItem.price != null ? (
-                                              <span className="text-theatre-gold font-bold normal-case text-xs">₹{slotItem.price}</span>
+                                              <span className="text-theatre-gold font-bold normal-case text-xs">₹{formatCurrency(slotItem.price)}</span>
                                             ) : (
                                               <span className="text-gray-500">Slot</span>
                                             )}
@@ -1119,7 +1119,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                           <p className="text-gray-400 text-[11px] sm:text-xs">Covers up to 4 members</p>
                                         </div>
                                         <div className="text-right">
-                                          <h5 className="text-theatre-gold font-bold text-xl leading-none mb-1.5">₹{basePrice}</h5>
+                                          <h5 className="text-theatre-gold font-bold text-xl leading-none mb-1.5">₹{formatCurrency(basePrice)}</h5>
                                           <p className="text-gray-500 text-[10px]">(Inc. GST)</p>
                                         </div>
                                       </div>
@@ -1143,7 +1143,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                                   {isFree ? (
                                                     <span className="text-[#10B981] font-bold text-[13px] sm:text-sm">FREE</span>
                                                   ) : (
-                                                    <span className="text-white font-bold text-[13px] sm:text-sm">₹{cat.price} <span className="text-gray-400 font-medium text-xs">/ each</span></span>
+                                                    <span className="text-white font-bold text-[13px] sm:text-sm">₹{formatCurrency(cat.price)} <span className="text-gray-400 font-medium text-xs">/ each</span></span>
                                                   )}
                                                   <span className="text-gray-500 text-[10px] ml-1 hidden sm:inline">(Inc. GST)</span>
                                                 </div>
@@ -1206,7 +1206,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                     <span className="text-theatre-gold font-bold text-sm sm:text-base">Screen Base Price</span>
                                     <span className="text-gray-400 text-xs mt-0.5">Includes up to 4 guests</span>
                                   </div>
-                                  <span className="text-white font-bold text-base sm:text-lg">₹{basePrice}</span>
+                                  <span className="text-white font-bold text-base sm:text-lg">₹{formatCurrency(basePrice)}</span>
                                 </div>
                               )}
 
@@ -1219,7 +1219,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                     ? `Ages ${category.from}+`
                                     : `Ages ${category.from} to ${category.to} Yrs`;
 
-                                  const rateDesc = isFree ? "Free" : `₹${category.price} / each`;
+                                  const rateDesc = isFree ? "Free" : `₹${formatCurrency(category.price)} / each`;
 
                                   return (
                                     <div key={category._id} className="flex items-center justify-between bg-theatre-dark/40 p-3.5 border border-white/5 rounded-2xl">
@@ -1443,7 +1443,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                             if (!dbCakes || dbCakes.length === 0) return <div className="col-span-full py-4 text-center text-xs text-gray-400">No cakes available.</div>;
                                             const cakeList = dbCakes.map(cake => ({
                                               flavor: cake.name,
-                                              price: `₹${cake.price.toLocaleString('en-IN')}`,
+                                              price: `₹${formatCurrency(cake.price)}`,
                                               rawPrice: cake.price,
                                               img: getImageUrl(cake.image?.path || cake.image)
                                             }));
@@ -1567,7 +1567,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                         : 'bg-white/5 border-white/10 text-gray-300'
                                         }`}
                                     >
-                                      Yes, Include Decor {decorationPrice > 0 ? `(₹${decorationPrice})` : ''}
+                                      Yes, Include Decor {decorationPrice > 0 ? `(₹${formatCurrency(decorationPrice)})` : ''}
                                     </button>
                                     <button
                                       type="button"
@@ -1617,7 +1617,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                                   <h5 className="text-xs font-bold text-white">{decor.name}</h5>
                                                 </div>
                                                 <div className="flex justify-between items-baseline pt-1">
-                                                  <span className="text-base font-bold text-theatre-gold">₹{decor.price}</span>
+                                                  <span className="text-base font-bold text-theatre-gold">₹{formatCurrency(decor.price)}</span>
                                                   <span className="text-[10px] text-gray-500 font-medium">(GST Inclusive)</span>
                                                 </div>
                                               </div>
@@ -1676,7 +1676,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                   const addonList = dbAddons.map(addon => ({
                                     key: getAddonKey(addon.name),
                                     name: addon.name,
-                                    price: `₹${addon.price.toLocaleString('en-IN')}`,
+                                    price: `₹${formatCurrency(addon.price)}`,
                                     icon: getAddonIcon(addon.name),
                                     image: addon.image,
                                     allowQuantity: addon.allowQuantity
@@ -1799,7 +1799,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                 const ageRange = cat.to >= 100
                                   ? `Ages ${cat.from}+`
                                   : `Ages ${cat.from} to ${cat.to} Yrs`;
-                                const rateDesc = isFree ? "(Free)" : `(₹${cat.price} / each)`;
+                                const rateDesc = isFree ? "(Free)" : `(₹${formatCurrency(cat.price)} / each)`;
                                 return (
                                   <div key={cat._id} className="py-1">
                                     <div className="flex justify-between items-center text-sm">
@@ -1829,12 +1829,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           <div className="space-y-1.5 pt-3 border-t border-white/5">
                             <div className="flex justify-between font-medium text-gray-300">
                               <span>Base Screen Price:</span>
-                              <span className="text-white">₹{selectedTimeSlot ? basePrice : 0}</span>
+                              <span className="text-white">₹{formatCurrency(selectedTimeSlot ? basePrice : 0)}</span>
                             </div>
                             {selectedTimeSlot && guestChargeBreakdown.map((breakdown, idx) => (
                               <div key={idx} className="flex justify-between text-gray-400 pl-2">
-                                <span>Extra {breakdown.name} ({breakdown.count} * ₹{breakdown.rate}):</span>
-                                <span className="text-white">₹{breakdown.charge}</span>
+                                <span>Extra {breakdown.name} ({breakdown.count} * ₹{formatCurrency(breakdown.rate)}):</span>
+                                <span className="text-white">₹{formatCurrency(breakdown.charge)}</span>
                               </div>
                             ))}
                             {selectedTimeSlot && wantsCake && (
@@ -1847,7 +1847,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                       <div key={idx} className="flex flex-col space-y-0.5 text-xs text-gray-300 pl-1 font-mono">
                                         <div className="flex justify-between">
                                           <span>+ {sc.flavor}:</span>
-                                          <span className="text-white">₹{price}</span>
+                                          <span className="text-white">₹{formatCurrency(price)}</span>
                                         </div>
                                         {sc.message && (
                                           <div className="text-[10px] text-gray-400 italic pl-3 break-words max-w-xs">
@@ -1860,7 +1860,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                 ) : (
                                   <div className="flex justify-between text-xs text-gray-300 pl-1 font-mono">
                                     <span>+ {cakeFlavor}:</span>
-                                    <span className="text-white">₹{cakePrices[cakeFlavor] || 800}</span>
+                                    <span className="text-white">₹{formatCurrency(cakePrices[cakeFlavor] || 800)}</span>
                                   </div>
                                 )}
                               </div>
@@ -1868,7 +1868,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             {selectedTimeSlot && wantsDecor && (
                               <div className="flex justify-between text-gray-400 pl-2">
                                 <span>Decoration {autoDecoration?.name ? `(${autoDecoration.name})` : ''}:</span>
-                                <span className="text-white">₹{decorCharges}</span>
+                                <span className="text-white">₹{formatCurrency(decorCharges)}</span>
                               </div>
                             )}
                             {selectedTimeSlot && selectedAddons.length > 0 && (
@@ -2166,7 +2166,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             ) : (
                               <>
                                 <CreditCard className="w-4 h-4 text-theatre-grey-deep" />
-                                <span>Pay ₹{advancePaymentRequired} Advance</span>
+                                <span>Pay ₹{formatCurrency(advancePaymentRequired)} Advance</span>
                               </>
                             )}
                           </button>
@@ -2221,7 +2221,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         </div>
                         <div>
                           <span className="text-[10px] text-gray-500 block uppercase font-bold mb-1">ADVANCE PAID</span>
-                          <span className="text-sm text-green-400 font-sans font-bold">₹{advancePaymentRequired}</span>
+                          <span className="text-sm text-green-400 font-sans font-bold">₹{formatCurrency(advancePaymentRequired)}</span>
                         </div>
                       </div>
                     </div> */}
