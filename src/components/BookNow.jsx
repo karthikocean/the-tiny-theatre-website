@@ -822,7 +822,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   ];
 
   return (
-    <section id="book-now" className={`relative bg-theatre-dark/95 overflow-x-hidden transition-all duration-500 ${activeStep === 6 ? 'flex items-center justify-center h-[calc(100vh-80px)] overflow-hidden m-0 p-0' : 'min-h-screen pt-16 pb-20 sm:py-16'
+    <section id="book-now" className={`relative bg-theatre-dark/95 overflow-x-hidden transition-all duration-500 ${activeStep === 6 ? 'flex items-center justify-center h-[calc(100dvh-80px)] sm:h-[calc(100vh-80px)] overflow-hidden m-0 p-0' : 'min-h-screen pt-16 pb-20 sm:py-16'
       }`}>
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-theatre-grey/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-theatre-gold/5 rounded-full blur-[120px] pointer-events-none" />
@@ -868,7 +868,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
           <div className={`col-span-1 bg-theatre-grey-deep/20 backdrop-blur-md border border-white/5 rounded-3xl flex flex-col justify-between transition-all duration-300 mx-0 ${
             activeStep === 6
-            ? 'lg:col-span-8 lg:col-start-3 p-6 sm:p-10 min-h-0'
+            ? 'lg:col-span-8 lg:col-start-3 p-6 sm:p-10 min-h-0 w-[90%] max-w-sm sm:max-w-md mx-auto'
             : activeStep === 5
             ? 'lg:col-span-12 p-3 sm:p-6 pt-2 sm:pt-2 min-h-0'
             : 'lg:col-span-10 lg:col-start-2 p-3 sm:px-8 sm:pt-8 pb-6 sm:pb-12 lg:min-h-[480px]'
