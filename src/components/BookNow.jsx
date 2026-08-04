@@ -28,6 +28,7 @@ import {
   Mic,
   Wind
 } from 'lucide-react';
+import { formatCurrency } from '../utils/formatCurrency';
 import confetti from 'canvas-confetti';
 import { getScreens } from '../Api/screenapi';
 import { getImageUrl } from '../Api/api';
@@ -1158,7 +1159,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                   {guestChargeBreakdown.map((charge, idx) => (
                                     <div key={idx} className="flex justify-between items-center px-2">
                                       <span className="text-gray-400 text-xs font-medium">Added: {charge.description}</span>
-                                      <span className="text-white text-xs font-bold">+ ₹{charge.amount}</span>
+                                      <span className="text-white text-xs font-bold">+ ₹{formatCurrency(charge.amount)}</span>
                                     </div>
                                   ))}
                                 </div>
@@ -1887,7 +1888,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                     <div key={key} className="flex flex-col text-xs text-gray-300 pl-1 font-mono">
                                       <div className="flex justify-between">
                                         <span>+ {name}:</span>
-                                        <span className="text-white">₹{itemTotal}</span>
+                                        <span className="text-white">₹{formatCurrency(itemTotal)}</span>
                                       </div>
                                       {addonComments[key] && (
                                         <div className="text-[10px] text-gray-400 italic pl-3 break-words max-w-xs mt-0.5">
@@ -1905,7 +1906,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                       <div className="border-t border-dashed border-white/10 pt-4 space-y-2">
                         <div className="flex justify-between text-base font-bold text-white border-t border-white/5 pt-2">
                           <span>Total Amount:</span>
-                          <span className="text-theatre-gold">₹{selectedTimeSlot ? totalAmount : 0}</span>
+                          <span className="text-theatre-gold">₹{selectedTimeSlot ? formatCurrency(totalAmount) : 0}</span>
                         </div>
                         <div className="text-xs text-theatre-gold text-center font-bold mt-2 font-sans bg-theatre-gold/10 py-1.5 rounded-lg border border-theatre-gold/30 shadow-md">
                           * All prices are inclusive of GST
@@ -1913,7 +1914,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         {selectedTimeSlot && (
                           <div className="bg-theatre-gold/10 p-3 rounded-xl border border-theatre-gold/25 mt-4 space-y-1 text-center font-sans">
                             <span className="text-[10px] text-gray-400 block uppercase font-bold">Lock Deposit Required</span>
-                            <span className="text-lg font-bold text-theatre-gold block">₹{advancePaymentRequired}</span>
+                            <span className="text-lg font-bold text-theatre-gold block">₹{formatCurrency(advancePaymentRequired)}</span>
                             <span className="text-[9px] text-gray-500 block leading-tight">Payable online to secure slot</span>
                           </div>
                         )}
@@ -2137,16 +2138,16 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           <div className="space-y-3">
                             <div className="flex justify-between items-center text-xs">
                               <span className="text-gray-400">Total Payable:</span>
-                              <span className="text-white font-bold">₹{totalAmount}</span>
+                              <span className="text-white font-bold">₹{formatCurrency(totalAmount)}</span>
                             </div>
                             <div className="flex justify-between items-center text-xs font-bold border-t border-white/5 pt-2">
                               <span className="text-white">Payable Now (Advance):</span>
-                              <span className="text-theatre-gold text-base">₹{advancePaymentRequired}</span>
+                              <span className="text-theatre-gold text-base">₹{formatCurrency(advancePaymentRequired)}</span>
                             </div>
                             <div className="p-3 bg-theatre-gold/5 border border-theatre-gold/20 rounded-xl flex items-start space-x-2">
                               <AlertCircle className="w-4 h-4 text-theatre-gold mt-0.5 flex-shrink-0 animate-pulse" />
                               <p className="text-[11px] text-gray-300 font-normal leading-relaxed">
-                                Remaining balance of <span className="text-white font-extrabold">₹{remainingBalance}</span> is payable at the venue on event date.
+                                Remaining balance of <span className="text-white font-extrabold">₹{formatCurrency(remainingBalance)}</span> is payable at the venue on event date.
                               </p>
                             </div>
                           </div>

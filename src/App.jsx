@@ -187,7 +187,7 @@ function AppContent() {
           } />
 
           <Route path="/contact" element={
-            <div className="pt-32">
+            <div className="pt-16 sm:pt-32">
               <ContactUs />
             </div>
           } />

@@ -6,10 +6,10 @@ export default function ContactUs() {
   const [activeCard, setActiveCard] = React.useState(null);
 
   return (
-    <section id="contact-us" className="relative py-24 bg-theatre-dark/95 overflow-hidden">
+    <section id="contact-us" className="relative pt-10 pb-24 sm:py-24 bg-theatre-dark/95 overflow-hidden">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-theatre-gold/5 rounded-full blur-[100px] pointer-events-none" />
       <div className="max-w-[85rem] mx-auto px-4 sm:px-8 lg:px-12 relative z-10">
-        <div className="text-center max-w-3xl mx-auto mb-16 flex flex-col items-center">
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-16 flex flex-col items-center">
           <span className="text-theatre-gold font-semibold tracking-widest uppercase text-xs mb-4 block">
             Contact Us
           </span>
