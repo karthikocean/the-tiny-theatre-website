@@ -7,12 +7,8 @@ export default function ContactUs() {
 
   return (
     <section id="contact-us" className="relative py-24 bg-theatre-dark/95 overflow-hidden">
-      {/* Background spotlights */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-theatre-gold/5 rounded-full blur-[100px] pointer-events-none" />
-
       <div className="max-w-[85rem] mx-auto px-4 sm:px-8 lg:px-12 relative z-10">
-
-        {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 flex flex-col items-center">
           <span className="text-theatre-gold font-semibold tracking-widest uppercase text-xs mb-4 block">
             Contact Us
@@ -22,11 +18,7 @@ export default function ContactUs() {
           </h2>
           <div className="w-20 h-1 bg-gradient-to-r from-theatre-gold to-theatre-grey rounded-full mb-8" />
         </div>
-
-        {/* 3 Info Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch mb-20">
-
-          {/* Card 1: Corporate Office */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -46,12 +38,11 @@ export default function ContactUs() {
             <h4 className="text-white font-sans text-lg font-bold tracking-wide mb-3">Corporate Office</h4>
             <p className="text-gray-400 font-sans font-light text-sm leading-relaxed">
               UMA COMPLEX, Plot No : 324,<br />
-              Off Radial Road, Ram Nagar,<br />
-              Pallikaranai, Chennai - 600 100.
+              14/5A, Professors Colony, East Tambaram, Tambaram, Chennai,<br />
+              Tamil Nadu - 600 059.
             </p>
           </motion.div>
 
-          {/* Card 2: Call & WhatsApp Support */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -70,11 +61,11 @@ export default function ContactUs() {
             <div className="w-8 h-px bg-theatre-gold/30 mb-4" />
             <h4 className="text-white font-sans text-lg font-bold tracking-wide mb-3">Call &amp; WhatsApp Support</h4>
             <p className="text-gray-400 font-sans font-light text-sm leading-relaxed">
-              <span>+91 7338848840</span>
+              <a href="tel:+917338848840" className="hover:text-theatre-gold transition-colors duration-300 block">
+                +91 7338848840
+              </a>
             </p>
           </motion.div>
-
-          {/* Card 3: Email Inquiry */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
