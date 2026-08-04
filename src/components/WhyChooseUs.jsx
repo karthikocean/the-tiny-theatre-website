@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,6 +15,43 @@ import imgCorporateGatheringMeeting from '../assets/corporate-meetings.png';
 
 export default function WhyChooseUs({ preview, onViewMore }) {
   const navigate = useNavigate();
+  const scrollRef = useRef(null);
+  const isDown = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
+
+  const handleMouseDown = (e) => {
+    if (!scrollRef.current) return;
+    isDown.current = true;
+    scrollRef.current.classList.add('cursor-grabbing');
+    scrollRef.current.classList.remove('cursor-grab', 'snap-x', 'snap-mandatory', 'scroll-smooth');
+    startX.current = e.pageX - scrollRef.current.offsetLeft;
+    scrollLeft.current = scrollRef.current.scrollLeft;
+  };
+
+  const handleMouseLeave = () => {
+    isDown.current = false;
+    if (scrollRef.current) {
+      scrollRef.current.classList.remove('cursor-grabbing');
+      scrollRef.current.classList.add('cursor-grab', 'snap-x', 'snap-mandatory', 'scroll-smooth');
+    }
+  };
+
+  const handleMouseUp = () => {
+    isDown.current = false;
+    if (scrollRef.current) {
+      scrollRef.current.classList.remove('cursor-grabbing');
+      scrollRef.current.classList.add('cursor-grab', 'snap-x', 'snap-mandatory', 'scroll-smooth');
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDown.current || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX.current) * 2;
+    scrollRef.current.scrollLeft = scrollLeft.current - walk;
+  };
 
   const features = [
     {
@@ -112,9 +149,14 @@ export default function WhyChooseUs({ preview, onViewMore }) {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-100px' }}
+          ref={preview ? scrollRef : null}
+          onMouseDown={preview ? handleMouseDown : undefined}
+          onMouseLeave={preview ? handleMouseLeave : undefined}
+          onMouseUp={preview ? handleMouseUp : undefined}
+          onMouseMove={preview ? handleMouseMove : undefined}
           className={
             preview
-              ? "flex overflow-x-auto gap-6 lg:gap-8 max-w-7xl mx-auto pb-8 snap-x snap-mandatory no-scrollbar px-4 sm:px-6 scroll-pl-4 sm:scroll-pl-6"
+              ? "flex overflow-x-auto gap-6 lg:gap-8 max-w-7xl mx-auto pb-8 snap-x snap-mandatory scroll-smooth no-scrollbar px-4 sm:px-6 scroll-pl-4 sm:scroll-pl-6 cursor-grab"
               : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8 max-w-7xl mx-auto pb-8"
           }
         >
@@ -133,7 +175,8 @@ export default function WhyChooseUs({ preview, onViewMore }) {
                   <img
                     src={feat.image}
                     alt={feat.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-100"
+                    draggable="false"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-100 select-none pointer-events-none"
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = "https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=600&q=80";

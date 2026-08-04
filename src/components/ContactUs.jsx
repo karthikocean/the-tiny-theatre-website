@@ -6,7 +6,7 @@ export default function ContactUs() {
   const [activeCard, setActiveCard] = React.useState(null);
 
   return (
-    <section id="contact-us" className="relative pt-10 pb-24 sm:py-24 bg-theatre-dark/95 overflow-hidden">
+    <section id="contact-us" className="relative py-10 sm:py-16 bg-theatre-dark/95 overflow-hidden">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-theatre-gold/5 rounded-full blur-[100px] pointer-events-none" />
       <div className="max-w-[85rem] mx-auto px-4 sm:px-8 lg:px-12 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-16 flex flex-col items-center">
@@ -37,7 +37,7 @@ export default function ContactUs() {
             <div className="w-8 h-px bg-theatre-gold/30 mb-4" />
             <h4 className="text-white font-sans text-lg font-bold tracking-wide mb-3">Corporate Office</h4>
             <p className="text-gray-400 font-sans font-light text-sm leading-relaxed">
-              UMA COMPLEX, Plot No : 324,<br />
+              UMA COMPLEX<br />
               14/5A, Professors Colony, East Tambaram, Tambaram, Chennai,<br />
               Tamil Nadu - 600 059.
             </p>
@@ -62,7 +62,7 @@ export default function ContactUs() {
             <h4 className="text-white font-sans text-lg font-bold tracking-wide mb-3">Call &amp; WhatsApp Support</h4>
             <p className="text-gray-400 font-sans font-light text-sm leading-relaxed">
               <a href="tel:+917338848840" className="hover:text-theatre-gold transition-colors duration-300 block">
-                +91 7338848840
+                +91 73388 48840
               </a>
             </p>
           </motion.div>

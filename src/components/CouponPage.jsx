@@ -28,12 +28,12 @@ export default function CouponPage() {
   };
 
   return (
-    <section className="relative pt-10 pb-20 sm:py-20 bg-gradient-to-b from-theatre-dark to-theatre-dark/95 overflow-hidden min-h-screen">
+    <section className="relative py-10 sm:py-16 bg-gradient-to-b from-theatre-dark to-theatre-dark/95 overflow-hidden min-h-screen">
       {/* Premium background ambient glows */}
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-theatre-grey/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-theatre-gold/5 rounded-full blur-[120px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 sm:pt-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-16 flex flex-col items-center">

@@ -151,7 +151,7 @@ function AppContent() {
 
 
           <Route path="/offers" element={
-            <div className="pt-24 sm:pt-32">
+            <div className="pt-16 sm:pt-20">
               <CouponPage />
             </div>
           } />
@@ -187,7 +187,7 @@ function AppContent() {
           } />
 
           <Route path="/contact" element={
-            <div className="pt-16 sm:pt-32">
+            <div className="pt-16 sm:pt-20">
               <ContactUs />
             </div>
           } />
@@ -225,7 +225,7 @@ function AppContent() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
             onClick={scrollToTop}
-            className={`fixed bottom-6 right-6 z-40 p-4 bg-theatre-gold hover:bg-theatre-gold-light text-theatre-grey-deep rounded-full shadow-lg shadow-theatre-gold/20 hover:scale-110 transition-all duration-300 border border-theatre-gold/10 cursor-pointer ${
+            className={`fixed bottom-40 sm:bottom-20 right-6 z-40 p-4 bg-theatre-gold hover:bg-theatre-gold-light text-theatre-grey-deep rounded-full shadow-lg shadow-theatre-gold/20 hover:scale-110 transition-all duration-300 border border-theatre-gold/10 cursor-pointer ${
               location.pathname === '/book-now' ? 'hidden sm:block' : ''
             }`}
             aria-label="Scroll to top"
