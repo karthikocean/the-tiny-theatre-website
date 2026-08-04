@@ -124,12 +124,12 @@ export default function WhyChooseUs({ preview, onViewMore }) {
                 key={idx}
                 variants={cardVariants}
                 className={`bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl border border-theatre-gold/45 hover:border-theatre-gold/80 flex flex-col transition-all duration-300 group cursor-default hover:shadow-xl hover:shadow-theatre-gold/5 relative overflow-hidden h-auto ${
-                  preview ? "flex-none w-[85vw] sm:w-[320px] lg:w-[29%] xl:w-[29%] snap-start" : "w-full"
+                  preview ? "flex-none w-[75vw] sm:w-[320px] lg:w-[29%] xl:w-[29%] snap-start max-sm:min-h-[380px]" : "w-full"
                 }`}
               >
                 {/* Background/Header Image */}
-                <div className="relative h-56 w-full overflow-hidden z-0">
-                  <div className="absolute inset-0 bg-gradient-to-t from-theatre-dark/95 via-transparent to-transparent z-10" />
+                <div className={`relative w-full overflow-hidden z-0 ${preview ? 'max-sm:absolute max-sm:inset-0 max-sm:h-full h-56' : 'h-56'}`}>
+                  <div className={`absolute inset-0 bg-gradient-to-t ${preview ? 'max-sm:from-theatre-dark max-sm:via-theatre-dark/70 max-sm:to-transparent from-theatre-dark/95 via-transparent to-transparent' : 'from-theatre-dark/95 via-transparent to-transparent'} z-10`} />
                   <img
                     src={feat.image}
                     alt={feat.title}
@@ -143,7 +143,7 @@ export default function WhyChooseUs({ preview, onViewMore }) {
 
               {/* Content Area */}
               <div className="relative z-20 p-6 flex-grow flex flex-col justify-between h-auto">
-                <div>
+                <div className={`${preview ? 'max-sm:mt-auto' : ''}`}>
                   <h3 className="font-serif text-lg sm:text-xl font-bold text-white mb-2.5 group-hover:text-theatre-gold transition-colors duration-300 text-left">
                     {feat.title}
                   </h3>

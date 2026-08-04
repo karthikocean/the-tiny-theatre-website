@@ -217,7 +217,8 @@ export default function HouseRules() {
             <Shield className="w-5 h-5 text-theatre-gold" />
           </div>
           <p className="text-gray-300 text-sm font-sans font-light leading-relaxed max-w-md">
-            Thank you for helping us maintain a clean, safe, and welcoming environment.<br />
+            Thank you for helping us maintain a clean, safe, and welcoming environment. We look forward to making your visit truly memorable.<br />
+            <strong>The Tiny Theatre</strong><br />
             <strong>MOVIES. MUNCHIES. MEMORIES.</strong>
           </p>
         </div>

@@ -110,8 +110,8 @@ export default function PrivacyPolicy() {
       <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-theatre-gold/5 rounded-full blur-[120px] translate-x-1/3 translate-y-1/3 pointer-events-none" />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
-       
+
+
         {/* Title */}
         <h1 className="text-center font-serif text-4xl sm:text-5xl font-bold text-white mb-4 leading-tight">
           Privacy <span className="text-theatre-gold">Policy</span>
@@ -162,7 +162,7 @@ export default function PrivacyPolicy() {
                     <h3 className="font-serif text-2xl font-bold text-white tracking-wide border-b border-white/5 pb-2">
                       {section.title}
                     </h3>
-                    
+
                     {/* If points has a colon in the first item, show it as introductory text, else list/para */}
                     {section.points && section.points.length > 0 && section.points[0].includes(":") ? (
                       <>
@@ -199,7 +199,7 @@ export default function PrivacyPolicy() {
             <Shield className="w-5 h-5 text-theatre-gold" />
           </div>
           <p className="text-gray-400 text-sm font-sans font-light leading-relaxed max-w-md">
-            If you have any questions or concerns regarding this Privacy Policy, please contact our privacy officer at bookings@tinytheatre.com.
+            If you have questions about this Privacy Policy, please contact The Tiny Theatre using the contact details provided on our website.
           </p>
         </div>
 
