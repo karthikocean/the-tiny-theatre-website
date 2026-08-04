@@ -1200,7 +1200,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             <div className="p-3 sm:p-6 border-t border-white/5 space-y-4">
 
                               {/* Base Price Display */}
-                              {selectedScreenId && (
+                              {selectedSlotId && (
                                 <div className="flex justify-between items-center bg-theatre-gold/10 border border-theatre-gold/20 p-3 sm:p-4 rounded-2xl mb-2">
                                   <div className="flex flex-col">
                                     <span className="text-theatre-gold font-bold text-sm sm:text-base">Screen Base Price</span>

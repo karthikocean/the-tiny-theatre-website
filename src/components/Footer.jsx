@@ -163,7 +163,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Col 4: Box Office Info */}
           <div className="col-span-2 md:col-span-1 lg:col-span-3 space-y-6">
             <h4 className="text-white font-serif text-base font-bold tracking-wide">Box Office Info</h4>
             <ul className="space-y-4 text-sm font-light">
@@ -174,7 +173,7 @@ export default function Footer() {
               <li className="flex items-center space-x-3">
                 <Phone className="w-4.5 h-4.5 text-theatre-gold flex-shrink-0" />
                 <a href="tel:+917338848840" className="hover:text-theatre-gold transition-colors duration-300">
-                  +91 7338848840
+                  +91 73388 48840
                 </a>
               </li>
               <li className="flex items-center space-x-3">
@@ -189,13 +188,13 @@ export default function Footer() {
         </div>
 
         {/* Bottom copyright bar */}
-        <div className="flex flex-col sm:flex-row justify-between items-center pt-8 text-sm font-light text-gray-500 gap-4">
-          <div className="space-y-1 text-center sm:text-left">
+        <div className="flex flex-col md:flex-row justify-between items-center pt-8 text-sm font-light text-gray-500 gap-4 text-center">
+          <div>
             <p>© {new Date().getFullYear()} The Tiny Theatre Inc. All rights reserved.</p>
           </div>
-          <div className="flex space-x-6">
-            <h1 className="text-[14px] text-gray-500">
-              Designed and Maintained by <a href="https://www.oceansoftwares.com/" target="_blank" rel="noopener noreferrer" className="hover:text-theatre-gold text-gray-500 hover:underline transition-colors duration-300">Ocean Softwares</a>
+          <div>
+            <h1 className="text-[14px] text-gray-500 text-center md:text-right">
+              Designed and Maintained by <a href="https://www.oceansoftwares.com/" target="_blank" rel="noopener noreferrer" className="text-theatre-gold underline hover:text-theatre-gold-light transition-colors duration-300 block sm:inline mt-1 sm:mt-0">Ocean Softwares Private Limited</a>
             </h1>
           </div>
         </div>
