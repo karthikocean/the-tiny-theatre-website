@@ -157,37 +157,37 @@ function AppContent() {
           } />
 
           <Route path="/why-choose-us" element={
-            <div className="pt-24 sm:pt-32">
+            <div className="pt-16 sm:pt-20">
               <WhyChooseUs preview={false} />
             </div>
           } />
 
           <Route path="/booking-process" element={
-            <div className="pt-24 sm:pt-32">
+            <div className="pt-16 sm:pt-20">
               <BookingProcess preview={false} />
             </div>
           } />
 
           <Route path="/gallery" element={
-            <div className="pt-24 sm:pt-32">
+            <div className="pt-16 sm:pt-20">
               <Gallery preview={false} />
             </div>
           } />
 
           <Route path="/terms-and-conditions" element={
-            <div className="pt-24 sm:pt-32">
+            <div className="pt-5 sm:pt-5">
               <TermsAndConditions />
             </div>
           } />
 
           <Route path="/privacy-policy" element={
-            <div className="pt-24 sm:pt-32">
+            <div className="pt-5 sm:pt-5">
               <PrivacyPolicy />
             </div>
           } />
 
           <Route path="/contact" element={
-            <div className="pt-16 sm:pt-20">
+            <div className="pt-15 sm:pt-16">
               <ContactUs />
             </div>
           } />
@@ -199,13 +199,13 @@ function AppContent() {
           } />
 
           <Route path="/cancellation-policy" element={
-            <div className="pt-24 sm:pt-32">
+           <div className="pt-5 sm:pt-5">
               <CancellationPolicy />
             </div>
           } />
 
           <Route path="/house-rules" element={
-            <div className="pt-24 sm:pt-32">
+           <div className="pt-5 sm:pt-5">
               <HouseRules />
             </div>
           } />
