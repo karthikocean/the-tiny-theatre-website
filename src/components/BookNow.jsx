@@ -1224,10 +1224,10 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                   return (
                                     <div key={category._id} className="flex items-center justify-between bg-theatre-dark/40 p-3.5 border border-white/5 rounded-2xl">
                                       <div className="space-y-0.5">
-                                        <span className="text-xs font-semibold text-white block">
+                                        <span className="text-sm font-semibold text-white block">
                                           {category.name || (category.to >= 100 ? "Adults" : `Kids`)}
                                         </span>
-                                        <span className={`text-[11px] ${isFree ? 'text-green-500 font-bold' : 'text-theatre-gold font-medium'}`}>
+                                        <span className={`text-sm ${isFree ? 'text-green-500 font-bold' : 'text-theatre-gold font-medium'}`}>
                                           {ageLabel} ({rateDesc})
                                         </span>
                                       </div>
@@ -1235,15 +1235,15 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                         <button
                                           type="button"
                                           onClick={() => handleUpdateGuestCount(category._id, Math.max(0, count - 1))}
-                                          className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-white flex items-center justify-center font-bold text-sm cursor-pointer"
+                                          className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-white flex items-center justify-center font-bold text-base cursor-pointer"
                                         >
                                           -
                                         </button>
-                                        <span className="font-sans font-bold text-sm w-5 text-center text-white">{count}</span>
+                                        <span className="font-sans font-bold text-base w-6 text-center text-white">{count}</span>
                                         <button
                                           type="button"
                                           onClick={() => handleUpdateGuestCount(category._id, count + 1)}
-                                          className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-white flex items-center justify-center font-bold text-sm cursor-pointer"
+                                          className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-white flex items-center justify-center font-bold text-base cursor-pointer"
                                         >
                                           +
                                         </button>
@@ -1253,7 +1253,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                 })}
                               </div>
 
-                              <div className="p-3 bg-theatre-grey-deep/30 rounded-xl border border-white/5 flex items-center justify-between text-xs">
+                              <div className="p-3 bg-theatre-grey-deep/30 rounded-xl border border-white/5 flex items-center justify-between text-sm">
                                 <span className="text-gray-400">Selected Guests: <strong className="text-white">{totalGuests} Members</strong></span>
                                 <span className="text-theatre-gold">Max Allowed: <strong>{maxCapacity} Members</strong></span>
                               </div>
