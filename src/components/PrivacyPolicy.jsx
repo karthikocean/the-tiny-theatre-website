@@ -145,6 +145,11 @@ export default function PrivacyPolicy() {
             {/* Plain Text Body (When isStructured is false or no sections provided) */}
             {privacyData?.content && (!privacyData?.sections || privacyData.sections.length === 0) ? (
               <div className="bg-theatre-grey-deep/30 border border-theatre-gold/25 rounded-2xl p-6 sm:p-10 text-gray-300 font-sans font-light leading-relaxed text-base sm:text-lg whitespace-pre-line">
+                {privacyData.normalContentTitle && (
+                  <h3 className="font-serif text-xl sm:text-2xl font-bold text-white tracking-wide mb-4">
+                    {privacyData.normalContentTitle}
+                  </h3>
+                )}
                 {privacyData.content}
               </div>
             ) : (
