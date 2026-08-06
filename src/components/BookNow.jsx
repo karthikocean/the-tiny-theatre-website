@@ -1227,7 +1227,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                         <span className="text-xs font-semibold text-white block">
                                           {category.name || (category.to >= 100 ? "Adults" : `Kids`)}
                                         </span>
-                                        <span className={`text-[11px] ${isFree ? 'text-green-500 font-bold' : 'text-gray-400'}`}>
+                                        <span className={`text-[11px] ${isFree ? 'text-green-500 font-bold' : 'text-theatre-gold font-medium'}`}>
                                           {ageLabel} ({rateDesc})
                                         </span>
                                       </div>
@@ -2176,18 +2176,18 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                   </div>
                 )}
                 {activeStep === 6 && (
-                  <div className="max-w-2xl mx-auto pt-1 pb-4  text-center space-y-4">
+                  <div className="max-w-2xl mx-auto pt-1 pb-8 mb-10   text-center space-y-4">
                     <div className="inline-flex p-4 bg-green-500/10 text-green-400 rounded-full border border-green-500/20">
                       <ShieldCheck className="w-10 h-10" />
                     </div>
                     <div className="space-y-1.5">
-                      <h3 className="font-serif text-3xl font-bold text-white">Booking Confirmed!</h3>
+                      <h3 className="font-serif text-3xl font-bold text-white pt-5 pb-3">Booking Confirmed!</h3>
                       <p className="text-sm text-theatre-gold max-w-md mx-auto leading-relaxed">
                         Check your registered phone number and email address for booking confirmation
                       </p>
                     </div>
 
-                    {/* <div className="bg-theatre-dark/95 border border-white/10 rounded-2xl p-6 relative max-w-md mx-auto shadow-inner text-center">
+                    <div className="bg-theatre-dark/95 border border-white/10 rounded-2xl p-6 relative max-w-md mx-auto shadow-inner text-center">
                       <div className="absolute top-1/2 -left-3.5 w-7 h-7 bg-theatre-grey-deep rounded-full -translate-y-1/2 z-10" />
                       <div className="absolute top-1/2 -right-3.5 w-7 h-7 bg-theatre-grey-deep rounded-full -translate-y-1/2 z-10" />
 
@@ -2224,7 +2224,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           <span className="text-sm text-green-400 font-sans font-bold">₹{formatCurrency(advancePaymentRequired)}</span>
                         </div>
                       </div>
-                    </div> */}
+                    </div>
 
                     <div className="flex justify-center pt-4">
                       <button
@@ -2274,7 +2274,9 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                   <div className="absolute top-0 left-0 w-1.5 h-full bg-yellow-500" />
                   <div className="flex items-center gap-2 mb-3 border-b border-yellow-500/20 pb-2">
                     <AlertCircle className="w-5 h-5 text-yellow-500" />
-                    <h4 className="text-yellow-500 font-bold uppercase tracking-wider text-sm">Important Booking Notes</h4>
+                    <h4 className="text-yellow-500 font-bold uppercase tracking-wider text-sm">
+                      {refundPolicyData.normalContentTitle || 'Important Booking Notes'}
+                    </h4>
                   </div>
                   <div className="text-xs sm:text-[13px] text-white/90 font-sans leading-relaxed whitespace-pre-line pl-1">
                     {refundPolicyData.content}
