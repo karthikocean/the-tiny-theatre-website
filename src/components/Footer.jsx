@@ -168,12 +168,15 @@ export default function Footer() {
             <ul className="space-y-4 text-sm font-light">
               <li className="flex items-start space-x-3">
                 <MapPin className="w-4.5 h-4.5 text-theatre-gold mt-0.5 flex-shrink-0" />
-                <span>UMA COMPLEX 14/5A, Professors Colony, East Tambaram, Tambaram, Chennai, Tamil Nadu 600059</span>
+                <span>UMA COMPLEX 14/5, Professors Colony, I.A.F. Road, Tambaram East, Chennai, Tamil Nadu - 600 059.</span>
               </li>
               <li className="flex items-center space-x-3">
                 <Phone className="w-4.5 h-4.5 text-theatre-gold flex-shrink-0" />
                 <a href="tel:+917338848840" className="hover:text-theatre-gold transition-colors duration-300">
                   +91 73388 48840
+                </a> <span className="text-theatre-gold">/</span>
+                <a href="tel:+919524310404" className="hover:text-theatre-gold transition-colors duration-300">
+                  +91 95243 10404
                 </a>
               </li>
               <li className="flex items-center space-x-3">

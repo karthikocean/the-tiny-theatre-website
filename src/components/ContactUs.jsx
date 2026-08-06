@@ -38,7 +38,7 @@ export default function ContactUs() {
             <h4 className="text-white font-sans text-lg font-bold tracking-wide mb-3">Corporate Office</h4>
             <p className="text-gray-400 font-sans font-light text-sm leading-relaxed">
               UMA COMPLEX<br />
-              14/5A, Professors Colony, East Tambaram, Tambaram, Chennai,<br />
+              PLOT NO. 14, Professors Colony, I.A.F. Road, Tambaram East, Chennai,<br />
               Tamil Nadu - 600 059.
             </p>
           </motion.div>
@@ -63,6 +63,9 @@ export default function ContactUs() {
             <p className="text-gray-400 font-sans font-light text-sm leading-relaxed">
               <a href="tel:+917338848840" className="hover:text-theatre-gold transition-colors duration-300 block">
                 +91 73388 48840
+              </a>
+              <a href="tel:+919524310404" className="hover:text-theatre-gold transition-colors duration-300 block">
+                +91 95243 10404
               </a>
             </p>
           </motion.div>
