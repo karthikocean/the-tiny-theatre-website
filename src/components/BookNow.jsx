@@ -135,6 +135,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     }
   }, [selectedEventName]);
   const [stepErrors, setStepErrors] = useState({});
+  const [expandedScreens, setExpandedScreens] = useState({});
+
+  const toggleScreenDesc = (screenId, e) => {
+    e.stopPropagation();
+    setExpandedScreens(prev => ({ ...prev, [screenId]: !prev[screenId] }));
+  };
   const [screens, setScreens] = useState([]);
   const [loadingScreens, setLoadingScreens] = useState(true);
 
@@ -595,8 +601,17 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       if (!selectedScreen) errors.screen = 'Please select a screening hall to continue.';
       if (!selectedDate) errors.date = 'Date selection is required.';
       if (!selectedTimeSlot) errors.time = 'Please select a preferred time slot.';
-      if (totalGuests === 0) errors.guests = 'Please select at least 1 guest.';
-      if (totalGuests > maxCapacity) errors.guests = `Selected screen capacity is max ${maxCapacity} guests. Please contact the team.`;
+      const highestCategory = [...activeCategories].sort((a, b) => b.from - a.from)[0];
+      const highestCategoryCount = highestCategory ? (guestCounts[highestCategory._id] || 0) : 0;
+
+      if (totalGuests === 0) {
+        errors.guests = 'Please select at least 1 guest.';
+      } else if (highestCategory && highestCategoryCount < 1) {
+        const catName = highestCategory.name || (highestCategory.to >= 100 ? "Adults" : `Kids`);
+        errors.guests = `At least 1 member must be selected in the highest age category (${catName}).`;
+      } else if (totalGuests > maxCapacity) {
+        errors.guests = `Selected screen capacity is max ${maxCapacity} guests. Please contact the team.`;
+      }
       if (Object.keys(errors).length > 0) {
         setStepErrors(errors);
         return;
@@ -627,6 +642,30 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 100);
+  };
+
+  // Check if all required selections for a given step are satisfied
+  const isStepValid = (stepNum) => {
+    if (stepNum === 1) {
+      const highestCategory = [...activeCategories].sort((a, b) => b.from - a.from)[0];
+      const highestCategoryCount = highestCategory ? (guestCounts[highestCategory._id] || 0) : 0;
+      const hasHighest = highestCategory ? highestCategoryCount > 0 : true;
+
+      return !!selectedScreenId && !!selectedDate && !!selectedTimeSlot && totalGuests > 0 && totalGuests <= maxCapacity && hasHighest;
+    }
+    if (stepNum === 2) {
+      const decorOk = screenDecorations.length === 0 || wantsDecor !== null;
+      return !!eventCategory && wantsCake !== null && decorOk;
+    }
+    return true;
+  };
+
+  // Returns the first invalid prerequisite step number for a given target step
+  const getFirstInvalidPrerequisite = (targetStep) => {
+    for (let s = 1; s < targetStep; s++) {
+      if (!isStepValid(s)) return s;
+    }
+    return null;
   };
 
   // Payment Action with T&C verification & DB state saving
@@ -840,16 +879,31 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                   <div key={name} className="flex items-center flex-grow last:flex-grow-0">
                     <div className="flex flex-col items-center relative">
                       <div
-                        className={`w-9 h-9 rounded-full flex items-center justify-center font-sans text-xs font-bold transition-all duration-300 border ${isCompleted
+                        onClick={() => {
+                          if (stepNum !== activeStep) {
+                            setStepErrors({});
+                            setActiveStep(stepNum);
+                            setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+                          }
+                        }}
+                        className={`w-9 h-9 rounded-full flex items-center justify-center font-sans text-xs font-bold transition-all duration-300 border cursor-pointer ${isCompleted
                           ? 'bg-theatre-gold border-theatre-gold text-theatre-grey-deep'
                           : isActive
                             ? 'bg-transparent border-theatre-gold text-theatre-gold shadow-md shadow-theatre-gold/20 scale-110'
-                            : 'bg-theatre-grey-deep/30 border-white/10 text-gray-500'
+                            : 'bg-theatre-grey-deep/30 border-white/10 text-gray-500 hover:border-white/30'
                           }`}
                       >
                         {isCompleted ? <Check className="w-4 h-4" /> : stepNum}
                       </div>
-                      <span className={`text-[11px] mt-2 font-medium tracking-wide uppercase transition-colors duration-300 text-center whitespace-nowrap ${isActive ? 'text-theatre-gold font-bold' : 'text-gray-500'
+                      <span
+                        onClick={() => {
+                          if (stepNum !== activeStep) {
+                            setStepErrors({});
+                            setActiveStep(stepNum);
+                            setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+                          }
+                        }}
+                        className={`text-[11px] mt-2 font-medium tracking-wide uppercase transition-colors duration-300 text-center whitespace-nowrap cursor-pointer ${isActive ? 'text-theatre-gold font-bold' : isCompleted ? 'text-theatre-gold/70 hover:text-theatre-gold' : 'text-gray-500 hover:text-gray-300'
                         }`}>
                         {name}
                       </span>
@@ -883,6 +937,39 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                 transition={{ duration: 0.3 }}
                 className="flex-grow"
               >
+                {activeStep === 1 && getFirstInvalidPrerequisite(1) === null && (() => null)()}
+
+                {/* Step prerequisite error card */}
+                {activeStep > 1 && getFirstInvalidPrerequisite(activeStep) !== null && (() => {
+                  const failedStep = getFirstInvalidPrerequisite(activeStep);
+                  const failedStepName = stepNames[failedStep - 1];
+                  return (
+                    <div className="flex flex-col items-center justify-center min-h-[320px] space-y-6 max-w-md mx-auto w-full py-8">
+                      <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center">
+                        <AlertCircle className="w-8 h-8 text-red-400" />
+                      </div>
+                      <div className="text-center space-y-2">
+                        <h4 className="text-white font-bold text-lg font-serif">Step {failedStep} Incomplete</h4>
+                        <p className="text-gray-400 text-sm leading-relaxed">
+                          Please complete <span className="text-theatre-gold font-bold">Step {failedStep}: {failedStepName}</span> before proceeding to this step.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStepErrors({});
+                          setActiveStep(failedStep);
+                          setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+                        }}
+                        className="inline-flex items-center space-x-2 bg-theatre-gold hover:bg-theatre-gold-light text-theatre-grey-deep font-sans text-xs font-bold px-6 py-3 rounded-xl shadow-md transition-all duration-300 cursor-pointer"
+                      >
+                        <ChevronLeft className="w-4 h-4 text-theatre-grey-deep" />
+                        <span>Go to Step {failedStep}: {failedStepName}</span>
+                      </button>
+                    </div>
+                  );
+                })()}
+
                 {activeStep === 1 && (
                   <div className="space-y-8 max-w-3xl mx-auto w-full">
                     <div className="space-y-1 text-center py-2 border-b border-white/5 pb-4">
@@ -951,9 +1038,26 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                       <div className="p-4 flex-grow flex flex-col justify-between space-y-3">
                                         <div className="space-y-1">
                                           <h5 className="text-base font-serif font-bold text-white">{screen.name}</h5>
-                                          <p className="text-xs text-gray-400 font-light leading-relaxed line-clamp-2">
-                                            {screen.description}
-                                          </p>
+                                          {screen.description && (() => {
+                                            const isExpanded = !!expandedScreens[screen._id];
+                                            const isLong = screen.description.length > 80;
+                                            return (
+                                              <div>
+                                                <p className={`text-xs text-gray-400 font-light leading-relaxed ${!isExpanded && isLong ? 'line-clamp-2' : ''}`}>
+                                                  {screen.description}
+                                                </p>
+                                                {isLong && (
+                                                  <button
+                                                    type="button"
+                                                    onClick={(e) => toggleScreenDesc(screen._id, e)}
+                                                    className="text-theatre-gold text-[10px] font-bold mt-1 hover:text-theatre-gold-light transition-colors cursor-pointer"
+                                                  >
+                                                    {isExpanded ? 'View Less ▲' : 'View More ▼'}
+                                                  </button>
+                                                )}
+                                              </div>
+                                            );
+                                          })()}
                                         </div>
                                         <div className="space-y-1.5 border-t border-white/5 pt-2">
                                           <div className="flex justify-between items-baseline text-xs">
@@ -1001,9 +1105,13 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             className="overflow-hidden"
                           >
                             <div className="p-3 sm:p-6 border-t border-white/5 space-y-4">
-
-                              <div className="flex flex-col gap-6">
-                                {/* Date Picker */}
+                              {!selectedScreenId ? (
+                                <div className="p-8 text-center text-red-400 font-bold bg-black/40 rounded-xl border border-red-500/30 flex flex-col items-center justify-center">
+                                  <AlertCircle className="w-8 h-8 mx-auto mb-3" />
+                                  <p>Please select a screening hall first</p>
+                                </div>
+                              ) : (
+                                <div className="flex flex-col gap-6">
                                 <div className="space-y-2">
                                   <label className="text-xs font-semibold text-gray-300 block">Select Date</label>
                                   <div className="relative">
@@ -1076,6 +1184,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                               setSelectedSlotId(isApiSlot ? slotItem._id : null);
                                               setStepErrors({});
                                               setActiveAccordion1('guest');
+                                              
+                                              setGuestCounts({});
                                             }
                                           }}
                                           disabled={isBooked}
@@ -1109,70 +1219,9 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                       <span>{stepErrors.time}</span>
                                     </p>
                                   )}
-
-                                  {selectedTimeSlot && (
-                                    <div className="mt-5 p-5 bg-[#17191D] border border-white/10 rounded-2xl relative overflow-hidden font-sans">
-                                      {/* BASE PRICE SECTION */}
-                                      <div className="flex justify-between items-start mb-6">
-                                        <div>
-                                          <h5 className="text-white font-bold text-sm sm:text-base uppercase tracking-wider mb-1">Base Price</h5>
-                                          <p className="text-gray-400 text-[11px] sm:text-xs">Covers up to 4 members</p>
-                                        </div>
-                                        <div className="text-right">
-                                          <h5 className="text-theatre-gold font-bold text-xl leading-none mb-1.5">₹{formatCurrency(basePrice)}</h5>
-                                          <p className="text-gray-500 text-[10px]">(Inc. GST)</p>
-                                        </div>
-                                      </div>
-
-                                      <div className="w-full h-[1px] bg-white/10 mb-6" />
-
-                                      {/* ADDITIONAL GUEST CHARGES */}
-                                      <div className="mb-6">
-                                        <h6 className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-3">Additional Guest Charges (Above 4 Members)</h6>
-                                        <div className="border border-white/10 rounded-xl overflow-hidden bg-black/20">
-                                          {activeCategories.map((cat, idx) => {
-                                            const ageLabel = cat.to >= 100
-                                              ? `${cat.from}+ Years`
-                                              : `${cat.from} - ${cat.to} Years`;
-
-                                            const isFree = cat.price === 0;
-                                            return (
-                                              <div key={cat._id} className={`flex justify-between items-center px-4 py-4 ${idx !== activeCategories.length - 1 ? 'border-b border-white/5' : ''}`}>
-                                                <span className="text-white text-[13px] sm:text-sm font-bold">{ageLabel}</span>
-                                                <div className="flex items-center gap-1.5">
-                                                  {isFree ? (
-                                                    <span className="text-[#10B981] font-bold text-[13px] sm:text-sm">FREE</span>
-                                                  ) : (
-                                                    <span className="text-white font-bold text-[13px] sm:text-sm">₹{formatCurrency(cat.price)} <span className="text-gray-400 font-medium text-xs">/ each</span></span>
-                                                  )}
-                                                  <span className="text-gray-500 text-[10px] ml-1 hidden sm:inline">(Inc. GST)</span>
-                                                </div>
-                                              </div>
-                                            );
-                                          })}
-                                        </div>
-                                      </div>
-
-                                      {/* Dynamic Added Members summary (if any) */}
-                                      {/* {guestChargeBreakdown && guestChargeBreakdown.length > 0 && (
-                                <div className="mb-6 space-y-2">
-                                  {guestChargeBreakdown.map((charge, idx) => (
-                                    <div key={idx} className="flex justify-between items-center px-2">
-                                      <span className="text-gray-400 text-xs font-medium">Added: {charge.description}</span>
-                                      <span className="text-white text-xs font-bold">+ ₹{formatCurrency(charge.amount)}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )} */}
-
-                                      {/* Footer Warning */}
-                                      <div className="border border-theatre-gold/30 bg-theatre-gold/[0.04] rounded-xl py-3.5 px-4 text-center border-dashed">
-                                        <p className="text-theatre-gold text-xs font-bold">All prices shown are final and inclusive of GST.</p>
-                                      </div>
-                                    </div>
-                                  )}
                                 </div>
                               </div>
+                              )}
                             </div>
                           </motion.div>
                         )}
@@ -1198,9 +1247,15 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             className="overflow-hidden"
                           >
                             <div className="p-3 sm:p-6 border-t border-white/5 space-y-4">
-
-                              {/* Base Price Display */}
-                              {selectedSlotId && (
+                              {!selectedTimeSlot ? (
+                                <div className="p-8 text-center text-red-400 font-bold bg-black/40 rounded-xl border border-red-500/30 flex flex-col items-center justify-center">
+                                  <AlertCircle className="w-8 h-8 mx-auto mb-3" />
+                                  <p>Please select a date and time slot first</p>
+                                </div>
+                              ) : (
+                                <>
+                                  {/* Base Price Display */}
+                                  {selectedSlotId && (
                                 <div className="flex justify-between items-center bg-theatre-gold/10 border border-theatre-gold/20 p-3 sm:p-4 rounded-2xl mb-2">
                                   <div className="flex flex-col">
                                     <span className="text-theatre-gold font-bold text-sm sm:text-base">Screen Base Price</span>
@@ -1264,6 +1319,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                   <span>{stepErrors.guests}</span>
                                 </div>
                               )}
+                                </>
+                              )}
                             </div>
                           </motion.div>
                         )}
@@ -1272,7 +1329,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                   </div>
                 )}
 
-                {activeStep === 2 && (
+                {activeStep === 2 && getFirstInvalidPrerequisite(activeStep) === null && (
                   <div className="space-y-8 max-w-3xl mx-auto w-full">
                     <div className="space-y-1 text-center py-2 border-b border-white/5 pb-4">
                       <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">Step 2: Occasion, Cake & Decoration</h3>
@@ -1396,8 +1453,15 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             className="overflow-hidden"
                           >
                             <div className="p-3 sm:p-8 pt-6 sm:pt-8 border-t border-white/5 space-y-6">
-                              {/* 2.2: Cake Selection */}
-                              <div className="space-y-6">
+                              {!eventCategory ? (
+                                <div className="p-8 text-center text-red-400 font-bold bg-black/40 rounded-xl border border-red-500/30 flex flex-col items-center justify-center">
+                                  <AlertCircle className="w-8 h-8 mx-auto mb-3" />
+                                  <p>Please select an occasion first</p>
+                                </div>
+                              ) : (
+                                <>
+                                  {/* 2.2: Cake Selection */}
+                                  <div className="space-y-6">
 
                                 <div className="flex items-center space-x-3">
                                   <button
@@ -1527,8 +1591,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                   </motion.div>
                                 )}
                               </div>
-
-
+                                </>
+                              )}
                             </div>
                           </motion.div>
                         )}
@@ -1554,8 +1618,15 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             className="overflow-hidden"
                           >
                             <div className="p-3 sm:p-8 pt-6 sm:pt-8 border-t border-white/5 space-y-6">
-                              {/* 2.3: Decoration Package */}
-                              {screenDecorations.length > 0 && (
+                              {wantsCake === null ? (
+                                <div className="p-8 text-center text-red-400 font-bold bg-black/40 rounded-xl border border-red-500/30 flex flex-col items-center justify-center">
+                                  <AlertCircle className="w-8 h-8 mx-auto mb-3" />
+                                  <p>Please select a cake option first</p>
+                                </div>
+                              ) : (
+                                <>
+                                  {/* 2.3: Decoration Package */}
+                                  {screenDecorations.length > 0 && (
                                 <div className="space-y-6">
 
                                   <div className="flex items-center space-x-3">
@@ -1595,34 +1666,51 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                           Loading decorations...
                                         </div>
                                       ) : screenDecorations.length > 0 ? (
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                          {screenDecorations.map((decor) => {
-                                            const isSelected = selectedDecorId === decor._id || (!selectedDecorId && screenDecorations[0]?._id === decor._id);
-                                            return (
-                                              <div
-                                                key={decor._id}
-                                                onClick={() => setSelectedDecorId(decor._id)}
-                                                className={`relative p-4 rounded-2xl border transition-all duration-300 cursor-pointer ${isSelected
-                                                  ? 'border-theatre-gold bg-gradient-to-t from-theatre-gold/20 to-theatre-gold/5 shadow-md shadow-theatre-gold/15 scale-[1.01]'
-                                                  : 'border-white/10 bg-theatre-dark/40 hover:border-white/20'
-                                                  } text-white`}
-                                              >
-                                                {isSelected && (
-                                                  <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-theatre-gold text-theatre-grey-deep flex items-center justify-center z-10 shadow-md">
-                                                    <Check className="w-3 h-3" />
-                                                  </span>
-                                                )}
-                                                <div className="flex items-center space-x-3 mb-1.5">
-                                                  <Gift className="w-4 h-4 text-theatre-gold" />
-                                                  <h5 className="text-xs font-bold text-white">{decor.name}</h5>
-                                                </div>
-                                                <div className="flex justify-between items-baseline pt-1">
-                                                  <span className="text-base font-bold text-theatre-gold">₹{formatCurrency(decor.price)}</span>
-                                                  <span className="text-[10px] text-gray-500 font-medium">(GST Inclusive)</span>
-                                                </div>
+                                        <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pt-2 pb-4 px-1 no-scrollbar w-full">
+                                          {(() => {
+                                            const chunks = [];
+                                            for (let i = 0; i < screenDecorations.length; i += 15) {
+                                              chunks.push(screenDecorations.slice(i, i + 15));
+                                            }
+                                            return chunks.map((chunk, chunkIdx) => (
+                                              <div key={chunkIdx} className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 min-w-full snap-start">
+                                                {chunk.map((decor) => {
+                                                  const isSelected = selectedDecorId === decor._id || (!selectedDecorId && screenDecorations[0]?._id === decor._id);
+                                                  return (
+                                                    <div
+                                                      key={decor._id}
+                                                      onClick={() => setSelectedDecorId(decor._id)}
+                                                      className={`rounded-xl overflow-hidden border cursor-pointer bg-theatre-dark/40 transition-all duration-300 relative ${isSelected
+                                                        ? 'border-theatre-gold shadow-md shadow-theatre-gold/10 scale-102 bg-theatre-gold/5'
+                                                        : 'border-white/10 hover:border-white/20'
+                                                        }`}
+                                                    >
+                                                      {isSelected && (
+                                                        <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-theatre-gold text-theatre-grey-deep flex items-center justify-center z-10 shadow-md">
+                                                          <Check className="w-3 h-3" />
+                                                        </span>
+                                                      )}
+                                                      <div className="h-24 sm:h-28 bg-gray-900 overflow-hidden flex items-center justify-center">
+                                                        {decor.image && decor.image.path ? (
+                                                          <img 
+                                                            src={getImageUrl(decor.image.path)} 
+                                                            alt={decor.name}
+                                                            className="w-full h-full object-cover"
+                                                          />
+                                                        ) : (
+                                                          <Gift className="w-8 h-8 text-theatre-gold opacity-50" />
+                                                        )}
+                                                      </div>
+                                                      <div className="pt-2 pb-2 px-2 text-center space-y-0.5">
+                                                        <h4 className="text-[11px] font-bold text-white line-clamp-2" title={decor.name}>{decor.name}</h4>
+                                                        <span className="text-xs text-theatre-gold font-bold">₹{formatCurrency(decor.price)}</span>
+                                                      </div>
+                                                    </div>
+                                                  );
+                                                })}
                                               </div>
-                                            );
-                                          })}
+                                            ));
+                                          })()}
                                         </div>
                                       ) : (
                                         <div className="p-4 rounded-xl border border-white/10 bg-white/5 text-gray-400 text-xs text-center">
@@ -1633,7 +1721,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                   )}
                                 </div>
                               )}
-
+                                </>
+                              )}
                             </div>
                           </motion.div>
                         )}
@@ -1644,7 +1733,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                 )}
 
                 {/* STEP 3: Celebration Add-ons */}
-                {activeStep === 3 && (
+                {activeStep === 3 && getFirstInvalidPrerequisite(activeStep) === null && (
                   <div className="space-y-6 max-w-3xl mx-auto w-full">
                     <div className="space-y-1 text-center py-2 border-b border-white/5 pb-4">
                       <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">Step 3: Celebration Add-ons</h3>
@@ -1764,7 +1853,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                 )}
 
                 {/* STEP 4: Booking Summary */}
-                {activeStep === 4 && (
+                {activeStep === 4 && getFirstInvalidPrerequisite(activeStep) === null && (
                   <div className="space-y-8 max-w-3xl mx-auto w-full">
                     <div className="space-y-1 text-center py-2 border-b border-white/5 pb-4">
                       <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">Step 4: Booking Summary</h3>
@@ -1925,7 +2014,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
 
                 {/* STEP 5: Customer Details & Payment */}
-                {activeStep === 5 && (
+                {activeStep === 5 && getFirstInvalidPrerequisite(activeStep) === null && (
                   <div className="space-y-8 max-w-3xl mx-auto w-full">
                     <div className="space-y-1 text-center py-2 border-b border-white/5 pb-4">
                       <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">Step 5: Customer Details & Payment</h3>
@@ -2241,7 +2330,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
             </AnimatePresence>
 
             {/* Stepper Bottom Controls */}
-            {activeStep <= 5 && (
+            {activeStep <= 5 && getFirstInvalidPrerequisite(activeStep) === null && (
               <div className="hidden sm:flex justify-between items-center pt-6 border-t border-white/5 mt-6 relative">
                 <button
                   type="button"
@@ -2289,7 +2378,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         </div>
       </div>
 
-      {activeStep <= 5 && (
+      {activeStep <= 5 && getFirstInvalidPrerequisite(activeStep) === null && (
         <div className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#17191d]/95 backdrop-blur-md border-t border-white/10 p-4 shadow-[0_-8px_30px_rgba(0,0,0,0.5)] flex justify-between items-center">
           <button
             type="button"
