@@ -1928,12 +1928,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             ))}
                             {selectedTimeSlot && wantsCake && (
                               <div className="space-y-1 pt-1.5 pl-2 border-t border-white/10">
-                                <span className="text-xs font-bold text-gray-300 uppercase tracking-wider block mb-1">Cakes:</span>
+                                <span className="text-sm font-bold text-gray-300 uppercase tracking-wider block mb-1">Cakes:</span>
                                 {selectedCakes.length > 0 ? (
                                   selectedCakes.map((sc, idx) => {
                                     const price = cakePrices[sc.flavor] || 800;
                                     return (
-                                      <div key={idx} className="flex flex-col space-y-0.5 text-xs text-gray-300 pl-1 font-mono">
+                                      <div key={idx} className="flex flex-col space-y-0.5 text-sm text-gray-300 pl-1">
                                         <div className="flex justify-between">
                                           <span>+ {sc.flavor}:</span>
                                           <span className="text-white">₹{formatCurrency(price)}</span>
@@ -1947,7 +1947,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                     );
                                   })
                                 ) : (
-                                  <div className="flex justify-between text-xs text-gray-300 pl-1 font-mono">
+                                  <div className="flex justify-between text-sm text-gray-300 pl-1">
                                     <span>+ {cakeFlavor}:</span>
                                     <span className="text-white">₹{formatCurrency(cakePrices[cakeFlavor] || 800)}</span>
                                   </div>
@@ -1962,7 +1962,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             )}
                             {selectedTimeSlot && selectedAddons.length > 0 && (
                               <div className="space-y-1 pt-1.5 pl-2 border-t border-white/10">
-                                <span className="text-xs font-bold text-gray-300 uppercase tracking-wider block mb-1">Add-ons:</span>
+                                <span className="text-sm font-bold text-gray-300 uppercase tracking-wider block mb-1">Add-ons:</span>
                                 {selectedAddons.map(key => {
                                   const addon = addonsPrices[key];
                                   if (!addon) return null;
@@ -1974,7 +1974,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                     name = `${name} (Qty: ${qty})`;
                                   }
                                   return (
-                                    <div key={key} className="flex flex-col text-xs text-gray-300 pl-1 font-mono">
+                                    <div key={key} className="flex flex-col text-sm text-gray-300 pl-1">
                                       <div className="flex justify-between">
                                         <span>+ {name}:</span>
                                         <span className="text-white">₹{formatCurrency(itemTotal)}</span>
