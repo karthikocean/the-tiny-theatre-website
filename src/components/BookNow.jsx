@@ -91,7 +91,11 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     fullName: '',
     email: '',
     phone: '',
-    otp: ''
+    otp: '',
+    needsGST: false,
+    customerInvoiceNumber: '',
+    gstNumber: '',
+    companyDetails: ''
   });
 
   const [otpSent, setOtpSent] = useState(false);
@@ -809,7 +813,11 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         addonDetails: addonDetailsToSend,
         totalAmount: totalAmount,
         termsAccepted: true,
-        isTermsAccepted: true
+        isTermsAccepted: true,
+        needsGST: customerInfo.needsGST,
+        customerInvoiceNumber: customerInfo.customerInvoiceNumber,
+        gstNumber: customerInfo.gstNumber,
+        companyDetails: customerInfo.companyDetails
       };
 
       const res = await createBooking(bookingData);
@@ -2167,7 +2175,57 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                       </div>
                     </div>
 
-                    <div className="space-y-2 pt-4 border-t border-white/10">
+                    {/* GST Section */}
+                    <div className="space-y-4 pt-4 border-t border-white/10">
+                      <label className="flex items-start space-x-3 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={customerInfo.needsGST || false}
+                          onChange={(e) => setCustomerInfo({ ...customerInfo, needsGST: e.target.checked })}
+                          className="w-5 h-5 rounded border-white/20 text-theatre-gold focus:ring-theatre-gold bg-theatre-dark/60 mt-0.5 cursor-pointer accent-[#f4c430]"
+                        />
+                        <span className="text-xs font-semibold text-gray-300 group-hover:text-white transition-colors leading-relaxed mt-0.5">
+                          Do you require a GST Invoice? (Optional)
+                        </span>
+                      </label>
+
+                      {customerInfo.needsGST && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-4 p-4 border border-white/10 bg-white/5 rounded-xl">
+                          <div className="space-y-2">
+                            <label className="text-xs font-semibold text-gray-300 block">Customer/Company Invoice Number</label>
+                            <input
+                              type="text"
+                              value={customerInfo.customerInvoiceNumber || ''}
+                              onChange={(e) => setCustomerInfo({ ...customerInfo, customerInvoiceNumber: e.target.value })}
+                              placeholder="e.g. INV-2026-001"
+                              className="w-full bg-theatre-dark/60 text-white px-4 py-3 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-xs placeholder:text-gray-600"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-xs font-semibold text-gray-300 block">GST Number</label>
+                            <input
+                              type="text"
+                              value={customerInfo.gstNumber || ''}
+                              onChange={(e) => setCustomerInfo({ ...customerInfo, gstNumber: e.target.value })}
+                              placeholder="Enter GST Number"
+                              className="w-full bg-theatre-dark/60 text-white px-4 py-3 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-xs placeholder:text-gray-600"
+                            />
+                          </div>
+                          <div className="space-y-2 sm:col-span-2">
+                            <label className="text-xs font-semibold text-gray-300 block">Company Details (Name, Phone, Address)</label>
+                            <textarea
+                              value={customerInfo.companyDetails || ''}
+                              onChange={(e) => setCustomerInfo({ ...customerInfo, companyDetails: e.target.value })}
+                              placeholder="Enter company name, phone number, and address"
+                              rows={3}
+                              className="w-full bg-theatre-dark/60 text-white px-4 py-3 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-xs placeholder:text-gray-600 resize-none"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-2 pt-4 border-t border-white/10 mt-4">
                       <label className="flex items-start space-x-3 cursor-pointer group">
                         <input
                           type="checkbox"
