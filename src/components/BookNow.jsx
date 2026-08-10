@@ -696,6 +696,13 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         errors.otp = 'Please verify your phone number via OTP first.';
       }
     }
+    if (customerInfo.needsGST && customerInfo.gstNumber?.trim()) {
+      const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i;
+      if (!gstRegex.test(customerInfo.gstNumber.trim())) {
+        errors.gstNumber = 'Please enter a valid 15-character GST number.';
+      }
+    }
+
     if (!termsAccepted) {
       errors.terms = 'You must accept the Terms & Conditions to proceed with payment.';
     }
@@ -2206,10 +2213,19 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             <input
                               type="text"
                               value={customerInfo.gstNumber || ''}
-                              onChange={(e) => setCustomerInfo({ ...customerInfo, gstNumber: e.target.value })}
+                              onChange={(e) => {
+                                setCustomerInfo({ ...customerInfo, gstNumber: e.target.value });
+                                setStepErrors(prev => ({ ...prev, gstNumber: null }));
+                              }}
                               placeholder="Enter GST Number"
-                              className="w-full bg-theatre-dark/60 text-white px-4 py-3 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-xs placeholder:text-gray-600"
+                              className={`w-full bg-theatre-dark/60 text-white px-4 py-3 rounded-xl border ${stepErrors.gstNumber ? 'border-red-400 focus:border-red-400' : 'border-white/10 focus:border-theatre-gold'} outline-none transition-all duration-300 text-xs placeholder:text-gray-600`}
                             />
+                            {stepErrors.gstNumber && (
+                              <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
+                                <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                                <span>{stepErrors.gstNumber}</span>
+                              </p>
+                            )}
                           </div>
                           <div className="space-y-2 sm:col-span-2">
                             <label className="text-xs font-semibold text-gray-300 block">Company Details (Name, Phone, Address)</label>
