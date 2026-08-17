@@ -28,7 +28,7 @@ export default function CouponPage() {
   };
 
   return (
-    <section className="relative py-10 sm:py-16 bg-gradient-to-b from-theatre-dark to-theatre-dark/95 overflow-hidden min-h-screen">
+    <section id="offers-page" className="relative py-10 sm:py-16 bg-gradient-to-b from-theatre-dark to-theatre-dark/95 overflow-hidden min-h-screen">
       {/* Premium background ambient glows */}
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-theatre-grey/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-theatre-gold/5 rounded-full blur-[120px] pointer-events-none" />
@@ -87,8 +87,13 @@ export default function CouponPage() {
                         {coupon.introText}
                       </span>
                     )}
-                    <h3 className="text-2xl sm:text-3xl font-serif font-black text-white tracking-tight break-words max-w-full">
-                      {discountText}
+                    <h3 className="font-serif font-black text-white tracking-tight break-words max-w-full flex flex-col items-center">
+                      <span className="text-3xl sm:text-4xl leading-none">
+                        {coupon.type === 'Percentage' ? `${coupon.value}%` : `₹${formatCurrency(coupon.value)}`}
+                      </span>
+                      <span className="text-[10px] sm:text-[11px] font-sans font-semibold tracking-widest text-theatre-gold uppercase mt-1">
+                        OFF
+                      </span>
                     </h3>
                   </div>
 

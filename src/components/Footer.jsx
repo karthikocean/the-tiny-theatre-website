@@ -174,9 +174,6 @@ export default function Footer() {
                 <Phone className="w-4.5 h-4.5 text-theatre-gold flex-shrink-0" />
                 <a href="tel:+917338848840" className="hover:text-theatre-gold transition-colors duration-300">
                   +91 73388 48840
-                </a> <span className="text-theatre-gold">/</span>
-                <a href="tel:+919524310404" className="hover:text-theatre-gold transition-colors duration-300">
-                  +91 95243 10404
                 </a>
               </li>
               <li className="flex items-center space-x-3">

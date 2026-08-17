@@ -64,9 +64,6 @@ export default function ContactUs() {
               <a href="tel:+917338848840" className="hover:text-theatre-gold transition-colors duration-300 block">
                 +91 73388 48840
               </a>
-              <a href="tel:+919524310404" className="hover:text-theatre-gold transition-colors duration-300 block">
-                +91 95243 10404
-              </a>
             </p>
           </motion.div>
           <motion.div

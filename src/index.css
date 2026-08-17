@@ -207,3 +207,63 @@ input[type="date"]::-webkit-clear-button {
     z-index: 999999 !important;
   }
 }
+
+/* ==========================================
+   Tablet Responsiveness and Layout Overrides (640px to 1024px)
+   ========================================== */
+
+@media (min-width: 640px) and (max-width: 1024px) {
+  /* 1. Testimonial Slider Navigation Arrows */
+  #testimonials button[aria-label="Previous review"] {
+    left: 1rem !important;
+  }
+  #testimonials button[aria-label="Next review"] {
+    right: 1rem !important;
+  }
+
+  /* 3. Gallery (Homepage Preview Grid) */
+  #gallery .flex.overflow-x-auto {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    overflow-x: visible !important;
+    padding-bottom: 0 !important;
+  }
+  #gallery .flex-none {
+    flex: 0 1 calc(50% - 1.5rem) !important;
+    width: calc(50% - 1.5rem) !important;
+    max-width: 350px !important;
+  }
+
+  /* 5. Hero Banner Description Styling */
+  #home p {
+    font-size: 0.875rem !important; /* 14px */
+    font-weight: 400 !important; /* regular */
+    text-align: center !important;
+    max-width: 36rem !important; /* mx-auto centering support */
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  #home h1 {
+    font-size: 2.5rem !important; /* 40px */
+    text-align: center !important;
+  }
+  #home .origin-left {
+    transform-origin: center !important;
+    justify-content: center !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  /* 6. Offers Page Coupon Layout Grid */
+  #offers-page .grid-cols-1.lg\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  /* 7. Contact Us Layout Grid */
+  #contact-us .grid-cols-1.md\:grid-cols-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  #contact-us .grid-cols-1.md\:grid-cols-3 > div:first-child {
+    grid-column: span 2 / span 2 !important; /* Corporate Office card spans both columns */
+  }
+}
