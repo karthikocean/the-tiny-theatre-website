@@ -73,9 +73,10 @@ export default function Testimonials() {
   return (
     <section 
       id="testimonials" 
-      className="relative py-12 bg-gradient-to-b from-theatre-dark/95 to-theatre-dark overflow-hidden"
+      className="relative  py-12 bg-gradient-to-b from-theatre-dark/95 to-theatre-dark overflow-hidden"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      style={{display:"none"}}
     >
       {/* Background spotlights */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-theatre-gold/5 rounded-full blur-[120px] pointer-events-none" />
