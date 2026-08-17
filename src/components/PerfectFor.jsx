@@ -1,9 +1,19 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
+import { getOccasions } from '../Api/occasionsapi';
+import { getImageUrl } from '../Api/api';
 
-// NOTE: These local images (e.g. /movie.png, /birthday.png) are placeholders and will be replaced in future once our theatre setup is ready.
 export default function PerfectFor() {
-  const perfectFor = [
+  const navigate = useNavigate();
+  const scrollRef = useRef(null);
+  const isDown = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
+  const [occasions, setOccasions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const hardcodedFallback = [
     {
       name: "Movie Marathons",
       image: "/movie.png"
@@ -34,6 +44,69 @@ export default function PerfectFor() {
     }
   ];
 
+  useEffect(() => {
+    const fetchOccasions = async () => {
+      try {
+        const res = await getOccasions();
+        if (res && res.status && res.response && res.response.data) {
+          const activeOccasions = res.response.data.filter(
+            (occ) => occ.isActive === 1 && occ.isDelete === 0
+          );
+          setOccasions(activeOccasions);
+        }
+      } catch (err) {
+        console.error('Error fetching occasions in PerfectFor:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchOccasions();
+  }, []);
+
+  const handleMouseDown = (e) => {
+    if (!scrollRef.current) return;
+    isDown.current = true;
+    scrollRef.current.classList.add('cursor-grabbing');
+    scrollRef.current.classList.remove('cursor-grab', 'snap-x', 'snap-mandatory', 'scroll-smooth');
+    startX.current = e.pageX - scrollRef.current.offsetLeft;
+    scrollLeft.current = scrollRef.current.scrollLeft;
+  };
+
+  const handleMouseLeave = () => {
+    isDown.current = false;
+    if (scrollRef.current) {
+      scrollRef.current.classList.remove('cursor-grabbing');
+      scrollRef.current.classList.add('cursor-grab', 'snap-x', 'snap-mandatory', 'scroll-smooth');
+    }
+  };
+
+  const handleMouseUp = () => {
+    isDown.current = false;
+    if (scrollRef.current) {
+      scrollRef.current.classList.remove('cursor-grabbing');
+      scrollRef.current.classList.add('cursor-grab', 'snap-x', 'snap-mandatory', 'scroll-smooth');
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDown.current || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX.current) * 2;
+    scrollRef.current.scrollLeft = scrollLeft.current - walk;
+  };
+
+  const handleCardClick = (name) => {
+    navigate('/book-now', { state: { selectedOccasion: name } });
+  };
+
+  const displayOccasions = occasions.length > 0
+    ? occasions.map(occ => ({
+        name: occ.name,
+        image: occ.image ? getImageUrl(occ.image) : "/movie.png"
+      }))
+    : (loading ? [] : hardcodedFallback);
+
   return (
     <section id="perfect-for" className="relative py-12 bg-theatre-dark overflow-hidden">
       {/* Ambient background glows */}
@@ -51,9 +124,16 @@ export default function PerfectFor() {
           <div className="w-14 h-0.5 bg-theatre-gold rounded-full" />
         </div>
 
-        {/* Perfect For Image Cards Grid - Carousel on mobile, Grid on desktop */}
-        <div className="flex flex-nowrap lg:flex-wrap overflow-x-auto lg:overflow-visible gap-4 sm:gap-8 pb-8 lg:pb-0 snap-x snap-mandatory no-scrollbar lg:justify-center -mx-4 px-4 sm:-mx-6 sm:px-6 scroll-pl-4 sm:scroll-pl-6 lg:mx-0 lg:px-0 lg:scroll-pl-0">
-          {perfectFor.map((item, idx) => {
+        {/* Perfect For Image Cards — Drag-Scrollable Carousel (all viewports) */}
+        <div
+          ref={scrollRef}
+          onMouseDown={handleMouseDown}
+          onMouseLeave={handleMouseLeave}
+          onMouseUp={handleMouseUp}
+          onMouseMove={handleMouseMove}
+          className="flex overflow-x-auto gap-6 lg:gap-8 max-w-7xl mx-auto pb-8 snap-x snap-mandatory scroll-smooth no-scrollbar px-4 sm:px-6 scroll-pl-4 sm:scroll-pl-6 cursor-grab"
+        >
+          {displayOccasions.map((item, idx) => {
             return (
               <motion.div
                 key={idx}
@@ -61,13 +141,16 @@ export default function PerfectFor() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.05 }}
-                className="relative w-[75vw] sm:w-[270px] flex-none h-80 rounded-3xl overflow-hidden border border-theatre-gold/40 hover:border-theatre-gold transition-all duration-300 hover:scale-105 shadow-lg group cursor-pointer snap-start"
+                onClick={() => handleCardClick(item.name)}
+                draggable="false"
+                className="relative flex-none w-[75vw] sm:w-[280px] h-80 rounded-3xl overflow-hidden border border-theatre-gold/40 hover:border-theatre-gold transition-all duration-300 hover:scale-105 shadow-lg group cursor-pointer snap-start select-none"
               >
                 {/* Card Background Image */}
                 <img
                   src={item.image}
                   alt={item.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  draggable="false"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 select-none pointer-events-none"
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = "https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=600&q=80";

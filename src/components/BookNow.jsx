@@ -107,7 +107,9 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   const [refundPolicyData, setRefundPolicyData] = useState(null);
   const [loadingRefundPolicy, setLoadingRefundPolicy] = useState(false);
   const [guestCounts, setGuestCounts] = useState({});
-  const [eventCategory, setEventCategory] = useState(selectedEventName || '');
+  const [eventCategory, setEventCategory] = useState(() => {
+    return location.state?.selectedOccasion || selectedEventName || '';
+  });
   const [wantsCake, setWantsCake] = useState(null);
   const [selectedCakes, setSelectedCakes] = useState([]);
   const [cakeFlavor, setCakeFlavor] = useState('Chocolate Truffle');
@@ -134,10 +136,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   const [isPaying, setIsPaying] = useState(false);
   const [bookingId, setBookingId] = useState('');
   useEffect(() => {
-    if (selectedEventName) {
+    if (location.state?.selectedOccasion) {
+      setEventCategory(location.state.selectedOccasion);
+    } else if (selectedEventName) {
       setEventCategory(selectedEventName);
     }
-  }, [selectedEventName]);
+  }, [selectedEventName, location.state?.selectedOccasion]);
   const [stepErrors, setStepErrors] = useState({});
   const [expandedScreens, setExpandedScreens] = useState({});
 
@@ -559,10 +563,11 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     }, 1200);
   };
 
-  const handleVerifyOtp = async () => {
-    if (!customerInfo.otp) {
+  const handleVerifyOtp = async (otpToVerify) => {
+    const code = otpToVerify !== undefined ? otpToVerify : customerInfo.otp;
+    if (!code) {
       setOtpError('Please enter OTP');
-    } else if (customerInfo.otp === generatedOtp) {
+    } else if (code === generatedOtp) {
       setOtpError('');
       setStepErrors({});
       setOtpVerified(true);
@@ -577,7 +582,9 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         console.warn("Backend customer verification failed:", err);
       }
     } else {
-      setOtpError('Invalid OTP');
+      if (code.length === 4) {
+        setOtpError('Invalid OTP');
+      }
     }
   };
 
@@ -2132,28 +2139,24 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         <div className="relative flex items-center space-x-2">
                           <div className="relative flex-grow">
                             <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                            <input
-                              type="tel"
-                              maxLength={4}
-                              disabled={!otpSent || otpVerified}
-                              value={customerInfo.otp}
-                              onChange={(e) => {
-                                const val = e.target.value.replace(/\D/g, '');
-                                setCustomerInfo({ ...customerInfo, otp: val });
-                              }}
-                              placeholder="Enter 4-Digit OTP"
-                              className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-xs placeholder:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                            />
-                          </div>
-                          {otpSent && !otpVerified && (
-                            <button
-                              type="button"
-                              onClick={handleVerifyOtp}
-                              className="bg-green-500 hover:bg-green-600 text-white font-sans text-[11px] font-bold px-3 py-3 rounded-xl shadow-md transition-all duration-300 cursor-pointer flex-shrink-0"
-                            >
-                              Verify
-                            </button>
-                          )}
+                             <input
+                               type="tel"
+                               maxLength={4}
+                               disabled={!otpSent || otpVerified}
+                               value={customerInfo.otp}
+                               onChange={(e) => {
+                                 const val = e.target.value.replace(/\D/g, '');
+                                 setCustomerInfo({ ...customerInfo, otp: val });
+                                 if (val.length === 4) {
+                                   handleVerifyOtp(val);
+                                 } else {
+                                   setOtpError('');
+                                 }
+                               }}
+                               placeholder="Enter 4-Digit OTP"
+                               className="w-full bg-theatre-dark/60 text-white pl-11 pr-4 py-3 rounded-xl border border-white/10 focus:border-theatre-gold outline-none transition-all duration-300 text-xs placeholder:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                             />
+                           </div>
                         </div>
 
                         {otpSent && !otpVerified && (
@@ -2183,7 +2186,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     </div>
 
                     {/* GST Section */}
-                    <div className="space-y-4 pt-4 border-t border-white/10">
+                    {/* <div className="space-y-4 pt-4 border-t border-white/10">
                       <label className="flex items-start space-x-3 cursor-pointer group">
                         <input
                           type="checkbox"
@@ -2239,7 +2242,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           </div>
                         </div>
                       )}
-                    </div>
+                    </div> */}
 
                     <div className="space-y-2 pt-4 border-t border-white/10 mt-4">
                       <label className="flex items-start space-x-3 cursor-pointer group">
