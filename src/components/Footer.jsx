@@ -188,12 +188,12 @@ export default function Footer() {
         </div>
 
         {/* Bottom copyright bar */}
-        <div className="flex flex-col md:flex-row justify-between items-center pt-8 text-sm font-light text-gray-500 gap-4 text-center">
+        <div className="flex flex-col lg:flex-row justify-between items-center pt-8 text-sm font-light text-gray-500 gap-4 text-center">
           <div>
             <p>© {new Date().getFullYear()} The Tiny Theatre Inc. All rights reserved.</p>
           </div>
           <div>
-            <h1 className="text-[14px] text-gray-500 text-center md:text-right">
+            <h1 className="text-[14px] text-gray-500 text-center lg:text-right">
               Designed and Maintained by <a href="https://www.oceansoftwares.com/" target="_blank" rel="noopener noreferrer" className="text-theatre-gold underline hover:text-theatre-gold-light transition-colors duration-300 block sm:inline mt-1 sm:mt-0">Ocean Softwares Private Limited</a>
             </h1>
           </div>

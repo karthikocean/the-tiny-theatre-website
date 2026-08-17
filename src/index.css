@@ -254,12 +254,7 @@ input[type="date"]::-webkit-clear-button {
 }
 
 @media (min-width: 768px) and (max-width: 1024px) {
-  /* 6. Offers Page Coupon Layout Grid */
-  #offers-page .grid-cols-1.lg\:grid-cols-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
-
-  /* 7. Contact Us Layout Grid */
+  /* 6. Contact Us Layout Grid */
   #contact-us .grid-cols-1.md\:grid-cols-3 {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
