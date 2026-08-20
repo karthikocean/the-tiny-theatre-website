@@ -2385,17 +2385,9 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                           <label className="text-xs font-semibold text-gray-300 block">Payment Gateway</label>
                           <div className="p-4 rounded-2xl border border-theatre-gold/30 bg-gradient-to-b from-[#1c1f26] to-[#121418] flex flex-col justify-between space-y-3.5 shadow-lg shadow-black/40 relative overflow-hidden">
                             <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-3">
-                                <img
-                                  src={logoImg}
-                                  alt="The Tiny Theatre Logo"
-                                  className="h-6 w-auto object-contain brightness-110"
-                                />
-                                <div className="h-4 w-[1px] bg-white/20" />
-                                <div className="flex items-center space-x-1.5">
-                                  <ShieldCheck className="w-4 h-4 text-theatre-gold" />
-                                  <span className="text-xs font-bold text-white tracking-wide">Razorpay</span>
-                                </div>
+                              <div className="flex items-center space-x-1.5">
+                                <ShieldCheck className="w-4 h-4 text-theatre-gold" />
+                                <span className="text-xs font-bold text-white tracking-wide">Razorpay</span>
                               </div>
                               <span className="text-[9px] bg-theatre-gold/20 text-theatre-gold font-bold px-2 py-0.5 rounded-full border border-theatre-gold/30 uppercase tracking-wider">
                                 100% Secure
