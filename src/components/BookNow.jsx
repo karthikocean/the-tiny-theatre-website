@@ -36,11 +36,27 @@ import { getAddons } from '../Api/addonsapi';
 import { getSlots } from '../Api/slotsapi';
 import { getOccasions } from '../Api/occasionsapi';
 import { getDecorations } from '../Api/decorationapi';
-import { verifyCustomer } from '../Api/CustomerApi';
 import { createBooking, addPaymentToBooking } from '../Api/booking';
+import { createRazorpayOrder, verifyRazorpayPayment } from '../Api/PaymentApi';
 import { bookingInfo } from '../Api/refundpolicyapi';
 import ShowNotifications from '../helper/showNotification';
 import CustomCalendar from './CustomCalendar';
+import logoImg from '../assets/logo.png';
+
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (typeof window !== 'undefined' && window.Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   const navigate = useNavigate();
@@ -834,38 +850,131 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         companyDetails: customerInfo.companyDetails
       };
 
-      const res = await createBooking(bookingData);
-      if (res.status) {
-        if (advancePaymentRequired > 0) {
-          await addPaymentToBooking(res.response.data._id, {
-            amount: advancePaymentRequired,
-            method: paymentMethod
-          });
+      // 1. Create Razorpay order from backend
+      const orderRes = await createRazorpayOrder({
+        amount: advancePaymentRequired,
+        currency: "INR",
+        notes: {
+          customerName: customerInfo.fullName,
+          mobile: customerInfo.phone,
+          email: customerInfo.email,
+          screen: selectedScreen,
+          date: selectedDate,
+          slot: selectedTimeSlot
         }
-        setBookingId(res.response.data.bookingId || `TT-${Math.floor(10000 + Math.random() * 90000)}`);
+      });
 
-        setActiveStep(6);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-
-        confetti({
-          particleCount: 150,
-          spread: 80,
-          origin: { y: 0.5 },
-          colors: ['#F4C430', '#14C299', '#ffffff']
-        });
-      } else {
-        // ShowNotifications.showAlertNotification(res.message || "An error occurred during booking.", false);
-        setTimeout(() => {
-          window.location.reload();
-        }, 5000);
+      if (!orderRes || !orderRes.status || !orderRes.response?.data) {
+        setIsPaying(false);
+        return;
       }
+
+      // 2. Ensure Razorpay SDK is loaded
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded || typeof window.Razorpay === 'undefined') {
+        ShowNotifications.showAlertNotification("Razorpay payment SDK could not be loaded. Please check your internet connection.", false);
+        setIsPaying(false);
+        return;
+      }
+
+      const orderData = orderRes.response.data;
+
+      // Absolute logo URL for Razorpay modal
+      const logoUrl = (typeof window !== 'undefined' && window.location && window.location.origin)
+        ? `${window.location.origin}/logo.png`
+        : logoImg;
+
+      // 3. Open Razorpay Checkout Modal (Slot remains unblocked until verified payment)
+      const rzpOptions = {
+        key: orderData.key || orderData.keyId,
+        amount: orderData.amount, // in paise
+        currency: orderData.currency || "INR",
+        name: "The Tiny Theatre",
+        description: `Advance Booking - ${selectedScreen || 'Screen'}`,
+        image: logoUrl,
+        order_id: orderData.orderId,
+        handler: async function (paymentResponse) {
+          try {
+            setIsPaying(true);
+
+            // A. Create confirmed booking in database with Razorpay payment details
+            const bookingPayload = {
+              ...bookingData,
+              razorpayOrderId: paymentResponse.razorpay_order_id,
+              razorpayPaymentId: paymentResponse.razorpay_payment_id,
+              razorpaySignature: paymentResponse.razorpay_signature
+            };
+
+            const bookingRes = await createBooking(bookingPayload);
+            if (!bookingRes || !bookingRes.status || !bookingRes.response?.data) {
+              setIsPaying(false);
+              return;
+            }
+
+            const createdBooking = bookingRes.response.data;
+
+            // B. Verify cryptographic signature & record payment on backend
+            const verifyRes = await verifyRazorpayPayment({
+              bookingId: createdBooking._id,
+              razorpay_order_id: paymentResponse.razorpay_order_id,
+              razorpay_payment_id: paymentResponse.razorpay_payment_id,
+              razorpay_signature: paymentResponse.razorpay_signature,
+              amount: advancePaymentRequired,
+              method: "Razorpay"
+            });
+
+            if (verifyRes && verifyRes.status) {
+              setBookingId(createdBooking.bookingId || `TT-${Math.floor(10000 + Math.random() * 90000)}`);
+              setActiveStep(6);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+
+              confetti({
+                particleCount: 150,
+                spread: 80,
+                origin: { y: 0.5 },
+                colors: ['#F4C430', '#14C299', '#ffffff']
+              });
+              ShowNotifications.showAlertNotification("Payment successful & Booking confirmed!", true);
+            }
+          } catch (err) {
+            console.error("Payment verification error:", err);
+          } finally {
+            setIsPaying(false);
+          }
+        },
+        prefill: {
+          name: customerInfo.fullName,
+          email: customerInfo.email,
+          contact: customerInfo.phone
+        },
+        notes: {
+          screen: selectedScreen,
+          date: selectedDate,
+          slot: selectedTimeSlot
+        },
+        theme: {
+          color: "#181A20",
+          backdrop_color: "rgba(0, 0, 0, 0.85)"
+        },
+        modal: {
+          ondismiss: function () {
+            setIsPaying(false);
+            ShowNotifications.showAlertNotification("Payment cancelled. You can click 'Pay Advance' to retry anytime.", false);
+          }
+        }
+      };
+
+      const rzpInstance = new window.Razorpay(rzpOptions);
+      rzpInstance.on('payment.failed', function (failResponse) {
+        console.error("Razorpay Payment Failed:", failResponse.error);
+        ShowNotifications.showAlertNotification(failResponse.error?.description || "Payment failed. Please try again.", false);
+        setIsPaying(false);
+      });
+
+      rzpInstance.open();
     } catch (err) {
-      console.error(err);
-      // ShowNotifications.showAlertNotification("An error occurred during booking.", false);
-      setTimeout(() => {
-        window.location.reload();
-      }, 5000);
-    } finally {
+      console.error("Booking payment error:", err);
+      ShowNotifications.showAlertNotification("An error occurred during booking. Please try again.", false);
       setIsPaying(false);
     }
   };
@@ -2273,30 +2382,48 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                     {termsAccepted && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-white/5">
                         <div className="space-y-3">
-                          <label className="text-xs font-semibold text-gray-300 block">Select Payment Mode</label>
-                          <div className="space-y-2.5">
-                            {[
-                              { id: 'upi', name: 'UPI (GPay / PhonePe / Paytm)' },
-                              { id: 'netbank', name: 'Net Banking' }
-                            ].map(method => {
-                              const isSelected = paymentMethod === method.id;
-                              return (
-                                <div
-                                  key={method.id}
-                                  onClick={() => setPaymentMethod(method.id)}
-                                  className={`p-3.5 rounded-xl border cursor-pointer flex items-center justify-between transition-all duration-300 ${isSelected
-                                    ? 'border-theatre-gold bg-theatre-gold/5 text-theatre-gold'
-                                    : 'border-white/10 bg-theatre-dark/40 text-gray-400 hover:border-white/20'
-                                    }`}
-                                >
-                                  <span className="text-xs font-semibold uppercase tracking-wider">{method.name}</span>
-                                  <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isSelected ? 'border-theatre-gold text-theatre-gold' : 'border-white/20'
-                                    }`}>
-                                    {isSelected && <span className="w-2 h-2 bg-theatre-gold rounded-full" />}
-                                  </div>
+                          <label className="text-xs font-semibold text-gray-300 block">Payment Gateway</label>
+                          <div className="p-4 rounded-2xl border border-theatre-gold/30 bg-gradient-to-b from-[#1c1f26] to-[#121418] flex flex-col justify-between space-y-3.5 shadow-lg shadow-black/40 relative overflow-hidden">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <img
+                                  src={logoImg}
+                                  alt="The Tiny Theatre Logo"
+                                  className="h-6 w-auto object-contain brightness-110"
+                                />
+                                <div className="h-4 w-[1px] bg-white/20" />
+                                <div className="flex items-center space-x-1.5">
+                                  <ShieldCheck className="w-4 h-4 text-theatre-gold" />
+                                  <span className="text-xs font-bold text-white tracking-wide">Razorpay</span>
                                 </div>
-                              );
-                            })}
+                              </div>
+                              <span className="text-[9px] bg-theatre-gold/20 text-theatre-gold font-bold px-2 py-0.5 rounded-full border border-theatre-gold/30 uppercase tracking-wider">
+                                100% Secure
+                              </span>
+                            </div>
+
+                            <p className="text-[11px] text-gray-400 leading-relaxed font-light">
+                              Fast, encrypted checkout supporting all major payment options:
+                            </p>
+
+                            <div className="grid grid-cols-2 gap-2 text-[11px] text-gray-300">
+                              <div className="flex items-center space-x-2 bg-black/40 px-2.5 py-2 rounded-xl border border-white/5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-theatre-gold flex-shrink-0"></span>
+                                <span className="text-xs font-medium text-gray-200">UPI (GPay, PhonePe, Paytm)</span>
+                              </div>
+                              <div className="flex items-center space-x-2 bg-black/40 px-2.5 py-2 rounded-xl border border-white/5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-theatre-gold flex-shrink-0"></span>
+                                <span className="text-xs font-medium text-gray-200">Credit & Debit Cards</span>
+                              </div>
+                              <div className="flex items-center space-x-2 bg-black/40 px-2.5 py-2 rounded-xl border border-white/5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-theatre-gold flex-shrink-0"></span>
+                                <span className="text-xs font-medium text-gray-200">Net Banking (50+ Banks)</span>
+                              </div>
+                              <div className="flex items-center space-x-2 bg-black/40 px-2.5 py-2 rounded-xl border border-white/5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-theatre-gold flex-shrink-0"></span>
+                                <span className="text-xs font-medium text-gray-200">Wallets & PayLater</span>
+                              </div>
+                            </div>
                           </div>
                         </div>
 
@@ -2327,12 +2454,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             {isPaying ? (
                               <>
                                 <RefreshCw className="w-4 h-4 animate-spin text-theatre-grey-deep" />
-                                <span>Processing Secure Payment...</span>
+                                <span>Opening Razorpay Gateway...</span>
                               </>
                             ) : (
                               <>
                                 <CreditCard className="w-4 h-4 text-theatre-grey-deep" />
-                                <span>Pay ₹{formatCurrency(advancePaymentRequired)} Advance</span>
+                                <span>Pay ₹{formatCurrency(advancePaymentRequired)} Advance via Razorpay</span>
                               </>
                             )}
                           </button>

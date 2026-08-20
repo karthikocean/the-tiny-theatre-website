@@ -4,8 +4,16 @@ import { formatErrorMessage } from "./TextHelper";
 
 class ShowNotifications {
   static showAlertNotification(message, isSuccess = true) {
+    if (!message) return;
     const formattedMessage = formatErrorMessage(message);
+    const toastId = `${isSuccess ? 'success' : 'error'}_${formattedMessage}`;
+
+    if (toast.isActive(toastId)) {
+      return;
+    }
+
     const options = {
+      toastId: toastId,
       position: "top-right",
       autoClose: 3000,
       hideProgressBar: true,
@@ -32,17 +40,16 @@ class ShowNotifications {
   }
 
   static showNotification(message, type = "info") {
+    if (!message) return;
     const formattedMessage = formatErrorMessage(message);
-    const baseStyle = {
-      background: "#ffffff",
-      color: "#4b5563",
-      fontWeight: "500",
-      borderRadius: "8px",
-      border: "1px solid #e5e7eb",
-      boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-    };
+    const toastId = `${type}_${formattedMessage}`;
+
+    if (toast.isActive(toastId)) {
+      return;
+    }
 
     const options = {
+      toastId: toastId,
       position: "top-right",
       autoClose: 3000,
       hideProgressBar: true,
