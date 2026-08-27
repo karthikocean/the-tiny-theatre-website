@@ -169,12 +169,12 @@ export default function Footer() {
             <ul className="space-y-4 text-sm font-light">
               <li className="flex items-start space-x-3">
                 <MapPin className="w-4.5 h-4.5 text-theatre-gold mt-0.5 flex-shrink-0" />
-                <span>
-                  UMA COMPLEX<br />
-                  PLOT NO. 14, Professors Colony, I.A.F. Road,<br />
-                  Tambaram East, Chennai,<br />
-                  Tamil Nadu - 600 059.
-                </span>
+                <div className="flex flex-col space-y-0.5">
+                  <span>UMA COMPLEX PLOT NO. 14,</span>
+                  <span> Professors Colony, I.A.F. Road,</span>
+                  <span>Tambaram East, Chennai,</span>
+                  <span>Tamil Nadu - 600 059.</span>
+                </div>
               </li>
               <li className="flex items-center space-x-3">
                 <Phone className="w-4.5 h-4.5 text-theatre-gold flex-shrink-0" />

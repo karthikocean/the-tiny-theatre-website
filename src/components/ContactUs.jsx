@@ -36,12 +36,12 @@ export default function ContactUs() {
             </div>
             <div className="w-8 h-px bg-theatre-gold/30 mb-4" />
             <h4 className="text-white font-sans text-lg font-bold tracking-wide mb-3">Corporate Office</h4>
-            <p className="text-gray-400 font-sans font-light text-sm leading-relaxed">
-              UMA COMPLEX<br />
-              PLOT NO. 14, Professors Colony, I.A.F. Road,<br />
-              Tambaram East, Chennai,<br />
-              Tamil Nadu - 600 059.
-            </p>
+            <div className="text-gray-400 font-sans font-light text-sm leading-relaxed flex flex-col space-y-0.5">
+              <span>UMA COMPLEX</span>
+              <span>PLOT NO. 14, Professors Colony, I.A.F. Road,</span>
+              <span>Tambaram East, Chennai,</span>
+              <span>Tamil Nadu - 600 059.</span>
+            </div>
           </motion.div>
 
           <motion.div
