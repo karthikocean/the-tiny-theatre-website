@@ -38,7 +38,8 @@ export default function ContactUs() {
             <h4 className="text-white font-sans text-lg font-bold tracking-wide mb-3">Corporate Office</h4>
             <p className="text-gray-400 font-sans font-light text-sm leading-relaxed">
               UMA COMPLEX<br />
-              PLOT NO. 14, Professors Colony, I.A.F. Road, Tambaram East, Chennai,<br />
+              PLOT NO. 14, Professors Colony, I.A.F. Road,<br />
+              Tambaram East, Chennai,<br />
               Tamil Nadu - 600 059.
             </p>
           </motion.div>

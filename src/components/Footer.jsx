@@ -75,7 +75,7 @@ export default function Footer() {
       {/* Decorative spotlights or flares */}
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-theatre-grey/5 rounded-full blur-[100px] pointer-events-none" />
 
-      <div className="max-w-[85rem] mx-auto px-4 sm:px-8 lg:px-12 relative z-10">
+      <div className="w-full mx-auto px-4 sm:px-8 lg:px-16 xl:px-28 relative z-10">
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-12 gap-y-10 gap-x-6 lg:gap-x-8 pb-8 sm:pb-16 border-b border-white/5">
           
           {/* Col 1: Brand Info (Col 1-4) */}
@@ -114,6 +114,7 @@ export default function Footer() {
               {[
                 { name: 'Home', href: '#home', path: '/', icon: Home },
                 { name: 'Why Choose Us', href: '#why-choose-us', path: '/why-choose-us', icon: Award },
+                { name: 'Features', href: '#features', path: '/features', icon: Sparkles },
                 { name: 'Booking Process', href: '#booking-process', path: '/booking-process', icon: Calendar },
                 { name: 'Gallery', href: '#gallery', path: '/gallery', icon: Image },
                 { name: 'Offers', href: '#offers', path: '/offers', icon: Sparkles },
@@ -168,7 +169,12 @@ export default function Footer() {
             <ul className="space-y-4 text-sm font-light">
               <li className="flex items-start space-x-3">
                 <MapPin className="w-4.5 h-4.5 text-theatre-gold mt-0.5 flex-shrink-0" />
-                <span>UMA COMPLEX 14/5, Professors Colony, I.A.F. Road, Tambaram East, Chennai, Tamil Nadu - 600 059.</span>
+                <span>
+                  UMA COMPLEX<br />
+                  PLOT NO. 14, Professors Colony, I.A.F. Road,<br />
+                  Tambaram East, Chennai,<br />
+                  Tamil Nadu - 600 059.
+                </span>
               </li>
               <li className="flex items-center space-x-3">
                 <Phone className="w-4.5 h-4.5 text-theatre-gold flex-shrink-0" />

@@ -12,6 +12,7 @@ import Gallery from './components/Gallery';
 import Screens from './components/Screens';
 import Testimonials from './components/Testimonials';
 import BookNow from './components/BookNow';
+import Features from './components/Features';
 import ContactUs from './components/ContactUs';
 import TermsAndConditions from './components/TermsAndConditions';
 import PrivacyPolicy from './components/PrivacyPolicy';
@@ -72,7 +73,7 @@ function AppContent() {
   };
 
   return (
-    <div className="w-full max-w-full bg-theatre-dark text-white font-sans overflow-x-hidden min-h-screen relative selection:bg-theatre-gold selection:text-theatre-grey-deep">
+    <div className="w-full max-w-full bg-theatre-dark text-white font-sans overflow-x-hidden min-h-screen relative selection:bg-theatre-gold selection:text-theatre-grey-deep flex flex-col">
       
       {/* Curtain Preloader */}
       <AnimatePresence>
@@ -128,7 +129,7 @@ function AppContent() {
       {/* Main Website Sections */}
       <Navbar />
       
-      <main>
+      <main className="flex-grow flex flex-col">
         <Routes>
           <Route path="/" element={
             <>
@@ -138,8 +139,15 @@ function AppContent() {
               <Screens preview={true} onViewMore={() => navigate('/screens')} />
               <BookingProcess preview={true} onViewMore={() => navigate('/booking-process')} />
               <Gallery preview={true} onViewMore={() => navigate('/gallery')} />
+              <Features preview={true} />
               <Testimonials />
             </>
+          } />
+          
+          <Route path="/features" element={
+            <div className="pt-16 sm:pt-20">
+              <Features preview={false} />
+            </div>
           } />
           
           <Route path="/screens" element={
