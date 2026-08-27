@@ -128,12 +128,12 @@ export default function Gallery({ preview, onViewMore }) {
             Review Gallery
           </span>
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-white mb-6 leading-tight">
-            Magic Captured, <br className="hidden sm:inline" />
-            <span className="text-theatre-grey">Reviews Witnessed</span>
+            Magic Captured <br className="hidden sm:inline" />
+            {/* <span className="text-theatre-grey">Reviews Witnessed</span> */}
           </h2>
           <div className="w-20 h-1 bg-gradient-to-r from-theatre-gold to-theatre-grey rounded-full mb-8" />
           <p className="text-gray-400 text-sm sm:text-base font-sans font-light">
-            Browse our photo and video collections and read the real experiences left by our guests who celebrated their special events with us.
+           Browse our photo and video collections and explore the memorable moments captured at our theatre.
           </p>
         </div>
 
