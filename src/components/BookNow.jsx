@@ -1105,7 +1105,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                   <div className="space-y-8 max-w-3xl mx-auto w-full">
                     <div className="space-y-1 text-center py-2 border-b border-white/5 pb-4">
                       <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">Step 1: Screen, Slot & Guest Selection</h3>
-                      <p className="text-xs sm:text-sm text-gray-400">Choose your private screening hall, select an available date & time slot, and specify your guest count.</p>
+                      <p className="text-xs sm:text-sm text-gray-400">Choose your private screening hall, select a date and time that works for you, and tell us how many guests you'll be celebrating with.</p>
                     </div>
 
                     {/* 1.1: Screen Selection */}
@@ -1366,7 +1366,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                             ) : (
                                               <span className="text-green-500 font-semibold capitalize">Available</span>
                                             )}
-                                          </div>
+                                          </div>  
                                         </button>
                                       );
                                     }) : <div className="col-span-full py-4 text-center text-xs text-gray-400">Select date & screen to view slots.</div>}
@@ -1491,7 +1491,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                   <div className="space-y-8 max-w-3xl mx-auto w-full">
                     <div className="space-y-1 text-center py-2 border-b border-white/5 pb-4">
                       <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">Step 2: Occasion, Cake & Decoration</h3>
-                      <p className="text-xs sm:text-sm text-gray-400">Select the event occasion you are celebrating and optional add-on cakes & decor packages.</p>
+                      <p className="text-xs sm:text-sm text-gray-400">Select your occasion and add optional Cakes and Decor to make your experience extra special</p>
                     </div>
 
                     {/* accordion start */}
@@ -1895,7 +1895,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                   <div className="space-y-6 max-w-3xl mx-auto w-full">
                     <div className="space-y-1 text-center py-2 border-b border-white/5 pb-4">
                       <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">Step 3: Celebration Add-ons</h3>
-                      <p className="text-xs sm:text-sm text-gray-400">Select extra bespoke services to capture and elevate your booking experience.</p>
+                      <p className="text-xs sm:text-sm text-gray-400">Choose optional services to personalize and make your celebration even more special</p>
                     </div>
 
                     {/* accordion start */}
@@ -2176,7 +2176,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                   <div className="space-y-8 max-w-3xl mx-auto w-full">
                     <div className="space-y-1 text-center py-2 border-b border-white/5 pb-4">
                       <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">Step 5: Customer Details & Payment</h3>
-                      <p className="text-xs sm:text-sm text-gray-400">Fill in your contact information, verify OTP, accept terms, and pay advance amount.</p>
+                      <p className="text-xs sm:text-sm text-gray-400">Enter your details, verify OTP, accept the Terms and pay the advance to confirm your booking.</p>
                     </div>
 
                     {/* Customer Info Form */}

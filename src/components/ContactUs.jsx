@@ -14,7 +14,7 @@ export default function ContactUs() {
             Contact Us
           </span>
           <h2 className="font-serif text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-theatre-gold via-theatre-gold-light to-theatre-gold mb-6 leading-tight">
-            Where to Find Us
+            Find Your Way to Us
           </h2>
           <div className="w-20 h-1 bg-gradient-to-r from-theatre-gold to-theatre-grey rounded-full mb-8" />
         </div>
@@ -25,17 +25,16 @@ export default function ContactUs() {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
             onClick={() => setActiveCard(activeCard === 0 ? null : 0)}
-            className={`bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl p-8 border shadow-xl hover:border-theatre-gold/25 transition-all duration-300 flex flex-col justify-center items-center text-center cursor-pointer select-none min-h-[260px] ${
-              activeCard === 0
+            className={`bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl p-8 border shadow-xl hover:border-theatre-gold/25 transition-all duration-300 flex flex-col justify-center items-center text-center cursor-pointer select-none min-h-[260px] ${activeCard === 0
                 ? 'border-theatre-gold/60 shadow-md shadow-theatre-gold/10 scale-[1.01]'
                 : 'border-white/5'
-            }`}
+              }`}
           >
             <div className="w-12 h-12 rounded-full bg-theatre-gold/10 flex items-center justify-center mb-6">
               <MapPin className="w-6 h-6 text-theatre-gold" />
             </div>
             <div className="w-8 h-px bg-theatre-gold/30 mb-4" />
-            <h4 className="text-white font-sans text-lg font-bold tracking-wide mb-3">Corporate Office</h4>
+            <h4 className="text-white font-sans text-lg font-bold tracking-wide mb-3">Venue</h4>
             <div className="text-gray-400 font-sans font-light text-sm leading-relaxed flex flex-col space-y-0.5">
               <span>UMA COMPLEX</span>
               <span>PLOT NO. 14, Professors Colony, I.A.F. Road,</span>
@@ -50,11 +49,10 @@ export default function ContactUs() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
             onClick={() => setActiveCard(activeCard === 1 ? null : 1)}
-            className={`bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl p-8 border shadow-xl hover:border-theatre-gold/25 transition-all duration-300 flex flex-col justify-center items-center text-center cursor-pointer select-none min-h-[260px] ${
-              activeCard === 1
+            className={`bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl p-8 border shadow-xl hover:border-theatre-gold/25 transition-all duration-300 flex flex-col justify-center items-center text-center cursor-pointer select-none min-h-[260px] ${activeCard === 1
                 ? 'border-theatre-gold/60 shadow-md shadow-theatre-gold/10 scale-[1.01]'
                 : 'border-white/5'
-            }`}
+              }`}
           >
             <div className="w-12 h-12 rounded-full bg-theatre-gold/10 flex items-center justify-center mb-6">
               <Phone className="w-6 h-6 text-theatre-gold" />
@@ -73,11 +71,10 @@ export default function ContactUs() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
             onClick={() => setActiveCard(activeCard === 2 ? null : 2)}
-            className={`bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl p-8 border shadow-xl hover:border-theatre-gold/25 transition-all duration-300 flex flex-col justify-center items-center text-center cursor-pointer select-none min-h-[260px] ${
-              activeCard === 2
+            className={`bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl p-8 border shadow-xl hover:border-theatre-gold/25 transition-all duration-300 flex flex-col justify-center items-center text-center cursor-pointer select-none min-h-[260px] ${activeCard === 2
                 ? 'border-theatre-gold/60 shadow-md shadow-theatre-gold/10 scale-[1.01]'
                 : 'border-white/5'
-            }`}
+              }`}
           >
             <div className="w-12 h-12 rounded-full bg-theatre-gold/10 flex items-center justify-center mb-6">
               <Mail className="w-6 h-6 text-theatre-gold" />

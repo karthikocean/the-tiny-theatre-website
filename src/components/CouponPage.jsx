@@ -34,18 +34,23 @@ export default function CouponPage() {
       <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-theatre-gold/5 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
+
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-16 flex flex-col items-center">
           <span className="text-theatre-gold font-semibold tracking-widest uppercase text-xs sm:text-sm mb-4 block">
             Exclusive Offers
           </span>
           <h2 className="font-serif text-4xl sm:text-5xl font-bold text-white mb-6 leading-tight">
-            Tiny Theatre <span className="text-theatre-gold">Coupons</span>
+            The Tiny Theatre<span className="text-theatre-gold">Specials</span>
           </h2>
           <div className="w-20 h-1 bg-gradient-to-r from-theatre-gold to-theatre-grey rounded-full mb-8" />
           <p className="text-gray-400 text-base sm:text-lg font-sans font-light leading-relaxed">
-            Explore our available coupons below. During the final payment, you can apply any valid coupon to receive an instant discount on your total booking amount.
+            Make your The Tiny Theatre experience even more special with our exclusive offers and
+            deals. Explore the offers below and redeem your eligible offer at the venue to enjoy the
+            benefits.
+          </p>
+          <p className="text-theatre-gold text-sm sm:text-base font-sans font-medium mt-4 leading-relaxed">
+            No coupon code is required - Just Bring/Let us know your Offer and let the celebration begin!
           </p>
         </div>
 
@@ -59,8 +64,8 @@ export default function CouponPage() {
             coupons.map((coupon, idx) => {
               const Icon = getIcon(idx);
               const discountText = coupon.type === 'Percentage' ? `${coupon.value}% OFF` : `₹${formatCurrency(coupon.value)} OFF`;
-              const expiryText = coupon.validTo 
-                ? `Valid till ${new Date(coupon.validTo).toLocaleDateString('en-GB')}` 
+              const expiryText = coupon.validTo
+                ? `Valid till ${new Date(coupon.validTo).toLocaleDateString('en-GB')}`
                 : 'Limited Time Offer';
 
               return (
@@ -123,6 +128,13 @@ export default function CouponPage() {
               );
             })
           )}
+        </div>
+
+        {/* Note / Terms */}
+        <div className="mt-12 flex justify-center">
+          <p className="text-center text-xs sm:text-sm text-theatre-gold font-semibold bg-theatre-gold/10 border border-theatre-gold/30 px-6 py-2.5 rounded-full shadow-md shadow-theatre-gold/10 backdrop-blur-sm inline-block">
+            * Offers are subject to applicable terms and conditions.
+          </p>
         </div>
       </div>
     </section>
