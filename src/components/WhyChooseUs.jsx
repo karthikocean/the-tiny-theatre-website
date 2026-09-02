@@ -66,12 +66,17 @@ export default function WhyChooseUs({ preview, onViewMore }) {
     },
     {
       title: "Perfect for Every Celebration",
-      desc: "From birthdays and anniversaries to proposals, date nights, family gatherings, and surprise parties, we help make every occasion memorable.",
+      desc: "From birthdays & anniversaries, to proposals, romantic dates, and surprise parties, we help making every occasion memorable with beautiful decoration.",
       image: imgPerfectForEveryCelebration
     },
     {
-      title: "Delicious Cakes & Refreshments",
-      desc: "Complete your celebration with popcorn, snacks, beverages, delicious cakes, and other treats available as part of your experience.",
+      title: "Perfect for every Get-together",
+      desc: "From family reunions and friendly catch-ups, to corporate gatherings, our private theatre brings people together in a space that's comfortable,  exclusive and made for memorable moments",
+      image: imgCorporateGatheringMeeting
+    },
+    {
+      title: "Munch, Sip & Celebrate",
+      desc: "Complete your celebration with a delicious selection of freshly made pop-corn, savouries, and refreshing beverages. indulgent cakes, and more - all available to make your experience even more special!",
       image: imgDeliciousCakesRefreshments
     },
     {
@@ -80,19 +85,14 @@ export default function WhyChooseUs({ preview, onViewMore }) {
       image: imgComfortMeetsLuxury
     },
     {
-      title: "Memories That Last",
-      desc: "We don't just provide a movie screen—we create moments that you'll cherish long after the credits roll.",
+      title: "Memories Worth Remembering",
+      desc: "More than just binge watch, we create unforgettable experiences filled with laughter, celebration and memories you'll treasure long after the credits roll",
       image: imgMemoriesThatLast
     },
     {
-      title: "Friendly & Hassle-Free Service",
-      desc: "Our team is dedicated to ensuring your booking, celebration, and overall experience are smooth, enjoyable, and stress-free.",
+      title: "Seamless Service, Happy Moments",
+      desc: "From the moment you book to the final moment of your celebration, our team is committed to making your experience effortless, enjoyable and truly memorable",
       image: imgFriendlyHassleFreeService
-    },
-    {
-      title: "Corporate Gathering and Meeting",
-      desc: "Be it hosting a presentation or enjoying a day out with your team, we provide the best amenities and service.",
-      image: imgCorporateGatheringMeeting
     }
   ];
 

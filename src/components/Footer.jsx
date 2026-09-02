@@ -1,15 +1,15 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Home, 
-  Sparkles, 
-  Award, 
-  Calendar, 
-  Image, 
-  FileText, 
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Home,
+  Sparkles,
+  Award,
+  Calendar,
+  Image,
+  FileText,
   ShieldAlert,
   RotateCcw,
   BookOpen
@@ -18,7 +18,7 @@ import logoImg from '../assets/logo.png';
 
 export default function Footer() {
   const navigate = useNavigate();
-  
+
   const handleNavClick = (e, path) => {
     e.preventDefault();
     navigate(path);
@@ -77,18 +77,19 @@ export default function Footer() {
 
       <div className="w-full mx-auto px-4 sm:px-8 lg:px-16 xl:px-28 relative z-10">
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-12 gap-y-10 gap-x-6 lg:gap-x-8 pb-8 sm:pb-16 border-b border-white/5">
-          
+
           {/* Col 1: Brand Info (Col 1-4) */}
           <div className="col-span-2 md:col-span-1 lg:col-span-4 space-y-6">
             <a href="#home" onClick={(e) => handleNavClick(e, '/')} className="flex items-center group">
-              <img 
-                src={logoImg} 
-                alt="The Tiny Theatre" 
+              <img
+                src={logoImg}
+                alt="The Tiny Theatre"
                 className="h-20 w-auto object-contain"
               />
             </a>
             <p className="text-sm text-gray-400 leading-relaxed font-light">
-              Providing premium, luxurious private theatre screening halls and bespoke milestone celebration services.
+              Premium private theatre screening halls and personalised celebration experiences in
+              Tambaram, designed for movies, special occasions and memorable moments .
             </p>
             {/* Social Icons */}
             <div className="flex space-x-3">
@@ -196,7 +197,7 @@ export default function Footer() {
         {/* Bottom copyright bar */}
         <div className="flex flex-col lg:flex-row justify-between items-center pt-8 text-sm font-light text-gray-500 gap-4 text-center">
           <div>
-            <p>© {new Date().getFullYear()} The Tiny Theatre Inc. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} The Tiny Theatre. All rights reserved.</p>
           </div>
           <div>
             <h1 className="text-[14px] text-gray-500 text-center lg:text-right">

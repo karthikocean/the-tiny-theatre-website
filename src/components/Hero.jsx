@@ -9,9 +9,9 @@ export default function Hero() {
   return (
     <section id="home" className="relative min-h-screen flex items-center overflow-hidden bg-theatre-dark pt-16 sm:pt-0 pb-15 sm:pb-0">
       {/* Background Theatre Image — mobile */}
-      <div 
+      <div
         className="absolute inset-0 hero-banner-bg sm:hidden"
-        style={{ 
+        style={{
           background: `linear-gradient(180deg, #0000009d 0%, #00000080 100%), url('/banner.png')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
@@ -19,7 +19,7 @@ export default function Hero() {
         }}
       />
       {/* Background Theatre Image — desktop */}
-      <div 
+      <div
         className="absolute inset-0 hero-banner-bg hidden sm:block"
         style={{ backgroundImage: `url('/banner.png')` }}
       />
@@ -47,7 +47,7 @@ export default function Hero() {
               className="inline-flex items-center space-x-2 border border-theatre-gold text-theatre-gold px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider mb-4 sm:mb-6 bg-theatre-dark/20 backdrop-blur-sm"
             >
               <Sparkles className="w-4 h-4 text-theatre-gold" />
-              <span>Experience Cinema, Your Way</span>
+              <span>Tambaram's First Premium Private Theatre </span>
             </motion.div>
 
             {/* Headline */}
@@ -82,10 +82,11 @@ export default function Hero() {
               transition={{ duration: 0.8, delay: 0.4, ease: 'easeOut' }}
               className="text-xs xs:text-sm sm:text-sm md:text-xs lg:text-xs text-light-100 max-w-lg mb-4 sm:mb-6 leading-relaxed font-sans sm:font-extrabold md:font-light lg:font-light text-center lg:text-justify"
             >
-              Escape the crowds and enjoy your own private cinema with your favorite people. Whether
-              it's a birthday, anniversary, proposal, date night, bride to be, family gathering, corporate
-              events, or a surprise celebration, The Tiny Theatre offers an exclusive luxury theatre
-              experience designed just for you.
+              Escape the crowds and step into a Private Cinema experience created exclusively for you
+              and your favorite people. At The Tiny Theatre, every celebration becomes a memory worth
+              reliving - from Your Own Choice of Binge Watch,  Birthdays, Anniversaries, Proposals and
+              Romantic Dates to Bride-to-be/Groom-to-be, Family/Friends Gatherings, Corporate
+              Events/Presentation and Unforgettable Surprises.
             </motion.p>
 
             {/* Movies, Munchies, Memories Box */}
@@ -127,7 +128,7 @@ export default function Hero() {
                 className="group flex items-center justify-center space-x-1.5 sm:space-x-2 bg-gradient-to-r from-theatre-gold to-theatre-gold-dark hover:from-theatre-gold-light hover:to-theatre-gold text-theatre-grey-deep font-bold px-3.5 py-3 sm:px-4 sm:py-3.5 rounded-xl shadow-xl shadow-theatre-gold/15 hover:shadow-theatre-gold/25 hover:scale-102 transition-all duration-300 text-[11px] sm:text-sm w-auto flex-shrink-0"
               >
                 <Ticket className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 text-theatre-grey-deep group-hover:rotate-12 transition-transform duration-300 flex-shrink-0" />
-                <span className="cursor-pointer">Book Your Private Show</span>
+                <span className="cursor-pointer">Reserve Your Screen </span>
               </a>
 
               {/* Hand-drawn style curved arrow pointing to the left */}
@@ -137,7 +138,7 @@ export default function Hero() {
                   <path d="M12 21L5 15L12 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 <span className="font-signature text-[12px] sm:text-lg text-theatre-gold tracking-wide leading-tight text-left block">
-                  Your movie.<br />
+                  Your Theatre.<br />
                   Your people.<br />
                   Your moment.
                 </span>

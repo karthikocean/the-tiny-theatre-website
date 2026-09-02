@@ -1,17 +1,17 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Tv, 
-  Calendar, 
-  UserCheck, 
-  Users, 
-  Sparkles, 
-  Cake, 
-  PlusCircle, 
-  ClipboardCheck, 
-  CreditCard, 
-  CheckCircle2 
+import {
+  Tv,
+  Calendar,
+  UserCheck,
+  Users,
+  Sparkles,
+  Cake,
+  PlusCircle,
+  ClipboardCheck,
+  CreditCard,
+  CheckCircle2
 } from 'lucide-react';
 
 export default function BookingProcess({ preview, onViewMore }) {
@@ -22,7 +22,7 @@ export default function BookingProcess({ preview, onViewMore }) {
       step: '01',
       title: 'Choose Your Screen',
       emoji: '🎬',
-      desc: 'Select the perfect private theatre experience. Choose Screens based on your preferred seating capacity.',
+      desc: 'Find the perfect screen for your celebration. Choose from our private theatre based on your group size and preferred seating capacity.',
       icon: Tv,
       details: []
     },
@@ -30,7 +30,7 @@ export default function BookingProcess({ preview, onViewMore }) {
       step: '02',
       title: 'Pick Your Date & Time',
       emoji: '📅',
-      desc: 'Select your preferred date and Available time slot. Only Available slots are displayed to ensure a smooth booking experience.',
+      desc: 'Select your preferred date and time from the available slots. Our real-time availability ensures a smooth and seamless booking process.',
       icon: Calendar,
       details: []
     },
@@ -38,7 +38,7 @@ export default function BookingProcess({ preview, onViewMore }) {
       step: '03',
       title: 'Select Number of Guests',
       emoji: '👥',
-      desc: 'Tell us how many people will be joining. Pricing is automatically calculated based on the selected screen and guest count.',
+      desc: "Let us know your guest count, and we'll take care of the rest. Your pricing is automatically calculated based on the screen you choose and the number of guests.",
       icon: Users,
       details: []
     },
@@ -46,34 +46,37 @@ export default function BookingProcess({ preview, onViewMore }) {
       step: '04',
       title: 'Choose Your Occasion',
       emoji: '🎉',
-      desc: 'Make your celebration special. Select an occasion such as:',
+      desc: 'Make Your Celebration truly yours. Choose the occasion that brings everyone together.',
       icon: Sparkles,
       details: [
-        'Movie Watching',
-        'Birthday',
+        'Movie Time',
+        'Birthday celebration',
         'Anniversary',
         'Romantic Date',
         'Proposal',
-        'Bride/Groom to be',
+        'Bride-to-be',
+        'Groom-to-be',
         'Farewell',
         'Baby shower',
-        'Kitty party',
-        'Get together'
+        'Kitty Party',
+        'Family/Friends Get-Together',
+        'Corporate Event',
+        'Other Special Occasion'
       ]
     },
     {
       step: '05',
       title: 'Cake Selection',
       emoji: '🎂',
-      desc: 'Would you like a cake? You can select multiple cake flavors for your celebration.',
+      desc: 'Make your Special Moment even sweeter. Choose from our delicious cake flavours - you can select multiple flavours for your celebration.',
       icon: Cake,
       details: []
     },
     {
       step: '06',
-      title: 'Decoration Package',
+      title: 'Optional Decoration',
       emoji: '🎊',
-      desc: 'Personalize your experience. Choose optional decoration services for your screening room.',
+      desc: 'Add a special touch to your experience by choosing from our Optional Decoration for your private screening room.',
       icon: PlusCircle,
       details: []
     },
@@ -81,28 +84,26 @@ export default function BookingProcess({ preview, onViewMore }) {
       step: '07',
       title: 'Celebration Add-ons',
       emoji: '✨',
-      desc: 'Select extra bespoke services to capture and elevate your booking:',
-      icon: Cake,
+      desc: 'Add bespoke experiences and thoughtful touches to make your celebration truly unforgettable:',
+      icon: Sparkles,
       details: [
         'Fog Entry',
-        'Decoration',
-        'LED numbers',
-        'Candle path',
-        'Event Sash',
+        'LED Numbers',
+        'Event sash',
         'Crown',
-        'Karaoke setup'
+        'Karaoke setup and much more..',
       ]
     },
     {
       step: '08',
-      title: 'Enter Your Details',
+      title: 'Tell Us About You',
       emoji: '👤',
-      desc: 'Provide your booking information.',
+      desc: 'Enter your details to complete your booking:',
       icon: UserCheck,
       details: [
         'Full Name',
-        'Mobile Number (OTP Verification)',
-        'Email Address'
+        'Email Address',
+        'Mobile Number (OTP Verification)'
       ]
     },
     {
@@ -115,13 +116,11 @@ export default function BookingProcess({ preview, onViewMore }) {
     },
     {
       step: '10',
-      title: 'Booking Confirmed',
+      title: 'Booking Confirmation',
       emoji: '✅',
-      desc: "You're all set! Once payment is successful, you'll receive:",
+      desc: "You're all set! Your private theatre experience is officially reserved. Once the payment is successfully completed, you'll receive Booking Confirmation via SMS (or) WhatsApp and email.",
       icon: CheckCircle2,
-      details: [
-        'Booking Confirmation via SMS & Email',
-      ]
+      details: []
     }
   ];
 
@@ -132,7 +131,7 @@ export default function BookingProcess({ preview, onViewMore }) {
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-theatre-gold/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-[85rem] mx-auto px-4 sm:px-8 lg:px-12 relative z-10">
-        
+
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-20 flex flex-col items-center">
           <span className="text-theatre-gold font-semibold tracking-widest uppercase text-xs mb-4 block">
@@ -144,16 +143,13 @@ export default function BookingProcess({ preview, onViewMore }) {
           </h2>
           <div className="w-20 h-1 bg-gradient-to-r from-theatre-gold to-theatre-grey rounded-full mb-8" />
           <p className="text-gray-400 text-sm sm:text-base font-sans font-light">
-            {preview 
-              ? "Book your private screening hall rental in just a few simple steps." 
-              : "Review the full step-by-step process of booking a celebration slot at The Tiny Theatre."
-            }
+           Your Celebration starts here - Follow our simple booking process 
           </p>
         </div>
 
         {/* Process Timeline */}
         <div className="relative">
-          
+
           {preview ? (
             /* Homepage Preview: Compact 3-card grid */
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
@@ -284,18 +280,18 @@ export default function BookingProcess({ preview, onViewMore }) {
             >
               <div className="absolute -top-24 -left-24 w-48 h-48 bg-theatre-gold/5 rounded-full blur-3xl pointer-events-none" />
               <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-theatre-grey/5 rounded-full blur-3xl pointer-events-none" />
-              
+
               <h3 className="font-serif text-2xl sm:text-3xl font-bold text-white mb-4">
-                Ready to Create Unforgettable Memories?
+                Ready to Make Memories That Last?
               </h3>
               <p className="text-gray-400 text-sm sm:text-base font-sans font-light max-w-2xl mx-auto mb-8 leading-relaxed">
-                Book your private theatre in just a few simple steps and enjoy a personalized cinematic celebration with your loved ones.
+                Your private theatre experience is just a few simple steps away. Book your own screen and turn every celebration and special moment into a memory worth reliving.
               </p>
               <button
                 onClick={() => navigate('/book-now')}
-                className="inline-flex items-center space-x-2 bg-gradient-to-r from-theatre-gold to-theatre-gold-dark hover:from-theatre-gold-light hover:to-theatre-gold text-theatre-grey-deep font-bold px-8 py-4 rounded-full shadow-lg shadow-theatre-gold/15 hover:shadow-theatre-gold/25 hover:scale-105 transition-all duration-300 text-sm cursor-pointer"
+                className="inline-flex items-center space-x-2 bg-gradient-to-r from-theatre-gold to-theatre-gold-dark hover:from-theatre-gold-light hover:to-theatre-gold text-theatre-grey-deep font-bold px-8 py-4 rounded-full shadow-lg shadow-theatre-gold/15 hover:shadow-theatre-gold/25 hover:scale-105 transition-all duration-300 text-sm cursor-pointer uppercase tracking-wider"
               >
-                <span>Book Now</span>
+                <span>RESERVE NOW</span>
               </button>
             </motion.div>
           )}
