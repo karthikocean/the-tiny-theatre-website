@@ -1267,7 +1267,10 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
                                 {/* Time Slots */}
                                 <div className="space-y-2">
-                                  <label className="text-xs font-semibold text-gray-300 block">Available Time Slots</label>
+                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                    <label className="text-xs font-semibold text-gray-300 block">Available Time Slots</label>
+                                   
+                                  </div>
                                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-56 overflow-y-auto pr-1">
                                     {loadingSlots ? (
                                       Array.from({ length: 4 }).map((_, i) => (
@@ -1291,11 +1294,32 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                         h = h % 12 || 12;
                                         return `${h}:${m} ${ampm}`;
                                       };
+                                      const getDurationText = (start, end) => {
+                                        if (!start || !end) return '3 Hours';
+                                        const dStart = new Date(start);
+                                        const dEnd = new Date(end);
+                                        if (!isNaN(dStart.getTime()) && !isNaN(dEnd.getTime())) {
+                                          const diffMs = dEnd.getTime() - dStart.getTime();
+                                          if (diffMs > 0) {
+                                            const hours = diffMs / (1000 * 60 * 60);
+                                            const formatted = Number.isInteger(hours) ? hours : hours.toFixed(1);
+                                            return `${formatted} Hours`;
+                                          }
+                                        }
+                                        return '3 Hours';
+                                      };
                                       let slotLabel = '';
                                       if (isApiSlot) {
-                                        slotLabel = `${slotItem.slotName} (${formatTime(slotItem.startTime)} to ${formatTime(slotItem.endTime)})`;
+                                        const startTimeStr = formatTime(slotItem.startTime);
+                                        const endTimeStr = formatTime(slotItem.endTime);
+                                        const durationText = getDurationText(slotItem.startTime, slotItem.endTime);
+                                        if (startTimeStr && endTimeStr) {
+                                          slotLabel = `${slotItem.slotName || 'Slot'} (${startTimeStr} to ${endTimeStr}) - ${durationText}`;
+                                        } else {
+                                          slotLabel = `${slotItem.slotName || 'Time Slot'} - ${durationText}`;
+                                        }
                                       } else {
-                                        slotLabel = `${slotItem.startTime} to ${slotItem.endTime} (3 hours)`;
+                                        slotLabel = `${slotItem.startTime} to ${slotItem.endTime} (3 Hours)`;
                                       }
 
                                       const isSelected = selectedTimeSlot === slotLabel;
@@ -1327,10 +1351,13 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                               : 'border-white/10 bg-theatre-dark/40 text-gray-300 hover:border-white/20'
                                             }`}
                                         >
-                                          <div className="font-bold mb-0.5 text-[11px] leading-snug whitespace-normal break-words">{slotLabel}</div>
+                                          <div className="font-bold mb-1 text-[11px] leading-snug whitespace-normal break-words">{slotLabel}</div>
                                           <div className="text-[9px] uppercase tracking-widest flex items-center justify-between">
                                             {isApiSlot && slotItem.price != null ? (
-                                              <span className="text-theatre-gold font-bold normal-case text-xs">₹{formatCurrency(slotItem.price)}</span>
+                                              <div className="flex flex-col">
+                                                <span className="text-theatre-gold font-bold normal-case text-xs">₹{formatCurrency(slotItem.price)}</span>
+                                                <span className="text-[9px] text-gray-400 normal-case font-normal">(Base price valid up to 4 members)</span>
+                                              </div>
                                             ) : (
                                               <span className="text-gray-500">Slot</span>
                                             )}
