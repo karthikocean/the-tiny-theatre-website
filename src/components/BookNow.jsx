@@ -1356,7 +1356,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                             {isApiSlot && slotItem.price != null ? (
                                               <div className="flex flex-col">
                                                 <span className="text-theatre-gold font-bold normal-case text-xs">₹{formatCurrency(slotItem.price)}</span>
-                                                <span className="text-[9px] text-gray-400 normal-case font-normal">(Base price valid up to 4 members)</span>
+                                                <span className="text-[9px] text-theatre-gold font-semibold normal-case">(Base price valid up to 4 members)</span>
                                               </div>
                                             ) : (
                                               <span className="text-gray-500">Slot</span>
