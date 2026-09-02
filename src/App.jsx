@@ -113,9 +113,9 @@ function AppContent() {
               className="relative z-50 text-center px-4 flex flex-col items-center"
             >
               <img 
-                src={logoImg} 
+                src="/image.png" 
                 alt="The Tiny Theatre" 
-                className="h-28 sm:h-36 w-auto object-contain mx-auto"
+                className="h-28 sm:h-36 w-auto object-contain mx-auto animate-pulse"
               />
               <p className="text-theatre-gold mt-4 font-serif text-sm sm:text-base tracking-[0.25em] uppercase font-bold">
                 Opening Curtains...
