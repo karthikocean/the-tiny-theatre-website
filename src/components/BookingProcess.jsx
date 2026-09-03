@@ -22,7 +22,7 @@ export default function BookingProcess({ preview, onViewMore }) {
       step: '01',
       title: 'Choose Your Screen',
       emoji: '🎬',
-      desc: 'Find the perfect screen for your celebration. Choose from our private theatre based on your group size and preferred seating capacity.',
+      desc: 'Find the perfect screen for your celebration. Choose from our two screens, based on your group size and preferred seating capacity.',
       icon: Tv,
       details: []
     },
@@ -49,7 +49,7 @@ export default function BookingProcess({ preview, onViewMore }) {
       desc: 'Make Your Celebration truly yours. Choose the occasion that brings everyone together.',
       icon: Sparkles,
       details: [
-        'Movie Time',
+        'Binge Watch',
         'Birthday celebration',
         'Anniversary',
         'Romantic Date',
@@ -76,7 +76,7 @@ export default function BookingProcess({ preview, onViewMore }) {
       step: '06',
       title: 'Optional Decoration',
       emoji: '🎊',
-      desc: 'Add a special touch to your experience by choosing from our Optional Decoration for your private screening room.',
+      desc: 'Add a special touch to your experience by choosing from our Optional Decoration for your screening room.',
       icon: PlusCircle,
       details: []
     },
