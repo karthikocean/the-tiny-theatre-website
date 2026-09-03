@@ -76,7 +76,7 @@ export default function WhyChooseUs({ preview, onViewMore }) {
     },
     {
       title: "Munch, Sip & Celebrate",
-      desc: "Complete your celebration with a delicious selection of freshly made pop-corn, savouries, and refreshing beverages. indulgent cakes, and more - all available to make your experience even more special!",
+      desc: "Complete your celebration with a delicious selection of freshly made pop-corn, savouries, and refreshing beverages. Indulgent cakes, and more - all available at affordable prices to make your experience even more special",
       image: imgDeliciousCakesRefreshments
     },
     {
@@ -133,14 +133,14 @@ export default function WhyChooseUs({ preview, onViewMore }) {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16 flex flex-col items-center">
           <span className="text-theatre-gold font-semibold tracking-widest uppercase text-xs sm:text-sm mb-4 block">
-            Why Choose The Tiny Theatre?
+            Why Choose The Tiny Theatre
           </span>
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-white mb-6 leading-tight">
             Designed for Unforgettable <span className="text-theatre-gold">Experiences</span>
           </h2>
           <div className="w-20 h-1 bg-gradient-to-r from-theatre-gold to-theatre-grey rounded-full mb-8" />
           <p className="text-gray-400 text-sm sm:text-base font-sans font-light leading-relaxed">
-            At The Tiny Theatre, we believe every celebration deserves a private, comfortable, and unforgettable experience. Here's what makes us special
+            At The Tiny Theatre, we believe every celebration deserves a private, comfortable, and memorable experience. Here's what makes us special
           </p>
         </div>
 
