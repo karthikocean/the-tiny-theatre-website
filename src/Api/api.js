@@ -8,22 +8,22 @@ let server = "";
 
 switch (APP_ENV) {
   case "dev":
-    IMAGE_BASE_URL = "http://192.168.1.14:2001/public";
-    BASE_URL = "http://192.168.1.14:2001/api/website";
-    server = "http://192.168.1.14:2001";
+    IMAGE_BASE_URL = "http://65.0.84.181:5003/public";
+    BASE_URL = "http://65.0.84.181:5003/api/admin";
+    server = "http://65.0.84.181:5003";
     break;
 
   case "production":
-    IMAGE_BASE_URL = "http://65.0.84.181:5003/public";
-    BASE_URL = "http://65.0.84.181:5003/api/website";
-    server = "http://65.0.84.181:5003";
+    IMAGE_BASE_URL = "http://13.234.222.9:3001/public";
+    BASE_URL = "http://13.234.222.9:3001/api/admin";
+    server = "http://13.234.222.9:3001";
     break;
 
   case "local":
   default:
-    IMAGE_BASE_URL = "http://192.168.88.18:2001/public";
-    BASE_URL = "http://192.168.88.18:2001/api/website";
-    server = "http://192.168.88.18:2001";
+    IMAGE_BASE_URL = "http://192.168.88.14:2001/public";
+    BASE_URL = "http://192.168.88.14:2001/api/admin";
+    server = "http://192.168.88.14:2001";
     break;
 }
 
