@@ -20,6 +20,7 @@ import CancellationPolicy from './components/CancellationPolicy';
 import HouseRules from './components/HouseRules';
 import Footer from './components/Footer';
 import CouponPage from './components/CouponPage';
+import NotFound from './components/NotFound';
 import { ArrowUp, Ticket } from 'lucide-react';
 import logoImg from './assets/logo.png';
 
@@ -215,6 +216,13 @@ function AppContent() {
           <Route path="/house-rules" element={
             <div className="pt-5 sm:pt-5">
               <HouseRules />
+            </div>
+          } />
+
+          {/* 404 Catch-All Route */}
+          <Route path="*" element={
+            <div className="pt-24 sm:pt-36 pb-20 sm:pb-28">
+              <NotFound />
             </div>
           } />
         </Routes>
