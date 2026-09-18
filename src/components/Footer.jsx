@@ -185,8 +185,8 @@ export default function Footer() {
               </li>
               <li className="flex items-center space-x-3">
                 <Mail className="w-4.5 h-4.5 text-theatre-gold flex-shrink-0" />
-                <a href="mailto:bookings@tinytheatre.com" className="hover:text-theatre-gold transition-colors duration-300">
-                  bookings@tinytheatre.com
+                <a href="mailto:info@thetinytheatre.in" className="hover:text-theatre-gold transition-colors duration-300">
+                  info@thetinytheatre.in
                 </a>
               </li>
             </ul>

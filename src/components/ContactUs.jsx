@@ -26,8 +26,8 @@ export default function ContactUs() {
             transition={{ duration: 0.5 }}
             onClick={() => setActiveCard(activeCard === 0 ? null : 0)}
             className={`bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl p-8 border shadow-xl hover:border-theatre-gold/25 transition-all duration-300 flex flex-col justify-center items-center text-center cursor-pointer select-none min-h-[260px] ${activeCard === 0
-                ? 'border-theatre-gold/60 shadow-md shadow-theatre-gold/10 scale-[1.01]'
-                : 'border-white/5'
+              ? 'border-theatre-gold/60 shadow-md shadow-theatre-gold/10 scale-[1.01]'
+              : 'border-white/5'
               }`}
           >
             <div className="w-12 h-12 rounded-full bg-theatre-gold/10 flex items-center justify-center mb-6">
@@ -50,8 +50,8 @@ export default function ContactUs() {
             transition={{ duration: 0.5, delay: 0.1 }}
             onClick={() => setActiveCard(activeCard === 1 ? null : 1)}
             className={`bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl p-8 border shadow-xl hover:border-theatre-gold/25 transition-all duration-300 flex flex-col justify-center items-center text-center cursor-pointer select-none min-h-[260px] ${activeCard === 1
-                ? 'border-theatre-gold/60 shadow-md shadow-theatre-gold/10 scale-[1.01]'
-                : 'border-white/5'
+              ? 'border-theatre-gold/60 shadow-md shadow-theatre-gold/10 scale-[1.01]'
+              : 'border-white/5'
               }`}
           >
             <div className="w-12 h-12 rounded-full bg-theatre-gold/10 flex items-center justify-center mb-6">
@@ -72,8 +72,8 @@ export default function ContactUs() {
             transition={{ duration: 0.5, delay: 0.2 }}
             onClick={() => setActiveCard(activeCard === 2 ? null : 2)}
             className={`bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl p-8 border shadow-xl hover:border-theatre-gold/25 transition-all duration-300 flex flex-col justify-center items-center text-center cursor-pointer select-none min-h-[260px] ${activeCard === 2
-                ? 'border-theatre-gold/60 shadow-md shadow-theatre-gold/10 scale-[1.01]'
-                : 'border-white/5'
+              ? 'border-theatre-gold/60 shadow-md shadow-theatre-gold/10 scale-[1.01]'
+              : 'border-white/5'
               }`}
           >
             <div className="w-12 h-12 rounded-full bg-theatre-gold/10 flex items-center justify-center mb-6">
@@ -82,8 +82,8 @@ export default function ContactUs() {
             <div className="w-8 h-px bg-theatre-gold/30 mb-4" />
             <h4 className="text-white font-sans text-lg font-bold tracking-wide mb-3">Email Inquiry</h4>
             <p className="text-gray-400 font-sans font-light text-sm leading-relaxed space-y-1">
-              <a href="mailto:bookings@tinytheatre.com" className="hover:text-theatre-gold transition-colors duration-300 block">
-                bookings@tinytheatre.com
+              <a href="mailto:info@thetinytheatre.in" className="hover:text-theatre-gold transition-colors duration-300 block">
+                info@thetinytheatre.in
               </a>
             </p>
           </motion.div>
