@@ -82,8 +82,8 @@ export default function ContactUs() {
             <div className="w-8 h-px bg-theatre-gold/30 mb-4" />
             <h4 className="text-white font-sans text-lg font-bold tracking-wide mb-3">Email Inquiry</h4>
             <p className="text-gray-400 font-sans font-light text-sm leading-relaxed space-y-1">
-              <a href="mailto:info@tinytheatre.in" className="hover:text-theatre-gold transition-colors duration-300 block">
-                info@tinytheatre.in
+              <a href="mailto:info@thetinytheatre.in" className="hover:text-theatre-gold transition-colors duration-300 block">
+                info@thetinytheatre.in
               </a>
             </p>
           </motion.div>
