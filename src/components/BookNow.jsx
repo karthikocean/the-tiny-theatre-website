@@ -2190,7 +2190,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             type="text"
                             value={customerInfo.fullName}
                             onChange={(e) => {
-                              const cleanedVal = e.target.value.replace(/[0-9]/g, '');
+                              let cleanedVal = e.target.value.replace(/[0-9]/g, '');
+                              cleanedVal = cleanedVal.replace(/^[^a-zA-Z]+/, '');
                               setCustomerInfo({ ...customerInfo, fullName: cleanedVal });
                               setStepErrors(prev => ({ ...prev, fullName: null }));
                             }}
