@@ -14,9 +14,9 @@ switch (APP_ENV) {
     break;
 
   case "production":
-    IMAGE_BASE_URL = "http://13.234.222.9:3001/public";
-    BASE_URL = "http://13.234.222.9:3001/api/website";
-    server = "http://13.234.222.9:3001";
+    IMAGE_BASE_URL = "https://api.thetinytheatre.in/public";
+    BASE_URL = "https://api.thetinytheatre.in/api/website";
+    server = "https://api.thetinytheatre.in";
     break;
 
   case "local":
