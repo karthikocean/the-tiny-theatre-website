@@ -404,7 +404,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   // Dynamic guest charges calculation (Base price covers up to 4 countable guests)
   const paidCategoriesSorted = [...activeCategories]
     .filter(cat => cat.price > 0)
-    .sort((a, b) => b.from - a.from);
+    .sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
 
   let remainingBaseSpots = 4;
   let additionalGuestCharges = 0;
