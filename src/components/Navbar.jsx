@@ -76,7 +76,7 @@ export default function Navbar() {
             <img
               src={logoImg}
               alt="The Tiny Theatre"
-              className="h-19 w-auto object-contain"
+              className="h-24 sm:h-28 w-auto object-contain"
             />
           </a>
 
