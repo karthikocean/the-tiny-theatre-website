@@ -84,7 +84,7 @@ export default function Footer() {
               <img
                 src={logoImg}
                 alt="The Tiny Theatre"
-                className="h-20 w-auto object-contain"
+                className="h-28 sm:h-32 w-auto object-contain"
               />
             </a>
             <p className="text-sm text-gray-400 leading-relaxed font-light">
