@@ -118,7 +118,7 @@ function AppContent() {
                 alt="The Tiny Theatre"
                 className="h-40 sm:h-50 w-auto object-contain mx-auto animate-pulse"
               />
-              <p className="text-theatre-gold mt-4 font-serif text-sm sm:text-base tracking-[0.25em] uppercase font-bold">
+              <p className="text-theatre-gold mt-4 font-serif text-sm sm:text-base tracking-[0.25em] uppercase font-bold pl-[1.5em]">
                 Opening Curtains...
               </p>
             </motion.div>
