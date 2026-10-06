@@ -36,9 +36,9 @@ export default function ContactUs() {
             <div className="w-8 h-px bg-theatre-gold/30 mb-4" />
             <h4 className="text-white font-sans text-lg font-bold tracking-wide mb-3">Venue</h4>
             <div className="text-gray-400 font-sans font-light text-sm leading-relaxed flex flex-col space-y-0.5">
-              <span>UMA COMPLEX</span>
-              <span>PLOT NO. 14, Professors Colony, I.A.F. Road,</span>
-              <span>Tambaram East, Chennai,</span>
+              <span>Uma Complex,</span>
+              <span>Plot No. 14, Professor's Colony Extension,</span>
+              <span>IAF Road, East Tambaram, Chennai,</span>
               <span>Tamil Nadu - 600 059.</span>
             </div>
           </motion.div>

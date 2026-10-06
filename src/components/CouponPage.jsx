@@ -41,11 +41,11 @@ export default function CouponPage() {
             Exclusive Offers
           </span>
           <h2 className="font-serif text-4xl sm:text-5xl font-bold text-white mb-6 leading-tight">
-            The Tiny Theatre<span className="text-theatre-gold">Specials</span>
+            The Tiny Theatre <span className="text-theatre-gold">Specials</span>
           </h2>
           <div className="w-20 h-1 bg-gradient-to-r from-theatre-gold to-theatre-grey rounded-full mb-8" />
           <p className="text-gray-400 text-base sm:text-lg font-sans font-light leading-relaxed">
-            Make your The Tiny Theatre experience even more special with our exclusive offers and
+            Make your experience even more special with our exclusive offers and
             deals. Explore the offers below and redeem your eligible offer at the venue to enjoy the
             benefits.
           </p>
