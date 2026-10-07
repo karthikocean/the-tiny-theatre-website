@@ -530,7 +530,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
   const subtotal = basePrice + additionalGuestCharges + kids3to10Charges + cakeCharges + decorCharges + addonsCharges;
   const totalAmount = subtotal;
-  const advancePaymentRequired = 1;
+  const advancePaymentRequired = 1000;
   const remainingBalance = totalAmount - advancePaymentRequired;
 
   // Dynamic Refund Policy fetching using API with activeStep
