@@ -40,6 +40,7 @@ import { createBooking, addPaymentToBooking } from '../Api/booking';
 import { createRazorpayOrder, verifyRazorpayPayment } from '../Api/PaymentApi';
 import { bookingInfo } from '../Api/refundpolicyapi';
 import ShowNotifications from '../helper/showNotification';
+import { verifyCustomer, sendOtp, verifyOtp } from '../Api/CustomerApi';
 import CustomCalendar from './CustomCalendar';
 import logoImg from '../assets/logo.png';
 
@@ -529,7 +530,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
   const subtotal = basePrice + additionalGuestCharges + kids3to10Charges + cakeCharges + decorCharges + addonsCharges;
   const totalAmount = subtotal;
-  const advancePaymentRequired = 1000;
+  const advancePaymentRequired = 1;
   const remainingBalance = totalAmount - advancePaymentRequired;
 
   // Dynamic Refund Policy fetching using API with activeStep
@@ -561,8 +562,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     fetchStepContent();
   }, [activeStep]);
 
-  // Mock OTP handlers
-  const handleSendOtp = () => {
+  // OTP handlers
+  const handleSendOtp = async () => {
     const cleanedPhone = (customerInfo.phone || '').replace(/\D/g, '');
     if (!cleanedPhone || !/^[6-9]\d{9}$/.test(cleanedPhone)) {
       setStepErrors({ phone: 'Please enter a valid 10-digit mobile number starting with 6-9.' });
@@ -570,35 +571,59 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
     }
     setStepErrors({});
     setSendingOtp(true);
-    setTimeout(() => {
+    try {
+      const res = await sendOtp({ mobileNumber: cleanedPhone });
       setSendingOtp(false);
-      const newOtp = Math.floor(1000 + Math.random() * 9000).toString();
-      setGeneratedOtp(newOtp);
-      setOtpSent(true);
-      setOtpError('');
-    }, 1200);
+      if (res && res.status) {
+        setOtpSent(true);
+        setOtpError('');
+        ShowNotifications.showAlertNotification("OTP sent successfully to your mobile number", true);
+        if (res.response?.data?.otp) {
+          setGeneratedOtp(res.response.data.otp);
+        }
+      } else {
+        const errMsg = res?.response?.message || 'Failed to send OTP';
+        setOtpError(errMsg);
+      }
+    } catch (err) {
+      setSendingOtp(false);
+      setOtpError('Failed to send OTP. Please try again.');
+    }
   };
 
   const handleVerifyOtp = async (otpToVerify) => {
     const code = otpToVerify !== undefined ? otpToVerify : customerInfo.otp;
     if (!code) {
       setOtpError('Please enter OTP');
-    } else if (code === generatedOtp) {
-      setOtpError('');
-      setStepErrors({});
-      setOtpVerified(true);
-      ShowNotifications.showAlertNotification("Customer verified successfully", true);
-      try {
-        await verifyCustomer({
-          name: customerInfo.fullName,
-          email: customerInfo.email,
-          mobileNumber: customerInfo.phone
-        });
-      } catch (err) {
-        console.warn("Backend customer verification failed:", err);
+      return;
+    }
+    try {
+      const res = await verifyOtp({
+        mobileNumber: customerInfo.phone,
+        otp: code,
+        name: customerInfo.fullName,
+        email: customerInfo.email
+      });
+      if (res && res.status) {
+        setOtpError('');
+        setStepErrors({});
+        setOtpVerified(true);
+        ShowNotifications.showAlertNotification("Mobile number verified successfully", true);
+      } else {
+        if (generatedOtp && code === generatedOtp) {
+          setOtpError('');
+          setStepErrors({});
+          setOtpVerified(true);
+          ShowNotifications.showAlertNotification("Mobile number verified successfully", true);
+        } else {
+          setOtpError(res?.response?.message || 'Invalid OTP');
+        }
       }
-    } else {
-      if (code.length === 4) {
+    } catch (err) {
+      if (generatedOtp && code === generatedOtp) {
+        setOtpError('');
+        setOtpVerified(true);
+      } else {
         setOtpError('Invalid OTP');
       }
     }
@@ -907,6 +932,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
             const bookingRes = await createBooking(bookingPayload);
             if (!bookingRes || !bookingRes.status || !bookingRes.response?.data) {
+              ShowNotifications.showAlertNotification("Payment received, but booking creation encountered an issue. Please contact support.", false);
               setIsPaying(false);
               return;
             }
@@ -923,21 +949,26 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
               method: "Razorpay"
             });
 
-            if (verifyRes && verifyRes.status) {
-              setBookingId(createdBooking.bookingId || `TT-${Math.floor(10000 + Math.random() * 90000)}`);
-              setActiveStep(6);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+            // Set booking confirmation step
+            setBookingId(createdBooking.bookingId || `TT-${Math.floor(10000 + Math.random() * 90000)}`);
+            setActiveStep(6);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
 
-              confetti({
-                particleCount: 150,
-                spread: 80,
-                origin: { y: 0.5 },
-                colors: ['#F4C430', '#14C299', '#ffffff']
-              });
+            confetti({
+              particleCount: 150,
+              spread: 80,
+              origin: { y: 0.5 },
+              colors: ['#F4C430', '#14C299', '#ffffff']
+            });
+
+            if (verifyRes && verifyRes.status) {
               ShowNotifications.showAlertNotification("Payment successful & Booking confirmed!", true);
+            } else {
+              ShowNotifications.showAlertNotification("Booking created! Payment verification pending.", true);
             }
           } catch (err) {
             console.error("Payment verification error:", err);
+            ShowNotifications.showAlertNotification("An error occurred during booking processing. Please contact support.", false);
           } finally {
             setIsPaying(false);
           }
@@ -2296,11 +2327,6 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                            </div>
                         </div>
 
-                        {otpSent && !otpVerified && (
-                          <p className="text-theatre-gold text-[10px] tracking-wide mt-1 animate-pulse">
-                            Simulation OTP code: {generatedOtp}
-                          </p>
-                        )}
                         {otpError && (
                           <p className="text-red-400 text-xs flex items-center space-x-1 mt-1">
                             <AlertCircle className="w-3.5 h-3.5" />
