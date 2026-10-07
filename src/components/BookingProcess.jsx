@@ -110,7 +110,7 @@ export default function BookingProcess({ preview, onViewMore }) {
       step: '09',
       title: 'Pay Advance Amount',
       emoji: '💳',
-      desc: 'Secure your booking instantly. Pay the required ₹1,000 advance using our secure online payment gateway.',
+      desc: 'Secure your booking instantly. Pay the required ₹1 advance using our secure online payment gateway.',
       icon: CreditCard,
       details: []
     },

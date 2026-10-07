@@ -15,9 +15,34 @@ class CustomerApi {
         }
     };
 
+    sendOtp = async (data) => {
+        try {
+            const response = await api.post("/customers/send-otp", data);
+            if (response.status === 200 || response.status === 201) {
+                return { status: true, response: response.data };
+            }
+        } catch (error) {
+            const errorMessage = error?.response?.data?.message || error?.message || "Failed to send OTP.";
+            ShowNotifications.showAlertNotification(errorMessage, false);
+            return { status: false, response: error?.response?.data || error };
+        }
+    };
+
+    verifyOtp = async (data) => {
+        try {
+            const response = await api.post("/customers/verify-otp", data);
+            if (response.status === 200 || response.status === 201) {
+                return { status: true, response: response.data };
+            }
+        } catch (error) {
+            const errorMessage = error?.response?.data?.message || error?.message || "Failed to verify OTP.";
+            ShowNotifications.showAlertNotification(errorMessage, false);
+            return { status: false, response: error?.response?.data || error };
+        }
+    };
 }
 
 const customerApi = new CustomerApi();
 export default customerApi;
 
-export const { verifyCustomer } = customerApi;
+export const { verifyCustomer, sendOtp, verifyOtp } = customerApi;
