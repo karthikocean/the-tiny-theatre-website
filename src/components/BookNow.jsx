@@ -37,7 +37,7 @@ import { getSlots } from '../Api/slotsapi';
 import { getOccasions } from '../Api/occasionsapi';
 import { getDecorations } from '../Api/decorationapi';
 import { createBooking, addPaymentToBooking } from '../Api/booking';
-import { createRazorpayOrder, verifyRazorpayPayment } from '../Api/PaymentApi';
+import { createRazorpayOrder, verifyRazorpayPayment, checkPaymentStatus, markPaymentFailed } from '../Api/PaymentApi';
 import { bookingInfo } from '../Api/refundpolicyapi';
 import ShowNotifications from '../helper/showNotification';
 import { verifyCustomer, sendOtp, verifyOtp } from '../Api/CustomerApi';
@@ -152,6 +152,99 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   const [paymentMethod, setPaymentMethod] = useState('upi');
   const [isPaying, setIsPaying] = useState(false);
   const [bookingId, setBookingId] = useState('');
+  const [paymentFailedInfo, setPaymentFailedInfo] = useState(null);
+  const [checkingStatus, setCheckingStatus] = useState(false);
+  const [pendingBookingId, setPendingBookingId] = useState('');
+
+  // Handle Refresh Payment Status
+  const handleRefreshPaymentStatus = async (targetBookingId) => {
+    const bId = targetBookingId || paymentFailedInfo?.dbBookingId || pendingBookingId;
+    if (!bId) {
+      ShowNotifications.showAlertNotification("No pending booking reference found to check.", false);
+      return;
+    }
+    setCheckingStatus(true);
+    try {
+      const res = await checkPaymentStatus(bId, true);
+      if (res && res.status && res.response?.data) {
+        const data = res.response.data;
+        const pStatus = data.paymentStatus;
+        const bStatus = data.bookingStatus;
+        const booking = data.booking;
+
+        if (pStatus === 'Paid' || bStatus === 'Booked') {
+          setBookingId(booking?.bookingId || bId);
+          setPaymentFailedInfo(null);
+          localStorage.removeItem('tt_pending_booking');
+          setActiveStep(6);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          confetti({
+            particleCount: 150,
+            spread: 80,
+            origin: { y: 0.5 },
+            colors: ['#F4C430', '#14C299', '#ffffff']
+          });
+          ShowNotifications.showAlertNotification("Payment Verified! Your Booking is Confirmed 🎉", true);
+        } else if (pStatus === 'Failed' || bStatus === 'Failed') {
+          setPaymentFailedInfo({
+            isFailed: true,
+            message: "Payment transaction was not completed or failed. You can click 'Retry Payment' to try again.",
+            dbBookingId: booking?._id || bId,
+            bookingId: booking?.bookingId,
+            razorpayOrderId: booking?.razorpayOrderId
+          });
+          ShowNotifications.showAlertNotification("Payment Status Checked: Payment Failed or Expired.", false);
+        } else {
+          ShowNotifications.showAlertNotification(`Payment status is currently ${pStatus || bStatus}. Please wait a moment and try refreshing again.`, true);
+        }
+      }
+    } catch (err) {
+      console.error("Refresh status error:", err);
+      ShowNotifications.showAlertNotification("Failed to check payment status. Please try again.", false);
+    } finally {
+      setCheckingStatus(false);
+    }
+  };
+
+  // Check pending booking on mount (app reload recovery)
+  useEffect(() => {
+    try {
+      const savedPending = localStorage.getItem('tt_pending_booking');
+      if (savedPending) {
+        const pendingObj = JSON.parse(savedPending);
+        if (pendingObj && pendingObj.bookingId) {
+          setPendingBookingId(pendingObj.bookingId);
+          checkPaymentStatus(pendingObj.bookingId, false).then(res => {
+            if (res && res.status && res.response?.data) {
+              const data = res.response.data;
+              if (data.paymentStatus === 'Paid' || data.bookingStatus === 'Booked') {
+                setBookingId(data.booking?.bookingId || pendingObj.bookingId);
+                localStorage.removeItem('tt_pending_booking');
+                setActiveStep(6);
+                confetti({
+                  particleCount: 150,
+                  spread: 80,
+                  origin: { y: 0.5 },
+                  colors: ['#F4C430', '#14C299', '#ffffff']
+                });
+                ShowNotifications.showAlertNotification("Payment Verified! Booking Confirmed 🎉", true);
+              } else if (data.paymentStatus === 'Failed' || data.bookingStatus === 'Failed') {
+                setPaymentFailedInfo({
+                  isFailed: true,
+                  message: "Previous payment attempt was not completed.",
+                  dbBookingId: pendingObj.bookingId,
+                  bookingId: data.booking?.bookingId,
+                  razorpayOrderId: pendingObj.orderId
+                });
+              }
+            }
+          });
+        }
+      }
+    } catch (e) {
+      console.error("Pending booking reading error:", e);
+    }
+  }, []);
   useEffect(() => {
     if (location.state?.selectedOccasion) {
       setEventCategory(location.state.selectedOccasion);
@@ -875,8 +968,18 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         companyDetails: customerInfo.companyDetails
       };
 
-      // 1. Create Razorpay order from backend
+      // 1. Create booking in DB (Status: Hold for 8 minutes)
+      const bookingRes = await createBooking(bookingData);
+      if (!bookingRes || !bookingRes.status || !bookingRes.response?.data) {
+        setIsPaying(false);
+        return;
+      }
+      const createdBooking = bookingRes.response.data;
+      setPendingBookingId(createdBooking._id);
+
+      // 2. Create Razorpay order from backend
       const orderRes = await createRazorpayOrder({
+        bookingId: createdBooking._id,
         amount: advancePaymentRequired,
         currency: "INR",
         notes: {
@@ -894,7 +997,20 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         return;
       }
 
-      // 2. Ensure Razorpay SDK is loaded
+      const orderData = orderRes.response.data;
+
+      // Save pending booking info to localStorage for browser reload / UPI app return recovery
+      try {
+        localStorage.setItem('tt_pending_booking', JSON.stringify({
+          bookingId: createdBooking._id,
+          bookingDisplayId: createdBooking.bookingId,
+          orderId: orderData.orderId
+        }));
+      } catch (e) {
+        console.error("localStorage save error:", e);
+      }
+
+      // 3. Ensure Razorpay SDK is loaded
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded || typeof window.Razorpay === 'undefined') {
         ShowNotifications.showAlertNotification("Razorpay payment SDK could not be loaded. Please check your internet connection.", false);
@@ -902,14 +1018,12 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         return;
       }
 
-      const orderData = orderRes.response.data;
-
       // Absolute logo URL for Razorpay modal
       const logoUrl = (typeof window !== 'undefined' && window.location && window.location.origin)
         ? `${window.location.origin}/logo.png`
         : logoImg;
 
-      // 3. Open Razorpay Checkout Modal (Slot remains unblocked until verified payment)
+      // 4. Open Razorpay Checkout Modal
       const rzpOptions = {
         key: orderData.key || orderData.keyId,
         amount: orderData.amount, // in paise
@@ -922,24 +1036,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
           try {
             setIsPaying(true);
 
-            // A. Create confirmed booking in database with Razorpay payment details
-            const bookingPayload = {
-              ...bookingData,
-              razorpayOrderId: paymentResponse.razorpay_order_id,
-              razorpayPaymentId: paymentResponse.razorpay_payment_id,
-              razorpaySignature: paymentResponse.razorpay_signature
-            };
-
-            const bookingRes = await createBooking(bookingPayload);
-            if (!bookingRes || !bookingRes.status || !bookingRes.response?.data) {
-              ShowNotifications.showAlertNotification("Payment received, but booking creation encountered an issue. Please contact support.", false);
-              setIsPaying(false);
-              return;
-            }
-
-            const createdBooking = bookingRes.response.data;
-
-            // B. Verify cryptographic signature & record payment on backend
+            // Verify cryptographic signature & record payment on backend
             const verifyRes = await verifyRazorpayPayment({
               bookingId: createdBooking._id,
               razorpay_order_id: paymentResponse.razorpay_order_id,
@@ -949,7 +1046,8 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
               method: "Razorpay"
             });
 
-            // Set booking confirmation step
+            localStorage.removeItem('tt_pending_booking');
+            setPaymentFailedInfo(null);
             setBookingId(createdBooking.bookingId || `TT-${Math.floor(10000 + Math.random() * 90000)}`);
             setActiveStep(6);
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -990,7 +1088,15 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
         modal: {
           ondismiss: function () {
             setIsPaying(false);
-            ShowNotifications.showAlertNotification("Payment cancelled. You can click 'Pay Advance' to retry anytime.", false);
+            markPaymentFailed({ bookingId: createdBooking._id, reason: 'User dismissed modal' });
+            setPaymentFailedInfo({
+              isFailed: true,
+              message: "Payment popup was closed. If money was debited from your account, click 'Refresh Payment Status' to check bank confirmation.",
+              dbBookingId: createdBooking._id,
+              bookingId: createdBooking.bookingId,
+              razorpayOrderId: orderData.orderId
+            });
+            ShowNotifications.showAlertNotification("Payment window closed. Click 'Refresh Payment Status' or retry.", false);
           }
         }
       };
@@ -998,6 +1104,14 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       const rzpInstance = new window.Razorpay(rzpOptions);
       rzpInstance.on('payment.failed', function (failResponse) {
         console.error("Razorpay Payment Failed:", failResponse.error);
+        markPaymentFailed({ bookingId: createdBooking._id, reason: failResponse.error?.description || 'Payment Failed' });
+        setPaymentFailedInfo({
+          isFailed: true,
+          message: failResponse.error?.description || "Payment failed. If money was debited from your account, click 'Refresh Payment Status'.",
+          dbBookingId: createdBooking._id,
+          bookingId: createdBooking.bookingId,
+          razorpayOrderId: orderData.orderId
+        });
         ShowNotifications.showAlertNotification(failResponse.error?.description || "Payment failed. Please try again.", false);
         setIsPaying(false);
       });
@@ -2432,6 +2546,40 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                         </p>
                       )}
                     </div>
+
+                    {/* Payment Failed Banner */}
+                    {paymentFailedInfo?.isFailed && (
+                      <div className="bg-red-950/40 border border-red-500/50 rounded-2xl p-5 space-y-4 shadow-xl my-4">
+                        <div className="flex items-start space-x-3">
+                          <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5 animate-pulse" />
+                          <div className="space-y-1 flex-grow">
+                            <h4 className="text-sm font-bold text-red-400">Payment Status: Failed</h4>
+                            <p className="text-xs text-gray-300 leading-relaxed">
+                              {paymentFailedInfo.message || "Your payment transaction was not completed. You can click 'Retry Payment' to try again."}
+                            </p>
+                            {paymentFailedInfo.bookingId && (
+                              <span className="text-[11px] text-gray-400 block pt-1 font-mono">
+                                Booking Reference: <strong className="text-theatre-gold">{paymentFailedInfo.bookingId}</strong>
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end pt-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPaymentFailedInfo(null);
+                              handlePayment();
+                            }}
+                            className="bg-gradient-to-r from-theatre-gold to-theatre-gold-dark text-theatre-grey-deep font-sans font-bold py-2.5 px-5 rounded-xl shadow-md flex items-center justify-center space-x-2 text-xs transition-all cursor-pointer"
+                          >
+                            <CreditCard className="w-4 h-4 text-theatre-grey-deep" />
+                            <span>Retry Payment</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                     {termsAccepted && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-white/5">
