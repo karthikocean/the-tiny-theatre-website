@@ -40,9 +40,36 @@ class PaymentApi {
             return { status: false, response: error?.response?.data || error };
         }
     };
+
+    checkPaymentStatus = async (bookingId, showAlert = true) => {
+        try {
+            const response = await api.get(`/payments/check-status/${bookingId}`);
+            if (response.status === 200 || response.status === 201) {
+                return { status: true, response: response.data };
+            }
+        } catch (error) {
+            const errorMessage = error?.response?.data?.message || error?.message || "Failed to check payment status.";
+            if (showAlert) {
+                ShowNotifications.showAlertNotification(errorMessage, false);
+            }
+            return { status: false, response: error?.response?.data || error };
+        }
+    };
+
+    markPaymentFailed = async (data) => {
+        try {
+            const response = await api.post("/payments/mark-failed", data);
+            if (response.status === 200 || response.status === 201) {
+                return { status: true, response: response.data };
+            }
+        } catch (error) {
+            const errorMessage = error?.response?.data?.message || error?.message || "Failed to update payment status.";
+            return { status: false, response: error?.response?.data || error };
+        }
+    };
 }
 
 const paymentApi = new PaymentApi();
 export default paymentApi;
 
-export const { getRazorpayKey, createRazorpayOrder, verifyRazorpayPayment } = paymentApi;
+export const { getRazorpayKey, createRazorpayOrder, verifyRazorpayPayment, checkPaymentStatus, markPaymentFailed } = paymentApi;
