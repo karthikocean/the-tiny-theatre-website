@@ -1473,13 +1473,15 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                         b.date === selectedDate &&
                                         b.slot === slotLabel
                                       );
+                                      const isHold = isApiSlot && !isBooked && slotItem.isHold;
+                                      const isUnavailable = isBooked || isHold;
 
                                       return (
                                         <button
                                           type="button"
                                           key={isApiSlot ? slotItem._id : slotLabel}
                                           onClick={() => {
-                                            if (!isBooked) {
+                                            if (!isUnavailable) {
                                               setSelectedTimeSlot(slotLabel);
                                               setSelectedSlotId(isApiSlot ? slotItem._id : null);
                                               setStepErrors({});
@@ -1488,12 +1490,14 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                               setGuestCounts({});
                                             }
                                           }}
-                                          disabled={isBooked}
+                                          disabled={isUnavailable}
                                           className={`py-2.5 px-3 rounded-xl text-left border transition-all duration-300 text-xs font-sans ${isSelected
                                             ? 'border-theatre-gold bg-theatre-gold/10 text-theatre-gold shadow-md'
                                             : isBooked
                                               ? 'border-red-500/40 bg-red-500/20 text-gray-400 cursor-not-allowed'
-                                              : 'border-white/10 bg-theatre-dark/40 text-gray-300 hover:border-white/20'
+                                              : isHold
+                                                ? 'border-amber-500/40 bg-amber-500/15 text-amber-200/90 cursor-not-allowed shadow-[0_0_10px_rgba(245,158,11,0.1)]'
+                                                : 'border-white/10 bg-theatre-dark/40 text-gray-300 hover:border-white/20'
                                             }`}
                                         >
                                           <div className="font-bold mb-1 text-[11px] leading-snug whitespace-normal break-words">{slotLabel}</div>
@@ -1508,6 +1512,11 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                             )}
                                             {isBooked ? (
                                               <span className="text-red-500 font-semibold capitalize">Booked</span>
+                                            ) : isHold ? (
+                                              <span className="text-amber-400 font-semibold capitalize flex items-center gap-1.5" title="Another customer is currently completing payment for this slot">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                                                On Hold
+                                              </span>
                                             ) : (
                                               <span className="text-green-500 font-semibold capitalize">Available</span>
                                             )}
