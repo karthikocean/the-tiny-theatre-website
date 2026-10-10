@@ -807,6 +807,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
 
   // Returns the first invalid prerequisite step number for a given target step
   const getFirstInvalidPrerequisite = (targetStep) => {
+    if (targetStep > 5 || bookingId) return null;
     for (let s = 1; s < targetStep; s++) {
       if (!isStepValid(s)) return s;
     }
@@ -1216,7 +1217,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                 {activeStep === 1 && getFirstInvalidPrerequisite(1) === null && (() => null)()}
 
                 {/* Step prerequisite error card */}
-                {activeStep > 1 && getFirstInvalidPrerequisite(activeStep) !== null && (() => {
+                {activeStep > 1 && activeStep <= 5 && !bookingId && getFirstInvalidPrerequisite(activeStep) !== null && (() => {
                   const failedStep = getFirstInvalidPrerequisite(activeStep);
                   const failedStepName = stepNames[failedStep - 1];
                   return (
