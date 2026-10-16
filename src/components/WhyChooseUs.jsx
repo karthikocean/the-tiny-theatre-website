@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 
 // NOTE: These local images are placeholders and will be replaced in future once our theatre setup is ready.
 // Import local images from src/assets
-import imgExclusivePrivateTheatre from '../assets/web Banner 2.jpg';
-import imgCinemaQualityAudioVisuals from '../assets/Why Choose us.jpg';
+import imgExclusivePrivateTheatre from '../assets/webBanner.jpg';
+import imgCinemaQualityAudioVisuals from '../assets/whychooseus.jpg';
 import imgPerfectForEveryCelebration from '../assets/perfect.jpg';
 import imgDeliciousCakesRefreshments from '../assets/1.jpg';
 import imgComfortMeetsLuxury from '../assets/3.jpg';
