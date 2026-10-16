@@ -4,14 +4,14 @@ import { useNavigate } from 'react-router-dom';
 
 // NOTE: These local images are placeholders and will be replaced in future once our theatre setup is ready.
 // Import local images from src/assets
-import imgExclusivePrivateTheatre from '../assets/Exclusive-Private-Theatre.webp';
-import imgCinemaQualityAudioVisuals from '../assets/Cinema-Quality-Audio-and-Visuals.webp';
-import imgPerfectForEveryCelebration from '../assets/Perfect-for-Every-Celebration.jpeg';
-import imgDeliciousCakesRefreshments from '../assets/Delicious-Cakes-and-Refreshments.png';
-import imgComfortMeetsLuxury from '../assets/comforts.png';
-import imgMemoriesThatLast from '../assets/Memories-That-Last.jpg';
-import imgFriendlyHassleFreeService from '../assets/hasslefreeservice.png';
-import imgCorporateGatheringMeeting from '../assets/corporate-meetings.png';
+import imgExclusivePrivateTheatre from '../assets/web Banner 2.jpg';
+import imgCinemaQualityAudioVisuals from '../assets/Why Choose us.jpg';
+import imgPerfectForEveryCelebration from '../assets/perfect.jpg';
+import imgDeliciousCakesRefreshments from '../assets/1.jpg';
+import imgComfortMeetsLuxury from '../assets/3.jpg';
+import imgMemoriesThatLast from '../assets/memories.jpg';
+import imgFriendlyHassleFreeService from '../assets/services.jpg';
+import imgCorporateGatheringMeeting from '../assets/6.jpg';
 
 export default function WhyChooseUs({ preview, onViewMore }) {
   const navigate = useNavigate();
@@ -176,7 +176,7 @@ export default function WhyChooseUs({ preview, onViewMore }) {
                     src={feat.image}
                     alt={feat.title}
                     draggable="false"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-100 select-none pointer-events-none"
+                    className="w-full h-full object-fill group-hover:scale-105 transition-transform duration-700 opacity-100 select-none pointer-events-none"
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = "https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=600&q=80";
