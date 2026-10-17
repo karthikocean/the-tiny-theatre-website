@@ -165,18 +165,18 @@ export default function WhyChooseUs({ preview, onViewMore }) {
               <motion.div
                 key={idx}
                 variants={cardVariants}
-                className={`bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl border border-theatre-gold/45 hover:border-theatre-gold/80 flex flex-col transition-all duration-300 group cursor-default hover:shadow-xl hover:shadow-theatre-gold/5 relative overflow-hidden h-auto ${
-                  preview ? "flex-none w-[75vw] sm:w-[320px] lg:w-[29%] xl:w-[29%] snap-start max-sm:min-h-[380px]" : "w-full"
+                className={`bg-theatre-grey-deep/15 backdrop-blur-md rounded-3xl border border-theatre-gold/45 hover:border-theatre-gold/80 flex flex-col transition-all duration-300 group cursor-default hover:shadow-xl hover:shadow-theatre-gold/5 relative overflow-hidden ${
+                  preview ? "flex-none w-[75vw] sm:w-[320px] lg:w-[29%] xl:w-[29%] snap-start" : "w-full"
                 }`}
               >
-                {/* Background/Header Image */}
-                <div className={`relative w-full overflow-hidden z-0 ${preview ? 'max-sm:absolute max-sm:inset-0 max-sm:h-full h-56' : 'h-56'}`}>
-                  <div className={`absolute inset-0 bg-gradient-to-t ${preview ? 'max-sm:from-theatre-dark max-sm:via-theatre-dark/70 max-sm:to-transparent from-theatre-dark/95 via-transparent to-transparent' : 'from-theatre-dark/95 via-transparent to-transparent'} z-10`} />
+                {/* Header Image */}
+                <div className="relative w-full h-44 sm:h-52 lg:h-56 overflow-hidden z-0">
+                  <div className="absolute inset-0 bg-gradient-to-t from-theatre-dark/95 via-transparent to-transparent z-10" />
                   <img
                     src={feat.image}
                     alt={feat.title}
                     draggable="false"
-                    className="w-full h-full object-fill group-hover:scale-105 transition-transform duration-700 opacity-100 select-none pointer-events-none"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-100 select-none pointer-events-none"
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = "https://images.unsplash.com/photo-1593305841991-05c297ba4575?auto=format&fit=crop&w=600&q=80";
@@ -184,18 +184,18 @@ export default function WhyChooseUs({ preview, onViewMore }) {
                   />
                 </div>
 
-              {/* Content Area */}
-              <div className="relative z-20 p-6 flex-grow flex flex-col justify-between h-auto">
-                <div className={`${preview ? 'max-sm:mt-auto' : ''}`}>
-                  <h3 className="font-serif text-lg sm:text-xl font-bold text-white mb-2.5 group-hover:text-theatre-gold transition-colors duration-300 text-left">
-                    {feat.title}
-                  </h3>
-                  <p className="text-sm leading-relaxed font-sans font-light text-gray-300 text-left">
-                    {feat.desc}
-                  </p>
+                {/* Content Area */}
+                <div className="relative z-20 p-5 sm:p-6 flex-grow flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-serif text-lg sm:text-xl font-bold text-white mb-2.5 group-hover:text-theatre-gold transition-colors duration-300 text-left">
+                      {feat.title}
+                    </h3>
+                    <p className="text-sm leading-relaxed font-sans font-light text-gray-300 text-left">
+                      {feat.desc}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
           );
         })}
       </motion.div>

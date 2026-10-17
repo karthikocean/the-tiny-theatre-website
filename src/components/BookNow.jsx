@@ -136,10 +136,26 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   const [selectedAddons, setSelectedAddons] = useState([]);
   const [addonQuantities, setAddonQuantities] = useState({});
   const [addonComments, setAddonComments] = useState({});
-  const toggleAddon = (key) => {
-    setSelectedAddons(prev =>
-      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
-    );
+  const toggleAddon = (id) => {
+    const clickedAddon = dbAddons.find(a => (a._id ? String(a._id) === String(id) : a.name === id));
+    const isFog = clickedAddon && clickedAddon.name && clickedAddon.name.toLowerCase().includes('fog');
+
+    setSelectedAddons(prev => {
+      const isAlreadySelected = prev.some(item => String(item) === String(id));
+      if (isAlreadySelected) {
+        return prev.filter(item => String(item) !== String(id));
+      } else {
+        let newSelection = prev;
+        if (isFog) {
+          // If selecting a fog entry, ensure only one fog entry option is chosen
+          newSelection = prev.filter(item => {
+            const existing = dbAddons.find(a => (a._id ? String(a._id) === String(item) : a.name === item));
+            return !(existing && existing.name && existing.name.toLowerCase().includes('fog'));
+          });
+        }
+        return [...newSelection, id];
+      }
+    });
   };
   const [bookedSlots, setBookedSlots] = useState(() => {
     try {
@@ -592,19 +608,27 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
   if (dbAddons && dbAddons.length > 0) {
     dbAddons.forEach((addon) => {
       const name = addon.title || addon.name || '';
+      const addonData = {
+        _id: addon._id,
+        id: addon._id,
+        name: name,
+        price: addon.price || 0
+      };
+      if (addon._id) {
+        addonsPrices[String(addon._id)] = addonData;
+      }
       if (name) {
+        addonsPrices[name] = addonData;
         const key = getAddonKey(name);
-        addonsPrices[key] = {
-          name: name,
-          price: addon.price || 0
-        };
+        addonsPrices[key] = addonData;
       }
     });
   }
 
-  const addonsCharges = selectedAddons.reduce((sum, key) => {
-    const price = addonsPrices[key]?.price || 0;
-    const qtyStr = addonQuantities[key];
+  const addonsCharges = selectedAddons.reduce((sum, id) => {
+    const addon = dbAddons.find(a => (a._id ? String(a._id) === String(id) : a.name === id)) || addonsPrices[String(id)];
+    const price = addon?.price || 0;
+    const qtyStr = addonQuantities[id];
     const qty = qtyStr ? (parseInt(qtyStr, 10) || 1) : 1;
     return sum + (price * qty);
   }, 0);
@@ -860,9 +884,9 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       const screenObj = screens.find(s => s._id === selectedScreenId);
       const occasionObj = dbOccasions.find(o => o.name === eventCategory);
 
-      const addonIds = selectedAddons.map(key => {
-        const addon = dbAddons.find(a => getAddonKey(a.name) === key);
-        return addon ? addon._id : null;
+      const addonIds = selectedAddons.map(id => {
+        const addon = dbAddons.find(a => (a._id ? String(a._id) === String(id) : a.name === id));
+        return addon ? addon._id : id;
       }).filter(Boolean);
 
       const hasKids = activeCategories.some(cat => {
@@ -901,9 +925,9 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
       const addonQuantitiesToSend = {};
       const addonDetailsToSend = [];
 
-      selectedAddons.forEach(key => {
-        const addon = dbAddons.find(a => getAddonKey(a.name) === key);
-        let comment = addonComments[key] || '';
+      selectedAddons.forEach(id => {
+        const addon = dbAddons.find(a => (a._id ? String(a._id) === String(id) : a.name === id));
+        let comment = addonComments[id] || '';
 
         if (addon) {
           addonQuantitiesToSend[addon._id] = "1";
@@ -913,8 +937,15 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
             quantity: 1,
             comment: comment.trim() || undefined
           });
+        } else {
+          addonQuantitiesToSend[id] = "1";
+          addonDetailsToSend.push({
+            addon: id,
+            quantity: 1,
+            comment: comment.trim() || undefined
+          });
         }
-        addonQuantitiesToSend[key] = "1";
+        addonQuantitiesToSend[id] = "1";
       });
 
       if (wantsCake) {
@@ -1848,7 +1879,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                                               }
                                                             });
                                                           }}
-                                                          className={`rounded-xl overflow-hidden border cursor-pointer bg-theatre-dark/40 transition-all duration-300 relative ${isSelected
+                                                          className={`rounded-xl overflow-hidden border cursor-pointer bg-theatre-dark/40 transition-all duration-300 relative flex flex-col justify-between h-full ${isSelected
                                                             ? 'border-theatre-gold shadow-md shadow-theatre-gold/10 scale-102 bg-theatre-gold/5'
                                                             : 'border-white/10 hover:border-white/20'
                                                             }`}
@@ -1858,12 +1889,16 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                                               <Check className="w-3 h-3" />
                                                             </span>
                                                           )}
-                                                          <div className="h-24 sm:h-28 bg-gray-900 overflow-hidden">
+                                                          <div className="h-24 sm:h-28 bg-gray-900 overflow-hidden flex-shrink-0">
                                                             <img src={cake.img} alt={cake.flavor} className="w-full h-full object-cover" />
                                                           </div>
-                                                          <div className="pt-2 pb-2 px-2 text-center space-y-0.5">
-                                                            <h4 className="text-xs font-bold text-white truncate">{cake.flavor}</h4>
-                                                            <span className="text-xs text-theatre-gold font-bold">{cake.price}</span>
+                                                          <div className="p-2 text-center flex-grow flex flex-col justify-between">
+                                                            <div className="min-h-[2.5rem] flex items-center justify-center">
+                                                              <h4 className="text-xs font-bold text-white leading-tight break-words line-clamp-2">
+                                                                {cake.flavor}
+                                                              </h4>
+                                                            </div>
+                                                            <span className="text-xs text-theatre-gold font-bold block mt-1">{cake.price}</span>
                                                           </div>
                                                           {isSelected && (
                                                             <input
@@ -1878,7 +1913,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                                                 ));
                                                               }}
                                                               placeholder={`Message for ${cake.flavor}`}
-                                                              className="w-full bg-theatre-dark/60 text-white px-2.5 py-1.5 border-t border-theatre-gold/30 focus:border-theatre-gold outline-none text-[10px] placeholder:text-gray-600"
+                                                              className="w-full bg-theatre-dark/60 text-white px-2.5 py-1.5 border-t border-theatre-gold/30 focus:border-theatre-gold outline-none text-[10px] placeholder:text-gray-600 mt-auto"
                                                             />
                                                           )}
                                                         </div>
@@ -2076,7 +2111,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                 {(() => {
                                   if (!dbAddons || dbAddons.length === 0) return <div className="col-span-full py-4 text-center text-xs text-gray-400">No add-ons available.</div>;
                                   const addonList = dbAddons.map(addon => ({
-                                    key: getAddonKey(addon.name),
+                                    _id: addon._id ? String(addon._id) : addon.name,
                                     name: addon.name,
                                     price: `₹${formatCurrency(addon.price)}`,
                                     icon: getAddonIcon(addon.name),
@@ -2091,11 +2126,11 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                     <div key={chunkIdx} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 min-w-full snap-start">
                                       {chunk.map(addon => {
                                         const Icon = addon.icon;
-                                        const isSelected = selectedAddons.includes(addon.key);
+                                        const isSelected = selectedAddons.some(id => String(id) === String(addon._id));
                                         return (
                                           <div
-                                            key={addon.key}
-                                            onClick={() => toggleAddon(addon.key)}
+                                            key={addon._id}
+                                            onClick={() => toggleAddon(addon._id)}
                                             className={`rounded-xl overflow-hidden border cursor-pointer flex flex-col justify-between transition-all duration-300 relative ${isSelected
                                               ? 'border-theatre-gold bg-theatre-gold/5 text-theatre-gold scale-102 shadow-md shadow-theatre-gold/5'
                                               : 'border-white/10 bg-theatre-dark/40 text-gray-400 hover:border-white/20'
@@ -2132,7 +2167,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                               <input
                                                 type="text"
                                                 onClick={(e) => e.stopPropagation()}
-                                                value={addonComments[addon.key] || ''}
+                                                value={addonComments[addon._id] || ''}
                                                 onChange={(e) => {
                                                   let val = e.target.value;
                                                   if (addon.allowQuantity) {
@@ -2140,7 +2175,7 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                                                   }
                                                   setAddonComments(prev => ({
                                                     ...prev,
-                                                    [addon.key]: val
+                                                    [addon._id]: val
                                                   }));
                                                 }}
                                                 placeholder={addon.allowQuantity ? "Enter Number (Numeric only)" : "Enter Comment / Note"}
@@ -2276,25 +2311,25 @@ export default function BookNow({ selectedEventName, clearSelectedEvent }) {
                             {selectedTimeSlot && selectedAddons.length > 0 && (
                               <div className="space-y-1 pt-1.5 pl-2 border-t border-white/10">
                                 <span className="text-sm font-bold text-gray-300 uppercase tracking-wider block mb-1">Add-ons:</span>
-                                {selectedAddons.map(key => {
-                                  const addon = addonsPrices[key];
+                                {selectedAddons.map(id => {
+                                  const addon = dbAddons.find(a => (a._id ? String(a._id) === String(id) : a.name === id)) || addonsPrices[String(id)];
                                   if (!addon) return null;
-                                  let name = addon.name;
-                                  const qtyStr = addonQuantities[key];
+                                  let name = addon.name || addon.title;
+                                  const qtyStr = addonQuantities[id];
                                   const qty = qtyStr ? (parseInt(qtyStr, 10) || 1) : 1;
-                                  const itemTotal = addon.price * qty;
+                                  const itemTotal = (addon.price || 0) * qty;
                                   if (qty > 1) {
                                     name = `${name} (Qty: ${qty})`;
                                   }
                                   return (
-                                    <div key={key} className="flex flex-col text-sm text-gray-300 pl-1">
+                                    <div key={id} className="flex flex-col text-sm text-gray-300 pl-1">
                                       <div className="flex justify-between">
                                         <span>+ {name}:</span>
                                         <span className="text-white">₹{formatCurrency(itemTotal)}</span>
                                       </div>
-                                      {addonComments[key] && (
+                                      {addonComments[id] && (
                                         <div className="text-[10px] text-gray-400 italic pl-3 break-words max-w-xs mt-0.5">
-                                          "{addonComments[key]}"
+                                          "{addonComments[id]}"
                                         </div>
                                       )}
                                     </div>
